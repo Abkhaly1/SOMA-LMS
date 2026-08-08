@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login ‹ SOMA LMS</title>
+    
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/layout.css">
+</head>
+<body style="background: var(--c-bg-page); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: var(--sp-4);">
+
+    <div class="card" style="width: 100%; max-width: 420px; padding: var(--sp-8); background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md);">
+        
+        <div style="text-align: center; margin-bottom: var(--sp-6);">
+            <div style="display: inline-flex; align-items: center; gap: 10px; margin-bottom: var(--sp-2);">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--c-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                <h1 style="margin: 0; font-size: var(--text-2xl); font-weight: 800; color: var(--c-text-primary);">SOMA LMS</h1>
+            </div>
+            <p style="font-size: var(--text-sm); color: var(--c-text-secondary); margin: 0;">Sign in to access your school portal</p>
+        </div>
+
+        <div id="errorNotice" class="alert alert-danger" style="display: none; margin-bottom: var(--sp-4);">
+            <span id="errorMessage">Invalid credentials.</span>
+        </div>
+
+        <form id="loginForm">
+            <!-- 🤖 Anti-Bot Honeypot Trap Field (Hidden from humans, filled by bots) -->
+            <input type="text" name="website_hp_check" id="website_hp_check" tabindex="-1" style="display:none !important;" autocomplete="off">
+
+            <div class="form-group" style="margin-bottom: var(--sp-4); text-align: left;">
+                <label class="form-label" for="username">Email Address or Phone Number <span style="color:var(--c-danger);">*</span></label>
+                <input type="text" id="username" class="form-control" placeholder="e.g. admin@somalms.ac.tz or +255700000000" required autofocus style="text-align: left !important; padding-left: 12px !important;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: var(--sp-6); text-align: left;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <label class="form-label" for="password" style="margin:0;">Password <span style="color:var(--c-danger);">*</span></label>
+                    <a href="../forgot-password.html" style="font-size: var(--text-xs); color: var(--c-primary); text-decoration: none;">Forgot password?</a>
+                </div>
+                <div style="position: relative;">
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required style="text-align: left !important; padding-left: 12px !important; padding-right: 40px !important;">
+                    <button type="button" id="togglePassword" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--c-text-muted);">👁️</button>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn btn-primary" style="width: 100%; justify-content: center; height: 42px; font-weight: 600;">
+                Sign In
+            </button>
+        </form>
+
+        <div style="margin-top: var(--sp-6); text-align: center; font-size: var(--text-xs); color: var(--c-text-muted); border-top: 1px solid var(--c-border-light); padding-top: var(--sp-4);">
+            SOMA LMS Enterprise &copy; 2026 • All Rights Reserved
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+            const usernameInput = document.getElementById('username');
+            const passwordInput = document.getElementById('password');
+            const togglePasswordBtn = document.getElementById('togglePassword');
+            const errorNotice = document.getElementById('errorNotice');
+            const errorMessage = document.getElementById('errorMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (togglePasswordBtn) {
+                togglePasswordBtn.addEventListener('click', () => {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        togglePasswordBtn.textContent = '🙈';
+                    } else {
+                        passwordInput.type = 'password';
+                        togglePasswordBtn.textContent = '👁️';
+                    }
+                });
+            }
+
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const identifier = usernameInput.value.trim();
+                const password = passwordInput.value.trim();
+
+                errorNotice.style.display = 'none';
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Authenticating...';
+
+                try {
+                    const res = await fetch('/soma-lms/api/auth/login.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ 
+                            email: identifier, 
+                            phone: identifier, 
+                            password: password, 
+                            website_hp_check: document.getElementById('website_hp_check')?.value || '' 
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        const role = data.role || (data.user ? data.user.role : 'super_admin');
+                        const token = data.token || 'db_session_token_' + Date.now();
+                        
+                        localStorage.setItem('soma_token', token);
+                        localStorage.setItem('soma_role', role);
+                        sessionStorage.setItem('soma_token', token);
+                        sessionStorage.setItem('soma_role', role);
+                        if (data.user) {
+                            sessionStorage.setItem('soma_user', JSON.stringify(data.user));
+                        }
+
+                        if (data.require_first_time_setup || data.require_password_change) {
+                            window.location.href = 'first-time-setup.html';
+                            return;
+                        }
+
+                        const dashboardMap = {
+                            'super_admin': '../super-admin/dashboard.html',
+                            'regional_officer': '../regional/dashboard.html',
+                            'tenant_admin': '../headmaster/dashboard.html',
+                            'teacher': '../teacher/dashboard.html',
+                            'student': '../student/dashboard.html',
+                            'parent': '../parent/dashboard.html'
+                        };
+
+                        window.location.href = dashboardMap[role] || '../super-admin/dashboard.html';
+                    } else {
+                        errorMessage.textContent = data.message || 'Invalid username or password.';
+                        errorNotice.style.display = 'block';
+                    }
+                } catch (err) {
+                    console.error("Login failed", err);
+                    errorMessage.textContent = 'Network or server error. Please try again.';
+                    errorNotice.style.display = 'block';
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Sign In';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

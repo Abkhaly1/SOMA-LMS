@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile ‹ Wasifu Wangu ‹ SOMA LMS</title>
+
+    <link rel="stylesheet" href="css/design-system.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/headmaster-theme.css">
+
+    <script type="module" src="layouts/global-layout.js"></script>
+    <script type="module" src="js/auth/auth-guard.js"></script>
+
+    <style>
+        .profile-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .profile-card-header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-radius: 12px;
+            padding: 24px 30px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+        }
+
+        .avatar-circle {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #047857;
+            color: white;
+            font-size: 28px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid #059669;
+            flex-shrink: 0;
+        }
+
+        .locked-field-badge {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-section-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 0 0 16px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 8px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <app-sidebar id="appSidebar" active-path="/profile.html"></app-sidebar>
+
+        <div class="app-main">
+            <app-topbar username="User Portal"></app-topbar>
+
+            <main class="app-content-wrapper">
+                <div class="app-content">
+                    <app-breadcrumb path="SOMA LMS, Wasifu Wangu (My Profile)"></app-breadcrumb>
+
+                    <div class="profile-container" style="margin-top: 16px;">
+                        
+                        <!-- Profile Header Card -->
+                        <div class="profile-card-header">
+                            <div class="avatar-circle" id="userAvatar">U</div>
+                            <div>
+                                <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800;" id="hdrFullName">Loading Profile...</h2>
+                                <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #94a3b8; flex-wrap: wrap;">
+                                    <span>ID / Reg Code: <strong style="color: #34d399;" id="hdrUserCode">-</strong></span>
+                                    <span>•</span>
+                                    <span>Nafasi: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span></span>
+                                    <span>•</span>
+                                    <span>Shule: <strong style="color: white;" id="hdrSchoolName">-</strong></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Alert Box for Notifications -->
+                        <div id="profileAlert" class="alert" style="display: none; margin-bottom: 20px;"></div>
+
+                        <!-- 🔒 SECTION 1: PERMANENT & LOCKED IDENTIFIERS (READ-ONLY) -->
+                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                            <h3 class="form-section-title">🔒 Taarifa za Kudumu (Haiwezi Kubadilishwa na Mtumiaji)</h3>
+                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">
+                                Majina Kamili na Namba ya Usajili ni vitambulisho vya kudumu shuleni kwako. Ni Mwalimu Mkuu pekee anayeweza kuvibadilisha ikiwa kuna uhitaji.
+                            </p>
+
+                            <div class="profile-grid">
+                                <div>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Jina Kamili (Full Name)</label>
+                                    <div class="locked-field-badge">
+                                        <span id="txtFullName">-</span>
+                                        <span>🔒 Lock</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Namba ya Usajili (Reg Code / Staff ID)</label>
+                                    <div class="locked-field-badge" style="background: #ecfdf5; border-color: #a7f3d0; color: #047857;">
+                                        <code style="font-family: monospace; font-size: 14px; font-weight: 800;" id="txtUserCode">-</code>
+                                        <span>🔒 Lock</span>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Wadhifa (Role)</label>
+                                    <div class="locked-field-badge">
+                                        <span id="txtRole">-</span>
+                                        <span>🔒 Lock</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ✏️ SECTION 2: EDITABLE PROFILE DETAILS (PHONE, EMAIL, GENDER) -->
+                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                            <h3 class="form-section-title">✏️ Taarifa Unazoweza Kurekebisha (Editable Information)</h3>
+                            
+                            <form id="formUpdateProfile">
+                                <div class="profile-grid">
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Namba ya Simu (Phone Number) <span style="color: red;">*</span></label>
+                                        <input type="text" id="inpPhone" class="form-control" placeholder="Mfano: +255712345678" style="font-weight: 700;" required>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Barua Pepe (Email Address)</label>
+                                        <input type="email" id="inpEmail" class="form-control" placeholder="Mfano: user@school.ac.tz" style="font-weight: 600;">
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Jinsia (Gender) <span style="color: red;">*</span></label>
+                                        <select id="inpGender" class="form-control" style="font-weight: 700;" required>
+                                            <option value="Male">Mwanaume (Male)</option>
+                                            <option value="Female">Mwanamke (Female)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                                    <button type="submit" id="btnSaveProfile" class="btn btn-primary" style="font-weight: 800; background: #047857; border-color: #047857; padding: 10px 24px;">
+                                        💾 Hifadhi Mabadiliko ya Wasifu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                        <!-- 🔐 SECTION 3: CHANGE PASSWORD -->
+                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                            <h3 class="form-section-title">🔐 Badilisha Nenosiri (Security & Password)</h3>
+                            
+                            <form id="formChangePassword">
+                                <div class="profile-grid">
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Nenosiri la Sasa (Current Password)</label>
+                                        <div style="position: relative;">
+                                            <input type="password" id="inpCurrPass" class="form-control" placeholder="Weka nenosiri lako la sasa" required style="padding-right: 40px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpCurrPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Nenosiri Jipya (New Password)</label>
+                                        <div style="position: relative;">
+                                            <input type="password" id="inpNewPass" class="form-control" placeholder="Kamwe zisipungue herufi 8" required style="padding-right: 40px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpNewPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Rudia Nenosiri Jipya (Confirm Password)</label>
+                                        <div style="position: relative;">
+                                            <input type="password" id="inpConfirmPass" class="form-control" placeholder="Rudia nenosiri jipya" required style="padding-right: 40px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpConfirmPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+                                    <button type="submit" id="btnSavePassword" class="btn btn-primary" style="font-weight: 800; background: #0284c7; border-color: #0284c7; padding: 10px 24px;">
+                                        🔑 Badili Nenosiri Sasa
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const userStr = sessionStorage.getItem('soma_user');
+            if (userStr) {
+                try {
+                    const uObj = JSON.parse(userStr);
+                    if (uObj.role) {
+                        const sb = document.getElementById('appSidebar');
+                        if (sb) sb.setAttribute('role', uObj.role);
+                    }
+                } catch(e) {}
+            }
+
+            document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.getAttribute('data-target');
+                    const targetInput = document.getElementById(targetId);
+                    if (targetInput) {
+                        if (targetInput.type === 'password') {
+                            targetInput.type = 'text';
+                            btn.textContent = '🙈';
+                        } else {
+                            targetInput.type = 'password';
+                            btn.textContent = '👁️';
+                        }
+                    }
+                });
+            });
+
+            await loadUserProfile();
+
+            // Submit listener for Profile Updates (Phone, Email, Gender)
+            document.getElementById('formUpdateProfile').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnSaveProfile');
+                const alertBox = document.getElementById('profileAlert');
+                btn.disabled = true;
+                btn.textContent = 'Inahifadhi...';
+                alertBox.style.display = 'none';
+
+                const phone = document.getElementById('inpPhone').value.trim();
+                const email = document.getElementById('inpEmail').value.trim();
+                const gender = document.getElementById('inpGender').value;
+
+                try {
+                    const res = await fetch('/soma-lms/api/auth/profile.php?action=update_profile', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ phone, email, gender })
+                    });
+                    const result = await res.json();
+
+                    if (res.ok && result.success) {
+                        alertBox.className = 'alert alert-success';
+                        alertBox.textContent = result.message || 'Wasifu umehuishwa kikamilifu!';
+                        alertBox.style.display = 'block';
+                        await loadUserProfile();
+                    } else {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = result.message || 'Hitilafu wakati wa kuhifadhi wasifu.';
+                        alertBox.style.display = 'block';
+                    }
+                } catch(err) {
+                    alertBox.className = 'alert alert-danger';
+                    alertBox.textContent = 'Hitilafu ya mtandao wakati wa kuhifadhi.';
+                    alertBox.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '💾 Hifadhi Mabadiliko ya Wasifu';
+                }
+            });
+
+            // Submit listener for Password Change
+            document.getElementById('formChangePassword').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btnSavePassword');
+                const alertBox = document.getElementById('profileAlert');
+                btn.disabled = true;
+                btn.textContent = 'Inabadilisha...';
+                alertBox.style.display = 'none';
+
+                const current_password = document.getElementById('inpCurrPass').value;
+                const new_password = document.getElementById('inpNewPass').value;
+                const confirm_password = document.getElementById('inpConfirmPass').value;
+
+                try {
+                    const res = await fetch('/soma-lms/api/auth/profile.php?action=change_password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({ current_password, new_password, confirm_password })
+                    });
+                    const result = await res.json();
+
+                    if (res.ok && result.success) {
+                        alertBox.className = 'alert alert-success';
+                        alertBox.textContent = result.message || 'Nenosiri limebadilishwa kikamilifu!';
+                        alertBox.style.display = 'block';
+                        document.getElementById('formChangePassword').reset();
+                    } else {
+                        alertBox.className = 'alert alert-danger';
+                        alertBox.textContent = result.message || 'Hitilafu wakati wa kubadili nenosiri.';
+                        alertBox.style.display = 'block';
+                    }
+                } catch(err) {
+                    alertBox.className = 'alert alert-danger';
+                    alertBox.textContent = 'Hitilafu ya mtandao.';
+                    alertBox.style.display = 'block';
+                } finally {
+                    btn.disabled = false;
+                    btn.textContent = '🔑 Badili Nenosiri Sasa';
+                }
+            });
+        });
+
+        async function loadUserProfile() {
+            try {
+                const res = await fetch('/soma-lms/api/auth/profile.php?action=get', { credentials: 'include' });
+                const result = await res.json();
+
+                if (res.ok && result.success && result.user) {
+                    const u = result.user;
+                    const initial = u.full_name ? u.full_name.charAt(0).toUpperCase() : 'U';
+
+                    if (u.role) {
+                        const sb = document.getElementById('appSidebar');
+                        if (sb) sb.setAttribute('role', u.role);
+                    }
+
+                    document.getElementById('userAvatar').textContent = initial;
+                    document.getElementById('hdrFullName').textContent = u.full_name || 'User';
+                    document.getElementById('hdrUserCode').textContent = u.user_code || 'N/A';
+                    document.getElementById('hdrRole').textContent = (u.role || '').toUpperCase();
+                    document.getElementById('hdrSchoolName').textContent = u.school_name || 'SOMA LMS School';
+
+                    document.getElementById('txtFullName').textContent = u.full_name || '-';
+                    document.getElementById('txtUserCode').textContent = u.user_code || '-';
+                    document.getElementById('txtRole').textContent = (u.role || '').toUpperCase();
+
+                    document.getElementById('inpPhone').value = u.phone || '';
+                    document.getElementById('inpEmail').value = u.email || '';
+                    document.getElementById('inpGender').value = u.gender || 'Male';
+                }
+            } catch(e) {
+                console.error('Error fetching user profile:', e);
+            }
+        }
+    </script>
+</body>
+</html>

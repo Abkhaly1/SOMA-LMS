@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Subjects ‹ SOMA LMS</title>
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <script type="module" src="../layouts/global-layout.js"></script>
+    <script type="module" src="../js/auth/auth-guard.js"></script>
+    <style>
+        .page-card { background:#fff; border:1px solid var(--c-border-light); border-radius:16px; padding:22px; box-shadow:0 8px 24px rgba(15,23,42,0.04); }
+        .subject-list { list-style:none; padding:0; margin:0; display:grid; gap:12px; }
+        .subject-item { padding:16px; background:#f8fafc; border-radius:12px; display:flex; justify-content:space-between; align-items:center; }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <app-sidebar role="student" active-path="/student/subjects.html"></app-sidebar>
+        <div class="app-main">
+            <app-topbar username="Student Portal"></app-topbar>
+            <main class="app-content-wrapper">
+                <div class="app-content">
+                    <div class="page-card">
+                        <h1 style="margin:0 0 14px; font-size:24px; font-weight:800;">Your Subjects</h1>
+                        <p style="margin:0 0 20px; color:var(--c-text-secondary);">Review the subjects you are currently enrolled in for this academic year.</p>
+                        <ul class="subject-list" id="subjectList"></ul>
+                    </div>
+                    <app-footer></app-footer>
+                </div>
+            </main>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const subjects = ['Mathematics', 'English', 'Biology', 'History', 'Geography', 'Civics', 'Kiswahili'];
+            const list = document.getElementById('subjectList');
+            subjects.forEach(subject => {
+                const item = document.createElement('li');
+                item.className = 'subject-item';
+                item.innerHTML = `<span>${subject}</span><span style="font-weight:700;color:var(--c-primary);">Enrolled</span>`;
+                list.appendChild(item);
+            });
+        });
+    </script>
+</body>
+</html>

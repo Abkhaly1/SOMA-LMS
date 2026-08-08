@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Master Attendance ‹ Form Master ‹ SOMA LMS</title>
+    
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/teacher-theme.css">
+    
+    <script type="module" src="../layouts/global-layout.js"></script>
+    <script type="module" src="../js/auth/auth-guard.js"></script>
+
+    <style>
+        .headcount-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+
+        .hc-card {
+            background: white;
+            border: 1px solid var(--c-border-light);
+            border-radius: 10px;
+            padding: 14px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .hc-card .num {
+            font-size: 24px;
+            font-weight: 800;
+        }
+
+        .hc-card .lbl {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--c-text-muted);
+            text-transform: uppercase;
+        }
+
+        .att-toggle-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .att-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            border: 1.5px solid var(--c-border-light);
+            background: #f8fafc;
+            color: var(--c-text-muted);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .att-btn.active-present {
+            background: #10b981 !important;
+            border-color: #10b981 !important;
+            color: white !important;
+        }
+
+        .att-btn.active-absent {
+            background: #ef4444 !important;
+            border-color: #ef4444 !important;
+            color: white !important;
+        }
+
+        .att-btn.active-excused {
+            background: #f59e0b !important;
+            border-color: #f59e0b !important;
+            color: white !important;
+        }
+
+        .search-input-box {
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1.5px solid var(--c-border-light);
+            width: 100%;
+            max-width: 320px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <app-sidebar role="teacher" active-path="/teacher/attendance.html"></app-sidebar>
+        
+        <div class="app-main">
+            <app-topbar username="Teacher Portal"></app-topbar>
+            
+            <main class="app-content-wrapper">
+                <div class="app-content">
+                    <app-breadcrumb path="Teacher, Master Daily Attendance Hub"></app-breadcrumb>
+
+                    <!-- ACCESS CONTROL GUARD / NOT FORM MASTER WARNING -->
+                    <div id="notFormMasterAlert" style="display: none;" class="card">
+                        <div style="padding: 40px; text-align: center;">
+                            <div style="font-size: 48px; margin-bottom: 12px;">🔒</div>
+                            <h3 style="margin: 0 0 8px; color: var(--c-text-primary); font-weight: 800;">Access Restricted: Form Master Only</h3>
+                            <p id="notFormMasterMsg" style="color: var(--c-text-muted); max-width: 500px; margin: 0 auto; font-size: 14px;"></p>
+                        </div>
+                    </div>
+
+                    <!-- FORM MASTER DAILY ATTENDANCE HUB WORKSPACE -->
+                    <div id="formMasterWorkspace" style="display: none;">
+                        
+                        <!-- HEADER BAR -->
+                        <div class="card" style="padding: 20px; margin-bottom: 20px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border-radius: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                                <div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 0.5px;">📅 MASTER DAILY ATTENDANCE HUB</div>
+                                    <h2 style="margin: 4px 0 0 0; font-size: 22px; font-weight: 800; color: white;" id="hubClassroomName">Classroom: Form 1 Alpha</h2>
+                                </div>
+                                <div style="display: flex; gap: 16px; font-size: 13px; color: #cbd5e1; flex-wrap: wrap;">
+                                    <span>Supervisor: <strong style="color: white;" id="hubSupervisor">Mwl. Teacher</strong></span>
+                                    <span>•</span>
+                                    <span>Date: <strong style="color: #38bdf8;" id="hubDateStr">Monday, Aug 3, 2026</strong></span>
+                                    <span>•</span>
+                                    <span id="updateModeBadge" class="badge" style="background: #0284c7; color: white; font-weight: 700; font-size: 11px;">Mode: New Entry</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 📊 MORNING HEADCOUNT SUMMARY BAR -->
+                        <div class="headcount-bar">
+                            <div class="hc-card" style="border-left: 4px solid #64748b;">
+                                <div>
+                                    <div class="lbl">Total Roster</div>
+                                    <div class="num" id="hcTotal" style="color: #334155;">0</div>
+                                </div>
+                                <div style="font-size: 24px;">👥</div>
+                            </div>
+
+                            <div class="hc-card" style="border-left: 4px solid #10b981;">
+                                <div>
+                                    <div class="lbl">🟢 Present</div>
+                                    <div class="num" id="hcPresent" style="color: #10b981;">0</div>
+                                </div>
+                                <div style="font-size: 24px;">✅</div>
+                            </div>
+
+                            <div class="hc-card" style="border-left: 4px solid #ef4444;">
+                                <div>
+                                    <div class="lbl">🔴 Absent</div>
+                                    <div class="num" id="hcAbsent" style="color: #ef4444;">0</div>
+                                </div>
+                                <div style="font-size: 24px;">❌</div>
+                            </div>
+
+                            <div class="hc-card" style="border-left: 4px solid #f59e0b;">
+                                <div>
+                                    <div class="lbl">🟡 Excused</div>
+                                    <div class="num" id="hcExcused" style="color: #f59e0b;">0</div>
+                                </div>
+                                <div style="font-size: 24px;">⚠️</div>
+                            </div>
+                        </div>
+
+                        <!-- 👥 LIVE ROLL-CALL SHEET CARD -->
+                        <div class="card" style="padding: 24px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px;">
+                                <div>
+                                    <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--c-text-primary);">👥 LIVE ATTENDANCE ROLL-CALL SHEET</h3>
+                                    <p style="margin: 2px 0 0 0; font-size: 13px; color: var(--c-text-muted);">Default status pre-selected as Present. Toggle only absent or excused students.</p>
+                                </div>
+                                <div>
+                                    <input type="text" id="studentSearchInput" class="search-input-box" placeholder="🔍 Search student by name or ID...">
+                                </div>
+                            </div>
+
+                            <!-- ROSTER TABLE -->
+                            <div style="overflow-x: auto;">
+                                <table class="table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                    <thead>
+                                        <tr style="background: #1e293b; color: white;">
+                                            <th style="padding: 12px; width: 40px;">#</th>
+                                            <th style="padding: 12px;">Student Reg ID & Full Name</th>
+                                            <th style="padding: 12px; width: 340px; text-align: right;">Attendance Status Toggle Options</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="dailyRosterBody">
+                                        <tr><td colspan="3" style="text-align:center; padding: 24px;">Loading student roster...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- 📝 ATTENDANCE REMARKS / NOTES & SAVE BUTTON -->
+                            <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--c-border-light);">
+                                <label class="form-label" style="font-weight: 700; font-size: 13px; display: block; margin-bottom: 6px;">📝 Attendance Notes / Remarks (Optional):</label>
+                                <textarea id="generalRemarksText" class="form-control" rows="3" placeholder="Add remarks (e.g., Baraka's parent called; he is sick)..."></textarea>
+                                
+                                <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                                    <button class="btn btn-primary" id="btnSaveDailyAtt" style="font-weight: 800; background: #10b981; border-color: #10b981; padding: 12px 28px; font-size: 14px;">
+                                        💾 SAVE DAILY ATTENDANCE
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentClassroomId = null;
+        let rosterData = [];
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadDailyAttendanceHub();
+
+            // Search filter listener
+            document.getElementById('studentSearchInput').addEventListener('input', (e) => {
+                filterRoster(e.target.value.trim().toLowerCase());
+            });
+
+            // Save button listener
+            document.getElementById('btnSaveDailyAtt').addEventListener('click', saveDailyAttendance);
+        });
+
+        async function loadDailyAttendanceHub() {
+            try {
+                const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=get_daily_attendance', { credentials: 'include' });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    if (!data.is_form_master) {
+                        document.getElementById('notFormMasterAlert').style.display = 'block';
+                        document.getElementById('notFormMasterMsg').textContent = data.message;
+                        document.getElementById('formMasterWorkspace').style.display = 'none';
+                        return;
+                    }
+
+                    document.getElementById('notFormMasterAlert').style.display = 'none';
+                    document.getElementById('formMasterWorkspace').style.display = 'block';
+
+                    currentClassroomId = data.classroom_id;
+                    rosterData = data.roster || [];
+
+                    // Populate Header Metadata
+                    document.getElementById('hubClassroomName').textContent = `Classroom: ${data.classroom_name}`;
+                    document.getElementById('hubDateStr').textContent = data.date_formatted;
+                    document.getElementById('generalRemarksText').value = data.general_remarks || '';
+
+                    const modeBadge = document.getElementById('updateModeBadge');
+                    if (data.is_update_mode) {
+                        modeBadge.textContent = 'Mode: Edit/Update Existing Today Record';
+                        modeBadge.style.background = '#f59e0b';
+                    } else {
+                        modeBadge.textContent = 'Mode: New Daily Entry';
+                        modeBadge.style.background = '#0284c7';
+                    }
+
+                    // Render Headcount & Table Roster
+                    renderRoster(rosterData);
+                }
+            } catch (e) {
+                console.error("Error loading daily attendance:", e);
+            }
+        }
+
+        function renderRoster(list) {
+            const tbody = document.getElementById('dailyRosterBody');
+            if (list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align:center; padding: 24px; color: var(--c-text-muted);">No active students found in your classroom roster.</td></tr>';
+                updateHeadcountSummary();
+                return;
+            }
+
+            let html = '';
+            list.forEach((s, idx) => {
+                const status = s.status || 'Present';
+                html += `
+                    <tr class="roster-row" data-name="${s.full_name.toLowerCase()}" data-code="${(s.user_code||'').toLowerCase()}">
+                        <td style="padding: 12px; font-weight: 700; color: var(--c-text-muted);">${idx + 1}</td>
+                        <td style="padding: 12px;">
+                            <div style="font-weight: 800; color: var(--c-text-primary); font-size: 14px;">${s.full_name}</div>
+                            <div style="font-size: 12px; font-family: monospace; color: var(--c-text-muted);">${s.user_code || 'STD/2026'}</div>
+                        </td>
+                        <td style="padding: 12px; text-align: right;">
+                            <div class="att-toggle-group" style="justify-content: flex-end;" data-student-id="${s.student_id}">
+                                <button class="att-btn ${status==='Present'?'active-present':''}" onclick="setToggle(this, 'Present')">🟢 Present</button>
+                                <button class="att-btn ${status==='Absent'?'active-absent':''}" onclick="setToggle(this, 'Absent')">🔴 Absent</button>
+                                <button class="att-btn ${status==='Excused'?'active-excused':''}" onclick="setToggle(this, 'Excused')">🟡 Excused</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            updateHeadcountSummary();
+        }
+
+        window.setToggle = function(btn, targetStatus) {
+            const group = btn.parentElement;
+            const sid = group.getAttribute('data-student-id');
+            
+            // Remove active classes
+            group.querySelectorAll('.att-btn').forEach(b => {
+                b.classList.remove('active-present', 'active-absent', 'active-excused');
+            });
+
+            // Add active class
+            if (targetStatus === 'Present') btn.classList.add('active-present');
+            else if (targetStatus === 'Absent') btn.classList.add('active-absent');
+            else if (targetStatus === 'Excused') btn.classList.add('active-excused');
+
+            // Update in local data
+            const item = rosterData.find(r => String(r.student_id) === String(sid));
+            if (item) {
+                item.status = targetStatus;
+            }
+
+            updateHeadcountSummary();
+        };
+
+        function updateHeadcountSummary() {
+            const total = rosterData.length;
+            const present = rosterData.filter(r => (r.status || 'Present') === 'Present').length;
+            const absent = rosterData.filter(r => r.status === 'Absent').length;
+            const excused = rosterData.filter(r => r.status === 'Excused').length;
+
+            document.getElementById('hcTotal').textContent = total;
+            document.getElementById('hcPresent').textContent = present;
+            document.getElementById('hcAbsent').textContent = absent;
+            document.getElementById('hcExcused').textContent = excused;
+        }
+
+        function filterRoster(query) {
+            const rows = document.querySelectorAll('.roster-row');
+            rows.forEach(row => {
+                const name = row.getAttribute('data-name');
+                const code = row.getAttribute('data-code');
+                if (name.includes(query) || code.includes(query)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        async function saveDailyAttendance() {
+            if (!currentClassroomId) {
+                alert('No classroom ID identified.');
+                return;
+            }
+
+            const statuses = {};
+            rosterData.forEach(r => {
+                statuses[r.student_id] = r.status || 'Present';
+            });
+
+            const remarks = document.getElementById('generalRemarksText').value.trim();
+
+            const btn = document.getElementById('btnSaveDailyAtt');
+            btn.disabled = true;
+            btn.textContent = '⏳ Saving Daily Roll-Call...';
+
+            try {
+                const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=save_daily_attendance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        classroom_id: currentClassroomId,
+                        statuses: statuses,
+                        remarks: remarks
+                    })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    alert(data.message);
+                    await loadDailyAttendanceHub();
+                } else {
+                    alert(data.message || 'Error saving attendance.');
+                }
+            } catch (e) {
+                alert('Network error saving daily attendance.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '💾 SAVE DAILY ATTENDANCE';
+            }
+        }
+    </script>
+</body>
+</html>

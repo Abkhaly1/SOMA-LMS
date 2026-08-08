@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Replacement & Handover Wizard ‹ Headmaster ‹ SOMA LMS</title>
+    
+    <link rel="stylesheet" href="../../css/design-system.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="../../css/headmaster-theme.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="module" src="../../layouts/global-layout.js"></script>
+    <script type="module" src="../../js/auth/auth-guard.js"></script>
+
+    <style>
+        .handover-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 24px; background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+            border-radius: 10px; margin-bottom: 14px; color: white;
+            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.25);
+        }
+        .wizard-step-card {
+            background: white; border: 1px solid var(--c-border-light);
+            border-radius: 10px; padding: 22px; margin-bottom: 16px;
+        }
+        .step-num {
+            width: 28px; height: 28px; border-radius: 50%; background: #4f46e5; color: white;
+            display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        <app-sidebar role="tenant_admin" active-path="/headmaster/allocations/teacher-handover.html"></app-sidebar>
+        
+        <div class="app-main">
+            <app-topbar username="Headmaster Portal"></app-topbar>
+            
+            <main class="app-content-wrapper" style="padding-top: 10px;">
+                <div class="app-content" style="padding: 0;">
+                    
+                    <app-workspace-layout hide-back style="gap: 10px;">
+                        
+                        <!-- ── HEADER BANNER ────────────────────────── -->
+                        <div class="handover-header">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div style="width: 40px; height: 40px; border-radius: 50%; background: #ffffff; color: #4f46e5; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 800;">
+                                    🔄
+                                </div>
+                                <div>
+                                    <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: white; line-height: 1.2;">
+                                        Teacher Replacement & Handover Wizard
+                                    </h2>
+                                    <div style="color: #c7d2fe; font-size: 12px;">
+                                        Seamlessly transfer Class Guider roles and Subject Period access when a teacher leaves or changes position.
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:10px;">
+                                <a href="class-guiders.html" class="btn btn-outline btn-sm" style="background:rgba(255,255,255,0.2);color:white;border-color:rgba(255,255,255,0.4);font-weight:700;">
+                                    🏫 Back to Class Guiders
+                                </a>
+                                <a href="subject-allocations.html" class="btn btn-outline btn-sm" style="background:rgba(255,255,255,0.2);color:white;border-color:rgba(255,255,255,0.4);font-weight:700;">
+                                    📚 Back to Subject Allocations
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- ── WIZARD FORM ───────────────────────────── -->
+                        <div style="max-width: 860px;">
+                            
+                            <!-- STEP 1: SELECT OUTGOING TEACHER -->
+                            <div class="wizard-step-card">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                    <span class="step-num">1</span>
+                                    <h3 style="margin:0;font-size:16px;font-weight:800;color:var(--c-text-primary);">
+                                        Select Outgoing Teacher (Leaving / Transferring Teacher)
+                                    </h3>
+                                </div>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <select id="outgoingTeacherSelect" class="form-control" style="font-weight:700;font-size:14px;">
+                                        <option value="">-- Select Outgoing Teacher --</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- STEP 2: RESPONSIBILITIES ROSTER PREVIEW -->
+                            <div class="wizard-step-card" id="step2Card" style="display:none;">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                    <span class="step-num">2</span>
+                                    <h3 style="margin:0;font-size:16px;font-weight:800;color:var(--c-text-primary);">
+                                        Active Responsibilities & Roles to Transfer
+                                    </h3>
+                                </div>
+
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                                    <!-- Guider Roles -->
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;">
+                                        <h4 style="margin:0 0 10px;font-size:14px;font-weight:800;color:#1e293b;">🏫 Class Guider (Mwalimu Mlezi) Roles</h4>
+                                        <ul id="guiderRolesList" style="margin:0;padding-left:18px;font-size:13px;color:#334155;">
+                                            <li>None</li>
+                                        </ul>
+                                    </div>
+
+                                    <!-- Subject Roles -->
+                                    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px;">
+                                        <h4 style="margin:0 0 10px;font-size:14px;font-weight:800;color:#1e293b;">📖 Subject Period Assignments</h4>
+                                        <ul id="subjectRolesList" style="margin:0;padding-left:18px;font-size:13px;color:#334155;">
+                                            <li>None</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- STEP 3: SELECT REPLACEMENT TEACHER & CONFIRM -->
+                            <div class="wizard-step-card" id="step3Card" style="display:none;">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                    <span class="step-num">3</span>
+                                    <h3 style="margin:0;font-size:16px;font-weight:800;color:var(--c-text-primary);">
+                                        Select Incoming Replacement Teacher
+                                    </h3>
+                                </div>
+
+                                <div class="form-group">
+                                    <select id="replacementTeacherSelect" class="form-control" style="font-weight:700;font-size:14px;">
+                                        <option value="">-- Select Replacement Teacher --</option>
+                                    </select>
+                                </div>
+
+                                <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:8px;padding:14px;margin-top:16px;color:#3730a3;font-size:13px;">
+                                    🔒 <strong>Data Access Handover:</strong> Upon executing handover, the replacement teacher will immediately gain access to student class rosters, daily morning attendance, and examination marks entry for all transferred classes.
+                                </div>
+
+                                <div style="margin-top:20px;display:flex;justify-content:flex-end;">
+                                    <button type="button" class="btn btn-primary" id="btnExecuteHandover" style="background:#4f46e5;border-color:#4338ca;font-weight:700;padding:12px 28px;">
+                                        🔄 Execute 1-Click Role & Access Handover
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </app-workspace-layout>
+
+                </div>
+                <app-footer></app-footer>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let allTeachers = [];
+
+        async function loadHandoverWizard() {
+            try {
+                const res = await fetch('/soma-lms/api/headmaster/allocations/guiders_api.php', { credentials: 'include' });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    allTeachers = data.teachers || [];
+
+                    const outSel = $('#outgoingTeacherSelect').empty().append('<option value="">-- Select Outgoing Teacher --</option>');
+                    const repSel = $('#replacementTeacherSelect').empty().append('<option value="">-- Select Replacement Teacher --</option>');
+
+                    allTeachers.forEach(t => {
+                        outSel.append(`<option value="${t.id}">${t.full_name} (${t.user_code || 'TCH'})</option>`);
+                        repSel.append(`<option value="${t.id}">${t.full_name} (${t.user_code || 'TCH'})</option>`);
+                    });
+                }
+            } catch(e) { console.error("Error loading handover wizard:", e); }
+        }
+
+        $('#outgoingTeacherSelect').on('change', async function() {
+            const teacherId = $(this).val();
+            if (!teacherId) {
+                $('#step2Card, #step3Card').hide();
+                return;
+            }
+
+            try {
+                const res = await fetch(`/soma-lms/api/headmaster/allocations/handover_api.php?action=teacher_summary&teacher_id=${teacherId}`, { credentials: 'include' });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    const guiders = data.guider_roles || [];
+                    const subjects = data.subject_roles || [];
+
+                    const gList = $('#guiderRolesList').empty();
+                    if (guiders.length === 0) {
+                        gList.append('<li><em>No active Class Guider roles.</em></li>');
+                    } else {
+                        guiders.forEach(g => gList.append(`<li><strong>${g.grade_name} ${g.classroom_name}</strong> (Class Guider)</li>`));
+                    }
+
+                    const sList = $('#subjectRolesList').empty();
+                    if (subjects.length === 0) {
+                        sList.append('<li><em>No active Subject Period assignments.</em></li>');
+                    } else {
+                        subjects.forEach(s => sList.append(`<li><strong>${s.grade_name} ${s.classroom_name}</strong> - ${s.subject_name} (<code>${s.subject_code}</code>)</li>`));
+                    }
+
+                    $('#step2Card, #step3Card').show();
+                }
+            } catch(e) { console.error("Error loading teacher summary:", e); }
+        });
+
+        $('#btnExecuteHandover').on('click', async function() {
+            const outId = $('#outgoingTeacherSelect').val();
+            const repId = $('#replacementTeacherSelect').val();
+
+            if (!outId || !repId) {
+                alert('Please select both Outgoing and Replacement teachers.');
+                return;
+            }
+
+            if (outId === repId) {
+                alert('Outgoing and replacement teachers cannot be the same person.');
+                return;
+            }
+
+            if (!confirm('Are you sure you want to execute this role and data access handover?')) return;
+
+            try {
+                const res = await fetch('/soma-lms/api/headmaster/allocations/handover_api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ action: 'execute_handover', outgoing_teacher_id: outId, replacement_teacher_id: repId })
+                });
+                const data = await res.json();
+
+                if (res.ok && data.success) {
+                    alert(data.message);
+                    window.location.href = 'class-guiders.html';
+                } else { alert(data.message || 'Failed to execute handover.'); }
+            } catch(e) { alert('Network error executing handover.'); }
+        });
+
+        $(document).ready(() => {
+            loadHandoverWizard();
+        });
+    </script>
+</body>
+</html>

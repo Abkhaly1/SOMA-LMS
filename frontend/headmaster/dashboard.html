@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard ‹ Headmaster ‹ SOMA LMS</title>
+    
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/headmaster-theme.css">
+    
+    <script type="module" src="../layouts/global-layout.js"></script>
+    <script type="module" src="../js/auth/auth-guard.js"></script>
+
+    <style>
+        .stat-card-premium {
+            background: #ffffff;
+            border: 1px solid var(--c-border-light);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .stat-card-premium:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        .stat-card-accent-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 6px;
+            display: inline-block;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .quick-shortcut-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: var(--c-text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
+        .quick-shortcut-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+            transform: translateX(2px);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-layout">
+        
+        <!-- Sidebar Component -->
+        <app-sidebar role="tenant_admin" active-path="/headmaster/dashboard.html"></app-sidebar>
+        
+        <!-- Main Area -->
+        <div class="app-main">
+            
+            <!-- Topbar Component -->
+            <app-topbar id="topbar" username="Headmaster Portal"></app-topbar>
+            
+            <!-- Content Area -->
+            <main class="app-content-wrapper">
+                <div class="app-content">
+                    
+                    <app-breadcrumb path="Headmaster, Dashboard"></app-breadcrumb>
+                    
+                    <app-page-header 
+                        id="pageHeader"
+                        title="Headmaster Portal Dashboard" 
+                        subtitle="Real-time overview of school operations, student enrollment, and academic progress.">
+                    </app-page-header>
+                    
+                    <!-- Summary Cards Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--sp-4); margin-bottom: var(--sp-6); margin-top: var(--sp-4);">
+                        
+                        <div class="stat-card-premium">
+                            <div class="stat-card-accent-bar" style="background: linear-gradient(90deg, #10b981, #059669);"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div style="color: var(--c-text-muted); font-size: var(--text-sm); font-weight: 600;">Enrolled Students</div>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #ecfdf5; color: #059669; display: flex; align-items: center; justify-content: center; font-size: 18px;">🎓</div>
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: #0f172a;" id="statStudents">
+                                <span class="skeleton" style="width: 60px; height: 32px;"></span>
+                            </div>
+                            <div style="font-size: 12px; color: #059669; font-weight: 600; margin-top: 6px;">🟢 Active School Enrollment</div>
+                        </div>
+
+                        <div class="stat-card-premium">
+                            <div class="stat-card-accent-bar" style="background: linear-gradient(90deg, #3b82f6, #1d4ed8);"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div style="color: var(--c-text-muted); font-size: var(--text-sm); font-weight: 600;">Teaching Staff</div>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #eff6ff; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 18px;">👨‍🏫</div>
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: #0f172a;" id="statTeachers">
+                                <span class="skeleton" style="width: 60px; height: 32px;"></span>
+                            </div>
+                            <div style="font-size: 12px; color: #1d4ed8; font-weight: 600; margin-top: 6px;">📘 Academic Instructors</div>
+                        </div>
+
+                        <div class="stat-card-premium">
+                            <div class="stat-card-accent-bar" style="background: linear-gradient(90deg, #8b5cf6, #6d28d9);"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div style="color: var(--c-text-muted); font-size: var(--text-sm); font-weight: 600;">Active Classes & Streams</div>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #f5f3ff; color: #6d28d9; display: flex; align-items: center; justify-content: center; font-size: 18px;">🏫</div>
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: #0f172a;" id="statClasses">
+                                <span class="skeleton" style="width: 60px; height: 32px;"></span>
+                            </div>
+                            <div style="font-size: 12px; color: #6d28d9; font-weight: 600; margin-top: 6px;">📚 Academic Classrooms</div>
+                        </div>
+
+                        <div class="stat-card-premium">
+                            <div class="stat-card-accent-bar" style="background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                                <div style="color: var(--c-text-muted); font-size: var(--text-sm); font-weight: 600;">Registered Guardians</div>
+                                <div style="width: 36px; height: 36px; border-radius: 8px; background: #fffbeb; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 18px;">👨‍👩‍👧‍👦</div>
+                            </div>
+                            <div style="font-size: 28px; font-weight: 800; color: #0f172a;" id="statParents">
+                                <span class="skeleton" style="width: 60px; height: 32px;"></span>
+                            </div>
+                            <div style="font-size: 12px; color: #d97706; font-weight: 600; margin-top: 6px;">🤝 Parent Accounts</div>
+                        </div>
+
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 2fr 1fr; gap: var(--sp-6);">
+                        
+                        <!-- Left Column: Recent Activities Feed -->
+                        <div style="display: flex; flex-direction: column; gap: var(--sp-6);">
+                            
+                            <div class="card" style="padding: 0; overflow: hidden;">
+                                <div style="padding: 16px 20px; border-bottom: 1px solid var(--c-border-light); background: #f8fafc; display: flex; justify-content: space-between; align-items: center;">
+                                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--c-text-primary);">⚡ Recent School Activity Feed</h3>
+                                    <span class="badge badge-success" style="font-weight: 600;">Live Feed</span>
+                                </div>
+                                <div style="padding: 0;">
+                                    <ul id="activitiesList" style="list-style: none; padding: 0; margin: 0;">
+                                        <li style="padding: 20px; text-align: center; color: var(--c-text-muted);">
+                                            <span class="skeleton" style="width: 100%; height: 40px; margin-bottom: 8px;"></span>
+                                            <span class="skeleton" style="width: 100%; height: 40px;"></span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <!-- Right Column: Quick Action Shortcuts & Academic Term Status -->
+                        <div style="display: flex; flex-direction: column; gap: var(--sp-6);">
+                            
+                            <div class="card" style="padding: var(--sp-6);">
+                                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 700; color: var(--c-text-primary);">🚀 Quick Action Shortcuts</h3>
+                                <div style="display: flex; flex-direction: column; gap: 10px;">
+                                    <a href="people/index.html?tab=students" class="quick-shortcut-btn">
+                                        <span>🎓</span> Manage Students Directory
+                                    </a>
+                                    <a href="people/index.html?tab=teachers" class="quick-shortcut-btn">
+                                        <span>👨‍🏫</span> Manage Teachers Directory
+                                    </a>
+                                    <a href="academics/index.html" class="quick-shortcut-btn">
+                                        <span>📚</span> Grade Subject Allocations
+                                    </a>
+                                    <a href="classrooms/index.html" class="quick-shortcut-btn">
+                                        <span>🏫</span> Classroom Stream Management
+                                    </a>
+                                    <a href="timetable/index.html" class="quick-shortcut-btn">
+                                        <span>📅</span> Class Timetables Builder
+                                    </a>
+                                    <a href="reports/index.html" class="quick-shortcut-btn" style="border-color: #cbd5e1; background: #ffffff;">
+                                        <span>📊</span> Generate Reports & Exports
+                                    </a>
+                                </div>
+                            </div>
+                            
+                            <div class="card" style="padding: var(--sp-6);">
+                                <h3 style="margin-top: 0; margin-bottom: 16px; font-size: 16px; font-weight: 700; color: var(--c-text-primary);">🗓️ Academic Status</h3>
+                                <div style="font-size: var(--text-sm); display: flex; flex-direction: column; gap: 12px;">
+                                    <div style="padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                        <div style="font-size: 12px; color: var(--c-text-muted); font-weight: 600; text-transform: uppercase;">Current Academic Term</div>
+                                        <div style="font-weight: 800; font-size: 16px; color: #0f172a; margin-top: 2px;">Term 1, 2026</div>
+                                    </div>
+                                    <div style="padding: 12px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px;">
+                                        <div style="font-size: 12px; color: #166534; font-weight: 600; text-transform: uppercase;">Tenant Operation Status</div>
+                                        <div style="font-weight: 800; font-size: 15px; color: #15803d; margin-top: 2px;">🟢 Active & Fully Provisioned</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                    
+                </div>
+                
+                <app-footer></app-footer>
+                
+            </main>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/soma-lms/api/headmaster/stats.php', { credentials: 'include' });
+                if (res.status === 403) {
+                    window.location.href = '/soma-lms/frontend/auth/login.html';
+                    return;
+                }
+                const result = await res.json();
+                if (result.success) {
+                    if (result.school) {
+                        const header = document.getElementById('pageHeader');
+                        header.setAttribute('title', `${result.school.name} Dashboard`);
+                        header.setAttribute('subtitle', `${result.school.type || 'Secondary'} School • ${result.school.region || 'Tanzania'}`);
+                    }
+
+                    if (result.stats) {
+                        document.getElementById('statStudents').textContent = (result.stats.total_students || 0).toLocaleString();
+                        document.getElementById('statTeachers').textContent = (result.stats.total_teachers || 0).toLocaleString();
+                        document.getElementById('statClasses').textContent = (result.stats.total_classes || 0).toLocaleString();
+                        document.getElementById('statParents').textContent = (result.stats.total_parents || 0).toLocaleString();
+                    }
+
+                    const actContainer = document.getElementById('activitiesList');
+                    if (result.activities && result.activities.length > 0) {
+                        let html = '';
+                        result.activities.forEach(act => {
+                            html += `
+                                <li style="padding: 16px 20px; border-bottom: 1px solid var(--c-border-light); display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-weight: 700; color: var(--c-text-primary); font-size: 14px;">${act.title}</div>
+                                        <div style="font-size: 13px; color: var(--c-text-secondary); margin-top: 2px;">${act.desc}</div>
+                                    </div>
+                                    <div style="font-size: 12px; color: var(--c-text-muted); font-weight: 600; background: #f1f5f9; padding: 4px 8px; border-radius: 4px;">${act.time}</div>
+                                </li>
+                            `;
+                        });
+                        actContainer.innerHTML = html;
+                    } else {
+                        actContainer.innerHTML = '<li style="padding: 20px; color: var(--c-text-muted); text-align: center;">No recent activities recorded.</li>';
+                    }
+                }
+            } catch (err) {
+                console.error("Error loading headmaster stats:", err);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Entry Workspace ‹ Teacher ‹ SOMA LMS</title>
+    
+    <link rel="stylesheet" href="../css/design-system.css">
+    <link rel="stylesheet" href="../css/layout.css">
+    <link rel="stylesheet" href="../css/teacher-theme.css">
+    
+    <script type="module" src="../layouts/global-layout.js"></script>
+    <script type="module" src="../js/auth/auth-guard.js"></script>
+</head>
+<body>
+    <div class="app-layout">
+        <app-sidebar role="teacher" active-path="/teacher/marks.html"></app-sidebar>
+        
+        <div class="app-main">
+            <app-topbar username="Teacher Portal"></app-topbar>
+            
+            <main class="app-content-wrapper">
+                <div class="app-content">
+                    <app-breadcrumb path="Teacher, Mark Entry Workspace"></app-breadcrumb>
+
+                    <div class="card" style="margin-top: 14px; padding: 24px;">
+                        <h2 style="margin: 0 0 6px; font-size: 20px; font-weight: 800; color: var(--c-text-primary);">📝 Mark Entry Workspace</h2>
+                        <p style="margin: 0 0 20px; font-size: 13px; color: var(--c-text-muted);">Dedicated spreadsheet workspace for continuous assessment (CA) and terminal exam scores.</p>
+
+                        <div style="display: flex; gap: 14px; flex-wrap: wrap; background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid var(--c-border-light); margin-bottom: 20px; align-items: flex-end;">
+                            <div>
+                                <label class="form-label" style="font-size: 12px; font-weight: 700;">Class Stream</label>
+                                <select id="mStream" class="form-control" style="width: 200px; font-weight: 700;"><option value="">Select Stream...</option></select>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size: 12px; font-weight: 700;">Subject Course</label>
+                                <select id="mSubj" class="form-control" style="width: 220px; font-weight: 700;"><option value="">Select Subject...</option></select>
+                            </div>
+                            <div>
+                                <label class="form-label" style="font-size: 12px; font-weight: 700;">Assessment Track</label>
+                                <select id="mTrack" class="form-control" style="width: 220px; font-weight: 700;">
+                                    <option value="terminal">Terminal Exam (Max: 60)</option>
+                                    <option value="ca">Continuous Assessment CA (Max: 40)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="btnLoadMarks" style="font-weight: 700;">🔍 Load Score Sheet</button>
+                        </div>
+
+                        <div id="marksBoard">
+                            <div style="padding: 40px; text-align: center; color: var(--c-text-muted); background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 10px;">
+                                Select class stream and subject course above to load dynamic student score sheet.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let allocs = [];
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=dashboard', { credentials: 'include' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    allocs = data.allocations || [];
+                    const streams = [...new Set(allocs.map(a => a.classroom_name))];
+                    const mStream = document.getElementById('mStream');
+                    const mSubj = document.getElementById('mSubj');
+
+                    mStream.innerHTML = '<option value="">Select Stream...</option>' + streams.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                    mStream.addEventListener('change', (e) => {
+                        const sel = e.target.value;
+                        const subjs = allocs.filter(a => a.classroom_name === sel);
+                        mSubj.innerHTML = '<option value="">Select Subject...</option>' + subjs.map(a => `<option value="${a.subject_code}">${a.subject_name} (${a.subject_code})</option>`).join('');
+                    });
+
+                    const params = new URLSearchParams(window.location.search);
+                    const initialStream = params.get('stream');
+                    const initialSubject = params.get('subject');
+                    const initialTrack = params.get('track');
+
+                    if (initialStream && streams.includes(initialStream)) {
+                        mStream.value = initialStream;
+                        mStream.dispatchEvent(new Event('change'));
+                        if (initialSubject && Array.from(mSubj.options).some(opt => opt.value === initialSubject)) {
+                            mSubj.value = initialSubject;
+                        }
+                    }
+
+                    if (initialStream && initialSubject && Array.from(mSubj.options).some(opt => opt.value === initialSubject)) {
+                        const mTrack = document.getElementById('mTrack');
+                        if (initialTrack && ['ca', 'terminal'].includes(initialTrack)) {
+                            mTrack.value = initialTrack;
+                        }
+                        loadMarks();
+                    }
+                }
+            } catch(e) {}
+
+            document.getElementById('btnLoadMarks').addEventListener('click', loadMarks);
+        });
+
+        async function loadMarks() {
+            const stream = document.getElementById('mStream').value;
+            const subject = document.getElementById('mSubj').value;
+            const track = document.getElementById('mTrack').value;
+            if (!stream || !subject) { alert('Select stream and subject first.'); return; }
+
+            const board = document.getElementById('marksBoard');
+            board.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--c-text-muted);">Loading score sheet...</div>';
+
+            try {
+                const res = await fetch(`/soma-lms/api/teacher/teacher_portal_api.php?action=get_scoresheet&stream=${encodeURIComponent(stream)}&subject=${encodeURIComponent(subject)}`, { credentials: 'include' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    const roster = data.roster || [];
+                    const maxScore = track === 'ca' ? 40 : 60;
+                    if (roster.length === 0) {
+                        board.innerHTML = '<div style="padding: 20px; text-align: center; color: var(--c-text-muted);">No active students enrolled.</div>';
+                        return;
+                    }
+
+                    let html = `
+                        <div style="background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-weight: 700; font-size: 13px; color: #78350f;">
+                            Context: ${stream} • Subject: ${subject} • Track: ${track === 'ca' ? 'Continuous Assessment (CA)' : 'Terminal Exam'} (Max: ${maxScore})
+                        </div>
+                        <table class="table" style="width: 100%; font-size: 13px;">
+                            <thead>
+                                <tr style="background: #1e293b; color: white;">
+                                    <th style="padding: 10px 12px;">#</th>
+                                    <th style="padding: 10px 12px;">Student Name & ID</th>
+                                    <th style="padding: 10px 12px; width: 200px;">Numeric Score Input</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `;
+                    roster.forEach((s, idx) => {
+                        const val = track === 'ca' ? s.ca_mark : s.terminal_mark;
+                        html += `
+                            <tr>
+                                <td style="padding: 10px 12px;">${idx + 1}</td>
+                                <td style="padding: 10px 12px;"><strong>${s.full_name}</strong> <span style="font-family:monospace; color:var(--c-text-muted); font-size:12px;">(${s.user_code || 'STD'})</span></td>
+                                <td style="padding: 10px 12px;">
+                                    <input type="number" class="form-control mark-input" data-sid="${s.student_id}" value="${val}" min="0" max="${maxScore}" style="width: 80px; display: inline-block; font-weight: 700; text-align: center;"> / ${maxScore}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    html += `
+                            </tbody>
+                        </table>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <button class="btn btn-primary" style="font-weight: 800; background: #059669; border-color: #059669; padding: 10px 24px;" onclick="saveMarks('${subject}', '${track}')">💾 SAVE AND LOCK MARKS BATCH</button>
+                        </div>
+                    `;
+                    board.innerHTML = html;
+                }
+            } catch(e) {
+                board.innerHTML = '<div style="color:var(--c-danger); padding:20px; text-align:center;">Error loading score sheet.</div>';
+            }
+        }
+
+        window.saveMarks = async function(subjectCode, trackType) {
+            const inputs = document.querySelectorAll('.mark-input');
+            const marksData = [];
+            inputs.forEach(inp => marksData.push({ student_id: inp.getAttribute('data-sid'), score: parseFloat(inp.value)||0 }));
+
+            try {
+                const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=save_marks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ subject_code: subjectCode, track_type: trackType, marks: marksData })
+                });
+                const result = await res.json();
+                if (res.ok && result.success) alert(result.message);
+                else alert(result.message || 'Error saving marks.');
+            } catch(e) { alert('Network error.'); }
+        };
+    </script>
+</body>
+</html>
