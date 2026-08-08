@@ -272,28 +272,14 @@
                                 <div>
                                     <label style="font-size: 12px; font-weight: 800; color: #475569; display: block; margin-bottom: 4px;" id="lblFilterYear">📅 Academic Year:</label>
                                     <select id="histFilterYear" class="form-control" style="font-size: 13px; font-weight: 700; padding: 6px 12px; height: 38px;">
-                                        <option value="All">All Years</option>
-                                        <option value="2026" selected>2026</option>
-                                        <option value="2025">2025</option>
+                                        <!-- populated by JS -->
                                     </select>
                                 </div>
 
                                 <div>
                                     <label style="font-size: 12px; font-weight: 800; color: #475569; display: block; margin-bottom: 4px;" id="lblFilterMonth">🗓️ Month:</label>
                                     <select id="histFilterMonth" class="form-control" style="font-size: 13px; font-weight: 700; padding: 6px 12px; height: 38px;">
-                                        <option value="All">All Months</option>
-                                        <option value="1">January</option>
-                                        <option value="2">February</option>
-                                        <option value="3">March</option>
-                                        <option value="4">April</option>
-                                        <option value="5">May</option>
-                                        <option value="6">June</option>
-                                        <option value="7">July</option>
-                                        <option value="8">August</option>
-                                        <option value="9">September</option>
-                                        <option value="10">October</option>
-                                        <option value="11">November</option>
-                                        <option value="12">December</option>
+                                        <!-- populated by JS with i18n month names -->
                                     </select>
                                 </div>
 
@@ -345,92 +331,58 @@
         </div>
     </div>
 
-    <script>
+    <script type="module">
+        import { t as getTranslations, getLang } from '../js/i18n.js';
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const currentLang = localStorage.getItem('soma_lang') || 'en'; // Default English
-
-            const dict = {
-                en: {
-                    accessRestricted: "Access Restricted: Class Guider / Form Master Only",
-                    tabEntry: "📋 Daily Roll-Call Register",
-                    tabHistory: "📜 Attendance History Logs",
-                    hubTitle: "MASTER DAILY ATTENDANCE HUB",
-                    selClassroom: "🏫 Select Classroom Stream:",
-                    selDate: "📆 Select Date:",
-                    modeLocked: "🔒 Saved & Sealed Register",
-                    modeEdit: "✏️ Edit Mode",
-                    totalRoster: "Total Roster",
-                    present: "🟢 Present",
-                    absent: "🔴 Absent",
-                    excused: "🟡 Excused",
-                    rosterTitle: "👥 Student Roll-Call Roster Sheet",
-                    searchPlaceholder: "🔍 Search student by name or ID...",
-                    colNum: "#",
-                    colRegId: "Student Reg ID",
-                    colName: "Full Name",
-                    colStatus: "Attendance Status",
-                    remarksLabel: "📝 Additional Remarks / Notes (Optional):",
-                    remarksPlaceholder: "Enter optional remarks for this date (e.g. Baraka had a family emergency)...",
-                    savedNotice: "🔒 Attendance for this date has been cataloged & sealed. Click edit to modify.",
-                    btnEdit: "✏️ Edit Roll-Call",
-                    btnSave: "💾 SAVE DAILY ATTENDANCE",
-                    btnCancel: "❌ Cancel Edit",
-                    filterYear: "📅 Academic Year:",
-                    filterMonth: "🗓️ Month:",
-                    filterRoom: "🏫 Classroom Stream:",
-                    btnFilter: "🔍 Filter History",
-                    historyTitle: "📜 Saved Attendance Roll-Call Logs",
-                    histColDate: "Date & Day",
-                    histColClass: "Classroom & Year",
-                    histColBreakdown: "Student Attendance Breakdown",
-                    histColRemarks: "Remarks",
-                    histColAction: "Action",
-                    histNoRemarks: "No remarks recorded",
-                    noStudents: "No active students found in this classroom roster.",
-                    noHistory: "No attendance logs found for the selected filters."
-                },
-                sw: {
-                    accessRestricted: "Imewekewa Mipaka: Ni Mwalimu wa Darasa Tu",
-                    tabEntry: "📋 Chukua / Hariri Mahudhurio (Daily Roll-Call)",
-                    tabHistory: "📜 Historia & Kumbukumbu za Mahudhurio",
-                    hubTitle: "MASTER DAILY ATTENDANCE HUB",
-                    selClassroom: "🏫 Chagua Darasa:",
-                    selDate: "📆 Chagua Tarehe:",
-                    modeLocked: "🔒 Imefungwa & Imekamilika (Saved & Sealed)",
-                    modeEdit: "✏️ Hali ya Kuhariri (Edit Mode)",
-                    totalRoster: "Wanafunzi Wote",
-                    present: "🟢 Waliopo",
-                    absent: "🔴 Wasiokuwepo",
-                    excused: "🟡 Udhuru",
-                    rosterTitle: "👥 Orodha ya Wanafunzi (Roll-Call Roster Sheet)",
-                    searchPlaceholder: "🔍 Tafuta mwanafunzi kwa jina au ID...",
-                    colNum: "#",
-                    colRegId: "Namba ya Usajili",
-                    colName: "Jina Kamili la Mwanafunzi",
-                    colStatus: "Hali ya Mahudhurio",
-                    remarksLabel: "📝 Maelezo ya Ziada / Remarks (Optional):",
-                    remarksPlaceholder: "Weka maelezo ya ziada ya siku hii (mfano: Baraka amepatwa na dharura ya kifamilia...)",
-                    savedNotice: "🔒 Mahudhurio ya siku hii yamehifadhiwa tayari. Ili kurekebisha, bonyeza kitufe cha kuhariri.",
-                    btnEdit: "✏️ Fungua Kuhariri (Edit Roll-Call)",
-                    btnSave: "💾 HIFADHI MAHUDHURIO (SAVE ATTENDANCE)",
-                    btnCancel: "❌ Ghairi (Cancel Edit)",
-                    filterYear: "📅 Mwaka (Academic Year):",
-                    filterMonth: "🗓️ Mwezi (Month):",
-                    filterRoom: "🏫 Darasa (Classroom):",
-                    btnFilter: "🔍 Filter Historia",
-                    historyTitle: "📜 Kumbukumbu za Mahudhurio Zilizorekodiwa (Attendance Logs)",
-                    histColDate: "Tarehe & Siku",
-                    histColClass: "Darasa & Mwaka",
-                    histColBreakdown: "Uchanganuzi wa Wanafunzi",
-                    histColRemarks: "Maelezo (Remarks)",
-                    histColAction: "Kitendo (Action)",
-                    histNoRemarks: "Bila maelezo",
-                    noStudents: "Hakuna wanafunzi waliopatikana kwenye darasa hili.",
-                    noHistory: "Hakuna kumbukumbu za mahudhurio kwa filters ulizochagua."
-                }
+            const currentLang = getLang();
+            const i18n = getTranslations();
+            // Convenience shorthand matching old `t` variable
+            const t = {
+                accessRestricted:   i18n.attendance.accessDeniedTitle,
+                tabEntry:           i18n.attendance.tabEntry,
+                tabHistory:         i18n.attendance.tabHistory,
+                hubTitle:           i18n.attendance.hubTitle,
+                selClassroom:       i18n.attendance.selectClassroom,
+                selDate:            i18n.attendance.selectDate,
+                modeLocked:         i18n.attendance.modeLocked,
+                modeEdit:           i18n.attendance.modeEdit,
+                totalRoster:        i18n.attendance.totalRoster,
+                present:            `🟢 ${i18n.common.present}`,
+                absent:             `🔴 ${i18n.common.absent}`,
+                excused:            `🟡 ${i18n.common.excused}`,
+                rosterTitle:        i18n.attendance.rosterTitle,
+                searchPlaceholder:  i18n.attendance.searchPlaceholder,
+                colNum:             i18n.attendance.colNum,
+                colRegId:           i18n.attendance.colRegId,
+                colName:            i18n.attendance.colName,
+                colStatus:          i18n.attendance.colStatus,
+                colStatusLocked:    i18n.attendance.colStatusLocked,
+                remarksLabel:       i18n.attendance.remarksLabel,
+                remarksPlaceholder: i18n.attendance.remarksPlaceholder,
+                savedNotice:        i18n.attendance.savedNotice,
+                btnEdit:            i18n.attendance.btnEdit,
+                btnSave:            i18n.attendance.btnSave,
+                btnCancel:          i18n.attendance.btnCancel,
+                filterYear:         i18n.attendance.filterYear,
+                filterMonth:        i18n.attendance.filterMonth,
+                filterRoom:         i18n.attendance.filterRoom,
+                btnFilter:          i18n.attendance.btnFilter,
+                historyTitle:       i18n.attendance.historyTitle,
+                histColDate:        i18n.attendance.histColDate,
+                histColClass:       i18n.attendance.histColClass,
+                histColBreakdown:   i18n.attendance.histColBreakdown,
+                histColRemarks:     i18n.attendance.histColRemarks,
+                histColAction:      i18n.attendance.histColAction,
+                histNoRemarks:      i18n.common.noRemarks,
+                noStudents:         i18n.attendance.noStudents,
+                noHistory:          i18n.attendance.noHistory,
+                allStreams:         i18n.common.allStreams,
+                saving:             i18n.attendance.saving,
+                savedMsg:           i18n.attendance.savedMsg,
+                errorSaving:        i18n.attendance.errorSaving,
+                networkError:       i18n.attendance.networkError,
             };
-
-            const t = dict[currentLang] || dict.en;
 
             // Apply static text labels
             document.getElementById('btnTabEntry').textContent = t.tabEntry;
@@ -459,6 +411,23 @@
             document.getElementById('thHistBreakdown').textContent = t.histColBreakdown;
             document.getElementById('thHistRemarks').textContent = t.histColRemarks;
             document.getElementById('thHistAction').textContent = t.histColAction;
+
+            // ── Populate Year filter ──────────────────────────────────────────
+            const histFilterYearEl = document.getElementById('histFilterYear');
+            const thisYear = new Date().getFullYear();
+            histFilterYearEl.innerHTML = `<option value="All">${i18n.common.allYears}</option>`;
+            for (let y = thisYear; y >= thisYear - 5; y--) {
+                histFilterYearEl.innerHTML += `<option value="${y}" ${y === thisYear ? 'selected' : ''}>${y}</option>`;
+            }
+
+            // ── Populate Month filter with i18n names ─────────────────────────
+            const monthKeys = ['january','february','march','april','may','june',
+                               'july','august','september','october','november','december'];
+            const histFilterMonthEl = document.getElementById('histFilterMonth');
+            histFilterMonthEl.innerHTML = `<option value="All">${i18n.common.allMonths}</option>`;
+            monthKeys.forEach((mk, idx) => {
+                histFilterMonthEl.innerHTML += `<option value="${idx + 1}">${i18n.common[mk]}</option>`;
+            });
 
             const notFormMasterAlert = document.getElementById('notFormMasterAlert');
             const notFormMasterMsg   = document.getElementById('notFormMasterMsg');
@@ -569,7 +538,7 @@
                             ).join('');
 
                             // Also populate history filter dropdown
-                            histFilterRoom.innerHTML = `<option value="0">${currentLang === 'sw' ? 'Madarasa Yote (All Streams)' : 'All Classroom Streams'}</option>` +
+                            histFilterRoom.innerHTML = `<option value="0">${t.allStreams}</option>` +
                                 data.managed_classes.map(c => `<option value="${c.classroom_id}">${c.classroom_name} (${c.academic_year})</option>`).join('');
                         }
                         selManagedClassroom.value = data.classroom_id;
@@ -699,19 +668,19 @@
 
                         statusCellHTML = `
                             <div class="att-toggle-group" style="justify-content: flex-end;">
-                                <button type="button" class="att-btn ${isPres}" onclick="window.setStudentStatus('${r.student_id}', 'Present')">🟢 Present</button>
-                                <button type="button" class="att-btn ${isAbs}" onclick="window.setStudentStatus('${r.student_id}', 'Absent')">🔴 Absent</button>
-                                <button type="button" class="att-btn ${isExc}" onclick="window.setStudentStatus('${r.student_id}', 'Excused')">🟡 Excused</button>
+                                <button type="button" class="att-btn ${isPres}" onclick="window.setStudentStatus('${r.student_id}', 'Present')">🟢 ${i18n.common.present}</button>
+                                <button type="button" class="att-btn ${isAbs}" onclick="window.setStudentStatus('${r.student_id}', 'Absent')">🔴 ${i18n.common.absent}</button>
+                                <button type="button" class="att-btn ${isExc}" onclick="window.setStudentStatus('${r.student_id}', 'Excused')">🟡 ${i18n.common.excused}</button>
                             </div>
                         `;
                     } else {
                         // LOCKED ELEGANT BADGES IN SEALED MODE
                         if (st === 'Present') {
-                            statusCellHTML = `<span class="badge" style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟢 Present</span>`;
+                            statusCellHTML = `<span class="badge" style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟢 ${i18n.common.present}</span>`;
                         } else if (st === 'Absent') {
-                            statusCellHTML = `<span class="badge" style="background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🔴 Absent</span>`;
+                            statusCellHTML = `<span class="badge" style="background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🔴 ${i18n.common.absent}</span>`;
                         } else {
-                            statusCellHTML = `<span class="badge" style="background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟡 Excused</span>`;
+                            statusCellHTML = `<span class="badge" style="background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟡 ${i18n.common.excused}</span>`;
                         }
                     }
 
@@ -748,13 +717,13 @@
                 const remarks = inpRemarks.value.trim();
 
                 if (!selectedCid) {
-                    alert('Please select a classroom first.');
+                    alert(i18n.attendance.selectClassroom);
                     return;
                 }
 
                 if (btnSave) {
                     btnSave.disabled = true;
-                    btnSave.textContent = 'Saving...';
+                    btnSave.textContent = t.saving;
                 }
                 attNotice.style.display = 'none';
 
@@ -775,7 +744,7 @@
 
                     if (res.ok && data.success) {
                         attNotice.className = 'alert alert-success';
-                        attNotice.textContent = '✅ ' + (data.message || 'Attendance saved successfully!');
+                        attNotice.textContent = '✅ ' + (data.message || t.savedMsg);
                         attNotice.style.display = 'block';
                         
                         // Switch back to LOCKED state immediately after save!
@@ -783,12 +752,12 @@
                         await loadDailyAttendance();
                     } else {
                         attNotice.className = 'alert alert-danger';
-                        attNotice.textContent = '❌ ' + (data.message || 'Error saving attendance.');
+                        attNotice.textContent = '❌ ' + (data.message || t.errorSaving);
                         attNotice.style.display = 'block';
                     }
                 } catch(e) {
                     attNotice.className = 'alert alert-danger';
-                    attNotice.textContent = '❌ Network error during save.';
+                    attNotice.textContent = '❌ ' + t.networkError;
                     attNotice.style.display = 'block';
                 } finally {
                     if (btnSave) {
@@ -821,7 +790,7 @@
                     const mo = histFilterMonth.value;
                     const cid = histFilterRoom.value;
 
-                    tbHistory.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">Loading history...</td></tr>';
+                    tbHistory.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">${i18n.common.loading}</td></tr>`;
 
                     const res = await fetch(`/soma-lms/api/teacher/teacher_portal_api.php?action=get_attendance_history&year=${yr}&month=${mo}&classroom_id=${cid}`, { credentials: 'include' });
                     const data = await res.json();
@@ -850,9 +819,9 @@
                                     <span class="badge" style="background: #0284c7; color: white; font-weight: 700;">${h.classroom_name} (${h.academic_year})</span>
                                 </td>
                                 <td style="padding: 12px;">
-                                    <span style="color: #10b981; font-weight: 700;">🟢 ${h.present_count} Present</span> • 
-                                    <span style="color: #ef4444; font-weight: 700;">🔴 ${h.absent_count} Absent</span> • 
-                                    <span style="color: #f59e0b; font-weight: 700;">🟡 ${h.excused_count} Excused</span>
+                                    <span style="color: #10b981; font-weight: 700;">🟢 ${h.present_count} ${i18n.common.present}</span> • 
+                                    <span style="color: #ef4444; font-weight: 700;">🔴 ${h.absent_count} ${i18n.common.absent}</span> • 
+                                    <span style="color: #f59e0b; font-weight: 700;">🟡 ${h.excused_count} ${i18n.common.excused}</span>
                                 </td>
                                 <td style="padding: 12px; font-size: 13px; color: #64748b;">
                                     ${h.general_remarks ? htmlspecialchars(h.general_remarks) : `<i style="color:#cbd5e1;">${t.histNoRemarks}</i>`}

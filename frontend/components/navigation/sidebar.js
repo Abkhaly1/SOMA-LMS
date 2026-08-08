@@ -1,8 +1,14 @@
-import { MenuConfig } from '../../js/config/menus.js';
+/**
+ * SOMA LMS – <app-sidebar> Web Component
+ * Re-renders its menu whenever the 'soma_lang' changes
+ * so all labels switch without a full page reload.
+ */
+import { getMenuConfig } from '../../js/config/menus.js';
 
 class AppSidebar extends HTMLElement {
     constructor() {
         super();
+        this._langHandler = () => this.render();
     }
 
     static get observedAttributes() {
@@ -18,6 +24,12 @@ class AppSidebar extends HTMLElement {
     connectedCallback() {
         this.render();
         this.setupEventListeners();
+        // Re-render whenever the language changes
+        window.addEventListener('soma-lang-changed', this._langHandler);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('soma-lang-changed', this._langHandler);
     }
 
     get role() {
@@ -33,11 +45,11 @@ class AppSidebar extends HTMLElement {
     }
 
     render() {
-        const menus = MenuConfig[this.role] || MenuConfig['default'];
+        const menus = (getMenuConfig()[this.role] || getMenuConfig()['default']);
         const currentPath = window.location.pathname;
         const frontendIndex = currentPath.indexOf('/frontend/');
         const basePath = (frontendIndex !== -1) ? currentPath.substring(0, frontendIndex + '/frontend/'.length) : '/';
-        
+
         let navHtml = `<ul>`;
         menus.forEach(item => {
             const formattedLink = item.link.startsWith('/') ? basePath + item.link.substring(1) : item.link;
