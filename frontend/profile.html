@@ -7,7 +7,7 @@
 
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/headmaster-theme.css">
+    <link id="roleThemeStylesheet" rel="stylesheet" href="css/headmaster-theme.css">
 
     <script type="module" src="layouts/global-layout.js"></script>
     <script type="module" src="js/auth/auth-guard.js"></script>
@@ -221,15 +221,49 @@
         </div>
     </div>
 
-    <script>
+        function applyRoleTheme(role) {
+            if (!role) return;
+            const themeLink = document.getElementById('roleThemeStylesheet');
+            const themeMap = {
+                'super_admin': 'css/admin.css',
+                'regional_officer': 'css/regional-theme.css',
+                'headmaster': 'css/headmaster-theme.css',
+                'tenant_admin': 'css/headmaster-theme.css',
+                'teacher': 'css/teacher-theme.css',
+                'student': 'css/design-system.css',
+                'parent': 'css/design-system.css'
+            };
+
+            const cssFile = themeMap[role] || 'css/headmaster-theme.css';
+            if (themeLink) {
+                themeLink.href = cssFile;
+            }
+
+            const sb = document.getElementById('appSidebar');
+            if (sb) sb.setAttribute('role', role);
+
+            const avatarCircle = document.getElementById('userAvatar');
+            if (role === 'teacher') {
+                if (avatarCircle) { avatarCircle.style.background = '#d97706'; avatarCircle.style.color = '#ffffff'; }
+            } else if (role === 'headmaster' || role === 'tenant_admin') {
+                if (avatarCircle) { avatarCircle.style.background = '#047857'; avatarCircle.style.color = '#ffffff'; }
+            } else if (role === 'regional_officer') {
+                if (avatarCircle) { avatarCircle.style.background = '#0284c7'; avatarCircle.style.color = '#ffffff'; }
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', async () => {
+            const storedRole = localStorage.getItem('soma_role') || sessionStorage.getItem('soma_role');
+            if (storedRole) {
+                applyRoleTheme(storedRole);
+            }
+
             const userStr = sessionStorage.getItem('soma_user');
             if (userStr) {
                 try {
                     const uObj = JSON.parse(userStr);
                     if (uObj.role) {
-                        const sb = document.getElementById('appSidebar');
-                        if (sb) sb.setAttribute('role', uObj.role);
+                        applyRoleTheme(uObj.role);
                     }
                 } catch(e) {}
             }
@@ -347,8 +381,7 @@
                     const initial = u.full_name ? u.full_name.charAt(0).toUpperCase() : 'U';
 
                     if (u.role) {
-                        const sb = document.getElementById('appSidebar');
-                        if (sb) sb.setAttribute('role', u.role);
+                        applyRoleTheme(u.role);
                     }
 
                     document.getElementById('userAvatar').textContent = initial;
