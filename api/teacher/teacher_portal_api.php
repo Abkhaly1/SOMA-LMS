@@ -180,38 +180,50 @@ try {
 
     // 4. FORM MASTER DAILY CLASSROOM GENERAL ATTENDANCE (MAHUDHURIO YA KILA SIKU)
     if ($action === 'get_daily_attendance') {
-        $todayDate = date('Y-m-d');
-        
-        // 1. Verify Form Master role
-        $stmtFM = $conn->prepare("
-            SELECT COALESCE(c.classroom_name, ct.class_stream_id) AS classroom_name, c.id AS classroom_id
-            FROM class_teachers ct
-            LEFT JOIN classrooms c ON (ct.class_stream_id = c.classroom_name OR ct.class_stream_id = CAST(c.id AS CHAR))
-            WHERE ct.teacher_id = :teacher_id AND ct.academic_year_id = :year_id
-            LIMIT 1
-        ");
-        $stmtFM->execute([':teacher_id' => $teacherId, ':year_id' => $academicYearId]);
-        $managedClass = $stmtFM->fetch(PDO::FETCH_ASSOC);
+        $targetDate  = $_GET['date'] ?? date('Y-m-d');
+        $classroomId = intval($_GET['classroom_id'] ?? 0);
 
-        if (!$managedClass) {
+        // 1. Fetch all classrooms where teacher is/was assigned as Class Guider (Mwalimu wa Darasa)
+        $stmtFM = $conn->prepare("
+            SELECT DISTINCT c.id AS classroom_id, c.classroom_name, c.academic_year
+            FROM class_teachers ct
+            JOIN classrooms c ON (ct.class_stream_id = c.classroom_name OR ct.class_stream_id = CAST(c.id AS CHAR))
+            WHERE ct.teacher_id = :teacher_id
+            ORDER BY c.academic_year DESC, c.classroom_name ASC
+        ");
+        $stmtFM->execute([':teacher_id' => $teacherId]);
+        $managedClasses = $stmtFM->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($managedClasses)) {
             echo json_encode([
                 "success" => true,
                 "is_form_master" => false,
-                "message" => "Access Restricted: You are not assigned as a Form Master (Mwalimu Mlezi) for any classroom in $academicYearId."
+                "message" => "Access Restricted: You are not assigned as a Class Guider (Mwalimu wa Darasa) for any classroom."
             ]);
             exit();
         }
 
-        $classroomName = $managedClass['classroom_name'];
-        $classroomId   = $managedClass['classroom_id'];
-
-        if (!$classroomId && !empty($classroomName)) {
-            $classroomId = $conn->query("SELECT id FROM classrooms WHERE classroom_name = " . $conn->quote($classroomName) . " LIMIT 1")->fetchColumn();
+        // Select requested classroom or default to first assigned classroom
+        $selectedRoom = null;
+        if ($classroomId > 0) {
+            foreach ($managedClasses as $mc) {
+                if (intval($mc['classroom_id']) === $classroomId) {
+                    $selectedRoom = $mc;
+                    break;
+                }
+            }
+        }
+        if (!$selectedRoom) {
+            $selectedRoom = $managedClasses[0];
         }
 
-        // 2. Fetch existing daily master ledger record if taken today
+        $classroomId   = $selectedRoom['classroom_id'];
+        $classroomName = $selectedRoom['classroom_name'];
+        $yearForRoom   = $selectedRoom['academic_year'];
+
+        // 2. Fetch existing daily master ledger record if taken on target date
         $stmtMaster = $conn->prepare("SELECT id, general_remarks FROM daily_attendance WHERE classroom_id = ? AND attendance_date = ?");
-        $stmtMaster->execute([$classroomId, $todayDate]);
+        $stmtMaster->execute([$classroomId, $targetDate]);
         $master = $stmtMaster->fetch(PDO::FETCH_ASSOC);
         $attendanceId = $master ? $master['id'] : null;
 
@@ -223,10 +235,10 @@ try {
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
             LEFT JOIN daily_attendance_details dad ON (dad.daily_attendance_id = :att_id AND dad.student_id = u.id)
-            WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname) AND sca.academic_year = :year AND sca.status = 'Active'
+            WHERE c.id = :cid AND sca.academic_year = :year AND sca.status != 'TransferredOut'
             ORDER BY u.full_name ASC
         ");
-        $stmtRoster->execute([':att_id' => $attendanceId, ':cname' => $classroomName, ':year' => $academicYearId]);
+        $stmtRoster->execute([':att_id' => $attendanceId, ':cid' => $classroomId, ':year' => $yearForRoom]);
         $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
         // Headcount summary
@@ -235,15 +247,20 @@ try {
         $absent   = count(array_filter($roster, fn($r) => $r['status'] === 'Absent'));
         $excused  = count(array_filter($roster, fn($r) => $r['status'] === 'Excused'));
 
+        $dtTime = strtotime($targetDate);
+        $dateFormatted = date('l, M j, Y', $dtTime);
+
         echo json_encode([
             "success" => true,
             "is_form_master" => true,
             "classroom_id" => $classroomId,
             "classroom_name" => $classroomName,
-            "attendance_date" => $todayDate,
-            "date_formatted" => date('l, M j, Y'),
+            "academic_year" => $yearForRoom,
+            "attendance_date" => $targetDate,
+            "date_formatted" => $dateFormatted,
             "is_update_mode" => !empty($master),
             "general_remarks" => $master ? $master['general_remarks'] : '',
+            "managed_classes" => $managedClasses,
             "headcount" => [
                 "total" => $total,
                 "present" => $present,
@@ -258,7 +275,7 @@ try {
     if ($action === 'save_daily_attendance') {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $classroomId     = intval($input['classroom_id'] ?? 0);
-        $date            = date('Y-m-d'); // Server implicit CURRENT_DATE
+        $date            = trim($input['attendance_date'] ?? date('Y-m-d'));
         $studentStatuses = $input['statuses'] ?? []; // [ student_id => 'Present'|'Absent'|'Excused' ]
         $remarks         = trim($input['remarks'] ?? '');
 
@@ -266,6 +283,11 @@ try {
             echo json_encode(["success" => false, "message" => "Classroom ID and student status payload required."]);
             exit();
         }
+
+        // Fetch classroom academic year
+        $yrStmt = $conn->prepare("SELECT academic_year FROM classrooms WHERE id = ?");
+        $yrStmt->execute([$classroomId]);
+        $roomYear = $yrStmt->fetchColumn() ?: $academicYearId;
 
         $conn->beginTransaction();
 
@@ -285,7 +307,7 @@ try {
                 VALUES (:year_id, :class_id, :date, :teacher_id, :remarks)
             ");
             $insertMaster->execute([
-                ':year_id'    => $academicYearId,
+                ':year_id'    => $roomYear,
                 ':class_id'   => $classroomId,
                 ':date'       => $date,
                 ':teacher_id' => $teacherId,
@@ -313,7 +335,55 @@ try {
         }
 
         $conn->commit();
-        echo json_encode(["success" => true, "message" => "Daily roll-call cataloged successfully."]);
+        echo json_encode(["success" => true, "message" => "Roll-call cataloged successfully for $date."]);
+        exit();
+    }
+
+    if ($action === 'get_attendance_history') {
+        $yearParam   = $_GET['year'] ?? 'All';
+        $monthParam  = $_GET['month'] ?? 'All';
+        $classroomId = intval($_GET['classroom_id'] ?? 0);
+
+        $sql = "
+            SELECT da.id, da.classroom_id, c.classroom_name, c.academic_year, da.attendance_date, da.general_remarks, da.created_at,
+                   (SELECT COUNT(*) FROM daily_attendance_details dad WHERE dad.daily_attendance_id = da.id) AS total_students,
+                   (SELECT COUNT(*) FROM daily_attendance_details dad WHERE dad.daily_attendance_id = da.id AND dad.status = 'Present') AS present_count,
+                   (SELECT COUNT(*) FROM daily_attendance_details dad WHERE dad.daily_attendance_id = da.id AND dad.status = 'Absent') AS absent_count,
+                   (SELECT COUNT(*) FROM daily_attendance_details dad WHERE dad.daily_attendance_id = da.id AND dad.status = 'Excused') AS excused_count
+            FROM daily_attendance da
+            JOIN classrooms c ON da.classroom_id = c.id
+            WHERE da.recorded_by_teacher_id = :teacher_id
+        ";
+        $params = [':teacher_id' => $teacherId];
+
+        if ($yearParam !== 'All') {
+            $sql .= " AND (da.academic_year_id = :year OR c.academic_year = :year)";
+            $params[':year'] = $yearParam;
+        }
+        if ($monthParam !== 'All') {
+            $sql .= " AND MONTH(da.attendance_date) = :month";
+            $params[':month'] = intval($monthParam);
+        }
+        if ($classroomId > 0) {
+            $sql .= " AND da.classroom_id = :cid";
+            $params[':cid'] = $classroomId;
+        }
+
+        $sql .= " ORDER BY da.attendance_date DESC, da.id DESC";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->execute($params);
+        $history = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($history as &$h) {
+            $h['date_formatted'] = date('l, M j, Y', strtotime($h['attendance_date']));
+        }
+
+        echo json_encode([
+            "success" => true,
+            "history" => $history,
+            "count" => count($history)
+        ]);
         exit();
     }
 
