@@ -36,7 +36,7 @@ try {
                 'code' => 'PRIM',
                 'name' => 'Primary Education',
                 'range' => 'Standard 1 - Standard 7',
-                'description' => 'Primary School Curriculum (Kiswahili, English, Hisabati, Sayansi, Social Studies)'
+                'description' => 'Primary School Curriculum (Swahili, English, Mathematics, Science, Social Studies)'
             ],
             [
                 'code' => 'O-LEVEL',
