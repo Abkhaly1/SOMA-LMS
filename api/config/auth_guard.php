@@ -1,8 +1,14 @@
 <?php
 require_once __DIR__ . '/license_guard.php';
+require_once __DIR__ . '/backup_manager.php';
+require_once __DIR__ . '/hacker_defense.php';
 
 // 🔒 Verify Software License Integrity & Anti-Theft Protection
 verifyLicenseIntegrity();
+
+// 🛡️ Run Global Intrusion Detection System (IDS) Checks
+detectSqlInjectionAttack();
+detectXssPayloadAttack();
 
 /**
  * SOMA LMS - Central Security, CSRF Protection, Anti-Bot & Multi-Tenant Guard
