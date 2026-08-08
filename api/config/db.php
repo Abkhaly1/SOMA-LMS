@@ -15,7 +15,27 @@ if ($requestMethod === 'OPTIONS') {
     exit();
 }
 
-$host = '127.0.0.1';
+// 🛡️ Global API Security Enforcement (Anti-Bot, Anti-Hacker, Authentication)
+$currentScript = str_replace('\\', '/', $_SERVER['SCRIPT_FILENAME'] ?? $_SERVER['SCRIPT_NAME'] ?? '');
+$publicEndpoints = [
+    '/api/auth/login.php',
+    '/api/system/backup.php' // Handled by its own internal CLI/SuperAdmin auth
+];
+
+$isPublic = false;
+foreach ($publicEndpoints as $publicPath) {
+    if (strpos($currentScript, ltrim($publicPath, '/')) !== false) {
+        $isPublic = true;
+        break;
+    }
+}
+
+if (!$isPublic) {
+    // Enforce robust protection on all other endpoints
+    requireAuth();
+}
+
+$host = 'localhost';
 $db_name = 'soma_lms';
 $username = 'root';
 $password = '';
