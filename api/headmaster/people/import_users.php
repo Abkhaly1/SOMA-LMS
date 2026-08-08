@@ -44,15 +44,15 @@ try {
         header('Content-Disposition: attachment; filename="' . $role . '_import_template.csv"');
         
         if ($role === 'student') {
-            echo "Majina Kamili,Namba ya Usajili\n";
+            echo "Full Name,Reg Code\n";
             echo "Baraka Juma Mussa,STD/2026/001\n";
             echo "Amani Hassan Juma,STD/2026/002\n";
             echo "Neema Charles Kimaro,STD/2026/003\n";
         } else {
-            echo "Majina Kamili,Namba ya Usajili,Department\n";
-            echo "Mwalimu Baraka Test,TCH/2026/001,Mathematics\n";
-            echo "Mwalimu Asha Juma,TCH/2026/002,Sciences\n";
-            echo "Mwalimu David John,TCH/2026/003,Languages\n";
+            echo "Full Name,Reg Code,Department\n";
+            echo "Mr. Baraka Test,TCH/2026/001,Mathematics\n";
+            echo "Ms. Asha Juma,TCH/2026/002,Sciences\n";
+            echo "Mr. David John,TCH/2026/003,Languages\n";
         }
         exit();
     }
@@ -112,13 +112,13 @@ try {
                 $hasConflict = true;
                 $conflictDetails = [
                     'type' => 'in_file_duplicate',
-                    'message' => "Namba ya Usajili ({$code}) imejirudia ndani ya faili hili (Mstari #{$inFileCodeRow})."
+                    'message' => "Reg Code ({$code}) is duplicated within this file (Line #{$inFileCodeRow})."
                 ];
             } else if ($inFileNameRow) {
                 $hasConflict = true;
                 $conflictDetails = [
                     'type' => 'in_file_duplicate',
-                    'message' => "Jina '{$name}' limejirudia ndani ya faili hili (Mstari #{$inFileNameRow})."
+                    'message' => "Name '{$name}' is duplicated within this file (Line #{$inFileNameRow})."
                 ];
             } else if ($matchByCode && $matchByName && $matchByCode['id'] === $matchByName['id']) {
                 $hasConflict = true;
@@ -127,7 +127,7 @@ try {
                     'existing_id' => $matchByCode['id'],
                     'existing_name' => $matchByCode['full_name'],
                     'existing_code' => $matchByCode['user_code'],
-                    'message' => "Akaunti yenye Reg ID ({$code}) na Jina '{$name}' tayari ipo kwenye mfumo."
+                    'message' => "An account with Reg Code ({$code}) and Name '{$name}' already exists in the system."
                 ];
             } else if ($matchByCode) {
                 $hasConflict = true;
@@ -136,7 +136,7 @@ try {
                     'existing_id' => $matchByCode['id'],
                     'existing_name' => $matchByCode['full_name'],
                     'existing_code' => $matchByCode['user_code'],
-                    'message' => "Reg ID ({$code}) tayari inatumiwa na '{$matchByCode['full_name']}'."
+                    'message' => "Reg Code ({$code}) is already used by '{$matchByCode['full_name']}'."
                 ];
             } else if ($matchByName) {
                 $hasConflict = true;
@@ -145,7 +145,7 @@ try {
                     'existing_id' => $matchByName['id'],
                     'existing_name' => $matchByName['full_name'],
                     'existing_code' => $matchByName['user_code'],
-                    'message' => "Jina '{$name}' linafanana na mtumiaji aliyepo mwenye Reg ID ({$matchByName['user_code']})."
+                    'message' => "Name '{$name}' matches existing user with Reg Code ({$matchByName['user_code']})."
                 ];
             }
 

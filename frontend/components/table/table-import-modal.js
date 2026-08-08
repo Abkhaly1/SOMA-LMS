@@ -72,14 +72,14 @@ class AppCsvImportModal extends HTMLElement {
     getInstructionsHtml(type) {
         const specs = {
             'teachers': {
-                headers: 'Majina Kamili, Namba ya Usajili, Department',
-                sample: 'Mwalimu Baraka Test, TCH/2026/001, Mathematics',
-                fields: ['Majina Kamili (required)', 'Namba ya Usajili / Staff ID (required)', 'Department (optional)']
+                headers: 'Full Name, Reg Code, Department',
+                sample: 'Mr. Baraka Test, TCH/2026/001, Mathematics',
+                fields: ['Full Name (required)', 'Reg Code / Staff ID (required)', 'Department (optional)']
             },
             'students': {
-                headers: 'Majina Kamili, Namba ya Usajili',
+                headers: 'Full Name, Reg Code',
                 sample: 'Baraka Juma Mussa, STD/2026/001',
-                fields: ['Majina Kamili (required)', 'Namba ya Usajili / Student Reg No (required)']
+                fields: ['Full Name (required)', 'Reg Code / Student Reg No (required)']
             },
             'schools': {
                 headers: 'name, type, region, headmaster_name, headmaster_phone',
@@ -87,20 +87,20 @@ class AppCsvImportModal extends HTMLElement {
                 fields: ['School Name (required)', 'Type (Primary/Secondary)', 'Region', 'Headmaster Name', 'Headmaster Phone']
             },
             'general': {
-                headers: 'Majina Kamili, Namba ya Usajili',
+                headers: 'Full Name, Reg Code',
                 sample: 'Amani Hassan Juma, REG/2026/001',
-                fields: ['Majina Kamili', 'Namba ya Usajili']
+                fields: ['Full Name', 'Reg Code']
             }
         };
 
         const spec = specs[type] || specs['general'];
         return `
             <div style="background: #f8fafc; padding: 14px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; margin-bottom: 16px;">
-                <p style="margin: 0 0 6px 0; font-weight: 700; color: #1e293b;">📄 Vigezo vya Faili la CSV / Excel:</p>
+                <p style="margin: 0 0 6px 0; font-weight: 700; color: #1e293b;">📄 CSV / Excel File Guidelines:</p>
                 <ul style="margin: 0; padding-left: 18px; color: #475569; line-height: 1.5;">
-                    <li>Faili lazima liwe la <strong>CSV (.csv)</strong> au Excel lililohifadhiwa kama CSV.</li>
-                    <li>Safu ya kwanza lazima iwe na Vichwa: <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a;">${spec.headers}</code></li>
-                    <li>Namba za usajili (Staff ID / Reg No) ni za kudumu na zitakuwa <strong>Password za mwanzo</strong> kwa kila mtumiaji.</li>
+                    <li>File must be a valid <strong>CSV (.csv)</strong> format.</li>
+                    <li>First row must contain Column Headers: <code style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; color: #0f172a;">${spec.headers}</code></li>
+                    <li>Registration numbers (Staff ID / Reg No) will serve as default <strong>Initial Passwords</strong> for each user.</li>
                 </ul>
             </div>
         `;
@@ -108,9 +108,9 @@ class AppCsvImportModal extends HTMLElement {
 
     downloadSampleCsv() {
         const specs = {
-            'teachers': "Majina Kamili,Namba ya Usajili,Department\r\n\"Mwalimu Baraka Test\",\"TCH/2026/001\",\"Mathematics\"\r\n\"Mwalimu Asha Juma\",\"TCH/2026/002\",\"Sciences\"\r\n\"Mwalimu David John\",\"TCH/2026/003\",\"Languages\"\r\n",
-            'students': "Majina Kamili,Namba ya Usajili\r\n\"Baraka Juma Mussa\",\"STD/2026/001\"\r\n\"Amani Hassan Juma\",\"STD/2026/002\"\r\n\"Neema Charles Kimaro\",\"STD/2026/003\"\r\n",
-            'general': "Majina Kamili,Namba ya Usajili\r\n\"Sample Name\",\"REG/2026/001\"\r\n"
+            'teachers': "Full Name,Reg Code,Department\r\n\"Mr. Baraka Test\",\"TCH/2026/001\",\"Mathematics\"\r\n\"Ms. Asha Juma\",\"TCH/2026/002\",\"Sciences\"\r\n\"Mr. David John\",\"TCH/2026/003\",\"Languages\"\r\n",
+            'students': "Full Name,Reg Code\r\n\"Baraka Juma Mussa\",\"STD/2026/001\"\r\n\"Amani Hassan Juma\",\"STD/2026/002\"\r\n\"Neema Charles Kimaro\",\"STD/2026/003\"\r\n",
+            'general': "Full Name,Reg Code\r\n\"Sample Name\",\"REG/2026/001\"\r\n"
         };
 
         const csvData = specs[this._entityType] || specs['general'];
@@ -177,10 +177,10 @@ class AppCsvImportModal extends HTMLElement {
                         <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
                             <thead style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; position: sticky; top: 0;">
                                 <tr>
-                                    <th style="padding: 6px 10px;">Mstari #</th>
-                                    <th style="padding: 6px 10px;">Jina Lililopakiwa</th>
+                                    <th style="padding: 6px 10px;">Line #</th>
+                                    <th style="padding: 6px 10px;">Uploaded Name</th>
                                     <th style="padding: 6px 10px;">Reg ID</th>
-                                    <th style="padding: 6px 10px;">Maelezo ya Mgongano</th>
+                                    <th style="padding: 6px 10px;">Conflict Description</th>
                                 </tr>
                             </thead>
                             <tbody id="conflictTableBody">
@@ -191,11 +191,11 @@ class AppCsvImportModal extends HTMLElement {
                     <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin-bottom: 6px;">
                             <input type="radio" name="dup_handling" value="skip" checked>
-                            <span>⏭️ <strong>Ruka (Skip Existing):</strong> Ingiza watumiaji wapya tu na kuacha waliopo.</span>
+                            <span>⏭️ <strong>Skip Existing:</strong> Import new users only and leave existing records unchanged.</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
                             <input type="radio" name="dup_handling" value="update">
-                            <span>🔄 <strong>Huisha (Update Existing):</strong> Rekebisha taarifa za watumiaji waliopo kulingana na faili.</span>
+                            <span>🔄 <strong>Update Existing:</strong> Update information of existing users according to the file.</span>
                         </label>
                     </div>
                 </div>
@@ -206,8 +206,8 @@ class AppCsvImportModal extends HTMLElement {
                 </div>
 
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                    <button type="button" id="btnCloseImportModal" class="btn btn-outline">Kughairi</button>
-                    <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800;" disabled>Kagua & Anza Import ➔</button>
+                    <button type="button" id="btnCloseImportModal" class="btn btn-outline">Cancel</button>
+                    <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800;" disabled>Validate & Start Import ➔</button>
                 </div>
             </div>
         `;
@@ -391,15 +391,15 @@ class AppCsvImportModal extends HTMLElement {
                             this.renderClassroomPrompt();
 
                             startBtn.disabled = false;
-                            startBtn.textContent = 'Kamilisha Ku-Import Watumiaji ➔';
-                            statusText.textContent = `Uhakiki umekamilika. Kagua sehemu zifuatazo kisha bonyeza Kamilisha.`;
+                            startBtn.textContent = 'Complete User Import ➔';
+                            statusText.textContent = `Validation complete. Review options below and click Complete.`;
                         } else {
-                            alertBox.textContent = result.message || 'Hitilafu wakati wa kukagua data.';
+                            alertBox.textContent = result.message || 'Error occurred while validating data.';
                             alertBox.style.display = 'block';
                             startBtn.disabled = false;
                         }
                     } catch (err) {
-                        alertBox.textContent = 'Hitilafu ya mtandao wakati wa kukagua data.';
+                        alertBox.textContent = 'Network error occurred while validating data.';
                         alertBox.style.display = 'block';
                         startBtn.disabled = false;
                     }
@@ -459,24 +459,24 @@ class AppCsvImportModal extends HTMLElement {
                     allocMsg = `• Wanafunzi Wameingizwa bila darasa (Unallocated Pool). Utawapangia baadae kwenye Classrooms Workspace.\n`;
                 }
 
-                alert(`🎉 Mfumo umekamilisha ku-import watumiaji!\n\n` +
-                      `• Akaunti Mpya Zilizotengenezwa: ${summary.inserted || 0}\n` +
-                      `• Akaunti Zilizohuiswa: ${summary.updated || 0}\n` +
-                      `• Zilizorukwa (Duplicates): ${summary.skipped || 0}\n` +
+                alert(`🎉 User import completed successfully!\n\n` +
+                      `• New Accounts Created: ${summary.inserted || 0}\n` +
+                      `• Accounts Updated: ${summary.updated || 0}\n` +
+                      `• Skipped (Duplicates): ${summary.skipped || 0}\n` +
                       allocMsg + `\n` +
-                      `Watumiaji wapya sasa wanaweza kuingia kwenye mfumo kwa kutumia:\n` +
-                      `• Username: Jina Kamili au Reg Code / Staff ID\n` +
-                      `• Password ya Mwanzo: Reg Code / Staff ID yenyewe.\n\n` +
-                      `Mara ya kwanza wakiingia, mfumo utawalazimisha kuweka Nenosiri Jipya na Taarifa zao za Mawasiliano.`);
+                      `New users can now log in using:\n` +
+                      `• Username: Full Name or Reg Code / Staff ID\n` +
+                      `• Initial Password: The Reg Code / Staff ID itself.\n\n` +
+                      `Upon first login, the system will prompt them to set a New Password and update contact details.`);
                 this.close();
                 window.location.reload();
             } else {
-                alertBox.textContent = result.message || 'Hitilafu wakati wa ku-import data.';
+                alertBox.textContent = result.message || 'Error occurred while importing data.';
                 alertBox.style.display = 'block';
                 startBtn.disabled = false;
             }
         } catch (err) {
-            alertBox.textContent = 'Hitilafu ya mtandao wakati wa ku-import data.';
+            alertBox.textContent = 'Network error occurred while importing data.';
             alertBox.style.display = 'block';
             startBtn.disabled = false;
         }

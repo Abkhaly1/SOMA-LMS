@@ -198,7 +198,7 @@ try {
             echo json_encode([
                 "success" => true,
                 "is_form_master" => false,
-                "message" => "Access Restricted: You are not assigned as a Class Guider (Mwalimu wa Darasa) for any classroom."
+                "message" => "Access Restricted: You are not assigned as a Class Guider for any classroom."
             ]);
             exit();
         }

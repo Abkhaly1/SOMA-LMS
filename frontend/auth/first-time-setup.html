@@ -175,8 +175,8 @@
 
     <div class="setup-card">
         <div class="setup-header">
-            <h2>🔒 Kuanzisha Akaunti Yako</h2>
-            <p>Weka Nenosiri Jipya Imara na Ujaze Taarifa Zako za Mawasiliano Kuanza Kutumia SOMA LMS</p>
+            <h2>🔒 Initialize Your Account</h2>
+            <p>Set a new strong password and provide your contact information to start using SOMA LMS</p>
         </div>
 
         <div class="setup-body">
@@ -186,66 +186,66 @@
                 
                 <!-- SECTION 1: PASSWORD SETUP -->
                 <div class="form-section-title">
-                    🔑 1. Weka Nenosiri Jipya (Strong Password)
+                    🔑 1. Set New Password
                 </div>
 
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label class="form-label">Nenosiri Jipya <span style="color:#dc2626;">*</span></label>
+                    <label class="form-label">New Password <span style="color:#dc2626;">*</span></label>
                     <div style="position: relative;">
-                        <input type="password" id="new_password" class="form-control" placeholder="Ingiza nenosiri jipya..." required style="padding-right: 40px;">
+                        <input type="password" id="new_password" class="form-control" placeholder="Enter new password..." required style="padding-right: 40px;">
                         <button type="button" class="btn-toggle-pwd" data-target="new_password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label class="form-label">Thibitisha Nenosiri Jipya <span style="color:#dc2626;">*</span></label>
+                    <label class="form-label">Confirm New Password <span style="color:#dc2626;">*</span></label>
                     <div style="position: relative;">
-                        <input type="password" id="confirm_password" class="form-control" placeholder="Rudia nenosiri jipya..." required style="padding-right: 40px;">
+                        <input type="password" id="confirm_password" class="form-control" placeholder="Re-enter new password..." required style="padding-right: 40px;">
                         <button type="button" class="btn-toggle-pwd" data-target="confirm_password" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
                     </div>
                 </div>
 
                 <!-- Password Rules Dynamic Indicators -->
                 <div class="rule-list">
-                    <div class="rule-item" id="ruleLen">❌ Zisipungue herufi 8 (Minimum 8 chars)</div>
-                    <div class="rule-item" id="ruleComplexity">❌ Weka Herufi Kubwa, Ndogo, Namba & Alama (@, #, $, !)</div>
-                    <div class="rule-item" id="ruleNotInitial">❌ Lisiwe Namba Yako ya Usajili / Staff ID ya mwanzo</div>
-                    <div class="rule-item" id="ruleNotName">❌ Lisiwe na Jina Lako au Sehemu ya Jina Lako</div>
+                    <div class="rule-item" id="ruleLen">❌ At least 8 characters long</div>
+                    <div class="rule-item" id="ruleComplexity">❌ Must include Uppercase, Lowercase, Number & Symbol (@, #, $, !)</div>
+                    <div class="rule-item" id="ruleNotInitial">❌ Cannot be your initial Registration Code / Staff ID</div>
+                    <div class="rule-item" id="ruleNotName">❌ Cannot contain your name or parts of your name</div>
                 </div>
 
                 <hr style="border: none; border-top: 1px dashed #cbd5e1; margin: 24px 0;">
 
                 <!-- SECTION 2: PROFILE DETAILS -->
                 <div class="form-section-title">
-                    📱 2. Taarifa Zako za Mawasiliano & Jinsia
+                    📱 2. Contact Details & Gender
                 </div>
 
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label class="form-label">Namba ya Simu ya Mkononi <span style="color:#dc2626;">*</span></label>
-                    <input type="tel" id="phone" class="form-control" placeholder="Mfano: +255788112233 au 0788112233" required>
+                    <label class="form-label">Mobile Phone Number <span style="color:#dc2626;">*</span></label>
+                    <input type="tel" id="phone" class="form-control" placeholder="e.g. +255788112233" required>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 14px;">
-                    <label class="form-label">Barua Pepe (Email Address) <span style="color:#dc2626;">*</span></label>
-                    <input type="email" id="email" class="form-control" placeholder="Mfano: baraka.juma@somalms.ac.tz" required>
+                    <label class="form-label">Email Address <span style="color:#dc2626;">*</span></label>
+                    <input type="email" id="email" class="form-control" placeholder="e.g. user@school.ac.tz" required>
                 </div>
 
                 <div class="form-group" style="margin-bottom: 24px;">
-                    <label class="form-label">Jinsia Yako <span style="color:#dc2626;">*</span></label>
+                    <label class="form-label">Gender <span style="color:#dc2626;">*</span></label>
                     <div class="gender-pills">
                         <label class="gender-pill">
                             <input type="radio" name="gender" value="Male" required>
-                            👨 Male (Mwanaume)
+                            👨 Male
                         </label>
                         <label class="gender-pill">
                             <input type="radio" name="gender" value="Female" required>
-                            👩 Female (Mwanamke)
+                            👩 Female
                         </label>
                     </div>
                 </div>
 
                 <button type="submit" id="btnSubmitSetup" class="btn-setup">
-                    Kamilisha Usajili & Ingia Kwenye Mfumo ➔
+                    Complete Setup & Sign In ➔
                 </button>
             </form>
         </div>
@@ -292,10 +292,10 @@
                 const ruleLen = document.getElementById('ruleLen');
                 if (val.length >= 8) {
                     ruleLen.className = 'rule-item valid';
-                    ruleLen.textContent = '✔️ Zisipungue herufi 8 (Minimum 8 chars)';
+                    ruleLen.textContent = '✔️ At least 8 characters long';
                 } else {
                     ruleLen.className = 'rule-item invalid';
-                    ruleLen.textContent = '❌ Zisipungue herufi 8 (Minimum 8 chars)';
+                    ruleLen.textContent = '❌ At least 8 characters long';
                 }
 
                 // Rule 2: Complexity (Upper, Lower, Digit, Special)
@@ -307,20 +307,20 @@
 
                 if (hasUpper && hasLower && hasDigit && hasSpecial) {
                     ruleComplexity.className = 'rule-item valid';
-                    ruleComplexity.textContent = '✔️ Herufi Kubwa, Ndogo, Namba & Alama imewekwa!';
+                    ruleComplexity.textContent = '✔️ Uppercase, Lowercase, Number & Symbol satisfied!';
                 } else {
                     ruleComplexity.className = 'rule-item invalid';
-                    ruleComplexity.textContent = '❌ Weka Herufi Kubwa, Ndogo, Namba & Alama (@, #, $, !)';
+                    ruleComplexity.textContent = '❌ Must include Uppercase, Lowercase, Number & Symbol (@, #, $, !)';
                 }
 
                 // Rule 3: Not initial Reg Code
                 const ruleNotInitial = document.getElementById('ruleNotInitial');
                 if (userCode && val.toLowerCase() === userCode) {
                     ruleNotInitial.className = 'rule-item invalid';
-                    ruleNotInitial.textContent = '❌ Lisiwe Namba Yako ya Usajili / Staff ID ya mwanzo';
+                    ruleNotInitial.textContent = '❌ Cannot be your initial Registration Code / Staff ID';
                 } else {
                     ruleNotInitial.className = 'rule-item valid';
-                    ruleNotInitial.textContent = '✔️ Tofauti na Namba Yako ya Usajili ya mwanzo';
+                    ruleNotInitial.textContent = '✔️ Different from initial Registration Code / Staff ID';
                 }
 
                 // Rule 4: Not name parts
@@ -338,10 +338,10 @@
 
                 if (containsName) {
                     ruleNotName.className = 'rule-item invalid';
-                    ruleNotName.textContent = '❌ Lisiwe na Jina Lako au Sehemu ya Jina Lako';
+                    ruleNotName.textContent = '❌ Cannot contain your name or parts of your name';
                 } else {
                     ruleNotName.className = 'rule-item valid';
-                    ruleNotName.textContent = '✔️ Halina Jina Lako wala sehemu ya jina';
+                    ruleNotName.textContent = '✔️ Does not contain your name or name parts';
                 }
             }
 
@@ -360,19 +360,19 @@
                 const gender = genderEl ? genderEl.value : '';
 
                 if (!gender) {
-                    alertBox.textContent = 'Tafadhali chagua Jinsia Yako (Male au Female).';
+                    alertBox.textContent = 'Please select your gender (Male or Female).';
                     alertBox.style.display = 'block';
                     return;
                 }
 
                 if (newPassword !== confirmPassword) {
-                    alertBox.textContent = 'Nenosiri jipya na la kurudia hayatani (Passwords do not match).';
+                    alertBox.textContent = 'Passwords do not match.';
                     alertBox.style.display = 'block';
                     return;
                 }
 
                 submitBtn.disabled = true;
-                submitBtn.textContent = 'Inahifadhi taarifa...';
+                submitBtn.textContent = 'Saving account details...';
 
                 try {
                     const res = await fetch('/soma-lms/api/auth/complete_first_login.php', {
@@ -392,7 +392,7 @@
 
                     if (res.ok && data.success) {
                         alertBox.className = 'alert-setup alert-success';
-                        alertBox.textContent = data.message || 'Hongera! Taarifa zako zimehifadhiwa. Inakupeleka kwenye Mfumo...';
+                        alertBox.textContent = data.message || 'Congratulations! Your details have been saved. Redirecting...';
                         alertBox.style.display = 'block';
 
                         setTimeout(() => {
@@ -400,10 +400,10 @@
                         }, 1200);
                     } else {
                         alertBox.className = 'alert-setup alert-danger';
-                        alertBox.textContent = data.message || 'Kuna tatizo limetokea. Tafadhali jaribu tena.';
+                        alertBox.textContent = data.message || 'An error occurred. Please try again.';
                         alertBox.style.display = 'block';
                         submitBtn.disabled = false;
-                        submitBtn.textContent = 'Kamilisha Usajili & Ingia Kwenye Mfumo ➔';
+                        submitBtn.textContent = 'Complete Setup & Sign In ➔';
                     }
                 } catch (err) {
                     console.error("Setup failed", err);
@@ -411,7 +411,7 @@
                     alertBox.textContent = 'Network or server error. Please try again.';
                     alertBox.style.display = 'block';
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Kamilisha Usajili & Ingia Kwenye Mfumo ➔';
+                    submitBtn.textContent = 'Complete Setup & Sign In ➔';
                 }
             });
         });

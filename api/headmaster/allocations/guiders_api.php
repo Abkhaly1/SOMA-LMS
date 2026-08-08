@@ -96,7 +96,7 @@ try {
         exit();
     }
 
-    // 2. POST: Assign or Change Class Guider (Mwalimu Mlezi)
+    // 2. POST: Assign or Change Class Guider
     if ($method === 'POST' && $action === 'assign_guider') {
         $classroomId = trim($input['classroom_id'] ?? '');
         $teacherId   = !empty($input['teacher_id']) ? trim($input['teacher_id']) : null;
@@ -127,7 +127,7 @@ try {
 
             echo json_encode([
                 'success' => true,
-                'message' => "{$tName} is now assigned as Class Guider (Mwalimu Mlezi) for {$roomLabel}."
+                'message' => "{$tName} is now assigned as Class Guider for {$roomLabel}."
             ]);
         } else {
             $stmt = $conn->prepare("DELETE FROM class_teachers WHERE school_id = ? AND academic_year_id = ? AND class_stream_id = ?");

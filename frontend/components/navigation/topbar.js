@@ -45,14 +45,9 @@ class AppTopbar extends HTMLElement {
                     </span>
                 </div>
                 <div class="topbar-right" style="display: flex; align-items: center; gap: 12px;">
-                    <!-- LANGUAGE SWITCHER WITH US & TZ FLAGS -->
-                    <div class="lang-switcher" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.15); border: 1.5px solid rgba(255,255,255,0.25); border-radius: 20px; padding: 3px 6px; gap: 4px;">
-                        <button type="button" class="lang-btn ${currentLang === 'en' ? 'active-lang' : ''}" data-lang="en" title="English (United States)" style="border:none; background:${currentLang === 'en' ? '#ffffff' : 'transparent'}; color:${currentLang === 'en' ? '#0f172a' : '#ffffff'}; border-radius:14px; padding:4px 10px; font-weight:800; font-size:12px; cursor:pointer; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:4px; box-shadow:${currentLang === 'en' ? '0 2px 4px rgba(0,0,0,0.15)' : 'none'};">
-                            ${tb.langEn}
-                        </button>
-                        <button type="button" class="lang-btn ${currentLang === 'sw' ? 'active-lang' : ''}" data-lang="sw" title="Kiswahili (Tanzania)" style="border:none; background:${currentLang === 'sw' ? '#ffffff' : 'transparent'}; color:${currentLang === 'sw' ? '#0f172a' : '#ffffff'}; border-radius:14px; padding:4px 10px; font-weight:800; font-size:12px; cursor:pointer; transition:all 0.2s ease; display:inline-flex; align-items:center; gap:4px; box-shadow:${currentLang === 'sw' ? '0 2px 4px rgba(0,0,0,0.15)' : 'none'};">
-                            ${tb.langSw}
-                        </button>
+                    <!-- SYSTEM LANGUAGE BADGE (ENGLISH LOCKED) -->
+                    <div class="lang-badge" style="display: inline-flex; align-items: center; background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.3); border-radius: 20px; padding: 4px 12px; font-weight:800; font-size:12px; color:#ffffff; gap: 6px;">
+                        <span>🇺🇸 English (US)</span>
                     </div>
 
                     <span style="font-size: var(--text-sm);">${tb.howdy} <strong>${this.username}</strong></span>

@@ -12,7 +12,7 @@ class AppSameNameAuditModal extends HTMLElement {
     async open(role = 'all') {
         this._role = role;
         this.style.display = 'flex';
-        this.querySelector('#sameNameBody').innerHTML = '<div style="padding: 30px; text-align: center; color: #64748b;">Inakagua watumiaji wenye majina yanayofanana shuleni kwako...</div>';
+        this.querySelector('#sameNameBody').innerHTML = '<div style="padding: 30px; text-align: center; color: #64748b;">Auditing users with duplicate names in your school...</div>';
         await this.loadAuditData();
     }
 
@@ -35,8 +35,8 @@ class AppSameNameAuditModal extends HTMLElement {
                     body.innerHTML = `
                         <div style="padding: 40px 20px; text-align: center;">
                             <div style="font-size: 48px; margin-bottom: 12px;">✅</div>
-                            <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #047857;">Hakuna Majina Yaliyofanana!</h4>
-                            <p style="margin: 0; font-size: 13px; color: #64748b;">Watumiaji wote waliosajiliwa shuleni kwako wana majina tofauti ya kipekee.</p>
+                            <h4 style="margin: 0 0 6px 0; font-size: 16px; font-weight: 800; color: #047857;">No Duplicate Names Found!</h4>
+                            <p style="margin: 0; font-size: 13px; color: #64748b;">All registered users in your school have distinct unique names.</p>
                         </div>
                     `;
                     return;
@@ -46,10 +46,10 @@ class AppSameNameAuditModal extends HTMLElement {
                 groups.forEach((g, gIdx) => {
                     let userCards = '';
                     g.users.forEach(u => {
-                        const roleLabel = u.role === 'teacher' ? '👨‍🏫 Mwalimu' : '🎓 Mwanafunzi';
+                        const roleLabel = u.role === 'teacher' ? '👨‍🏫 Teacher' : '🎓 Student';
                         const classDept = u.classroom_name ? `${u.grade_name || ''} - ${u.classroom_name}` : (u.department || 'Academics');
-                        const phone = u.phone || 'Haipatikani';
-                        const email = u.email || 'Haipatikani';
+                        const phone = u.phone || 'Unavailable';
+                        const email = u.email || 'Unavailable';
                         const gender = u.gender || 'N/A';
 
                         userCards += `
@@ -67,10 +67,10 @@ class AppSameNameAuditModal extends HTMLElement {
                                     </div>
 
                                     <div style="font-size: 12px; color: #475569; display: flex; flex-direction: column; gap: 4px;">
-                                        <div>🏫 <strong>Darasa/Idara:</strong> ${classDept}</div>
-                                        <div>📱 <strong>Simu:</strong> ${phone}</div>
+                                        <div>🏫 <strong>Class/Dept:</strong> ${classDept}</div>
+                                        <div>📱 <strong>Phone:</strong> ${phone}</div>
                                         <div>✉️ <strong>Email:</strong> ${email}</div>
-                                        <div>👤 <strong>Jinsia:</strong> ${gender}</div>
+                                        <div>👤 <strong>Gender:</strong> ${gender}</div>
                                     </div>
                                 </div>
                             </div>
@@ -83,16 +83,16 @@ class AppSameNameAuditModal extends HTMLElement {
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <span style="font-size: 18px;">👥</span>
                                     <h4 style="margin: 0; font-size: 16px; font-weight: 800; color: #1e293b;">
-                                        Kundi #${gIdx + 1}: <span style="color: #047857;">${g.full_name}</span>
+                                        Group #${gIdx + 1}: <span style="color: #047857;">${g.full_name}</span>
                                     </h4>
                                 </div>
                                 <span class="badge" style="background: #fef3c7; color: #92400e; font-weight: 800; padding: 4px 10px;">
-                                    Watu ${g.count} wenye Jina Hili
+                                    ${g.count} People With This Name
                                 </span>
                             </div>
 
                             <p style="margin: 0 0 12px 0; font-size: 12px; color: #64748b;">
-                                Kagua Namba zao za Usajili (Reg IDs), Simu na Madarasa hapo chini ili kujiridhisha kama ni watu tofauti:
+                                Review their Registration IDs (Reg IDs), Phone numbers, and Classes below to verify distinct individuals:
                             </p>
 
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px;">
@@ -101,7 +101,7 @@ class AppSameNameAuditModal extends HTMLElement {
 
                             <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; justify-content: flex-end;">
                                 <button type="button" class="btn btn-outline btn-sm btn-mark-verified" style="font-weight: 700; color: #047857; border-color: #047857;">
-                                    ✔️ Nimeridhika Ni Watu Tofauti
+                                    ✔️ Verified As Different Individuals
                                 </button>
                             </div>
                         </div>
@@ -147,22 +147,22 @@ class AppSameNameAuditModal extends HTMLElement {
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
                     <div>
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #047857;">👥 Uhakiki wa Watu Wenye Majina Sawa (Same-Name Audit)</h3>
+                            <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: #047857;">👥 Same-Name User Verification Audit</h3>
                             <span id="sameNameBadge" class="badge" style="background: #047857; color: white; font-weight: 800;">-</span>
                         </div>
                         <p style="margin: 4px 0 0 0; font-size: 12px; color: #64748b;">
-                            Kagua walimu na wanafunzi wenye majina yaliyofanana kabisa (Full Name) ili kuthibisha ID namba zao.
+                            Review teachers and students with identical full names to verify their unique IDs.
                         </p>
                     </div>
                     <button type="button" id="btnCloseAuditModalX" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #64748b;">&times;</button>
                 </div>
 
                 <div id="sameNameBody" style="flex: 1; overflow-y: auto; padding-right: 4px;">
-                    <div style="padding: 30px; text-align: center; color: #64748b;">Inapakia data za uhakiki...</div>
+                    <div style="padding: 30px; text-align: center; color: #64748b;">Loading audit data...</div>
                 </div>
 
                 <div style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid #e2e8f0; padding-top: 12px; margin-top: 12px;">
-                    <button type="button" id="btnCloseAuditModal" class="btn btn-primary" style="font-weight: 700;">Kamilisha Uhakiki (Done)</button>
+                    <button type="button" id="btnCloseAuditModal" class="btn btn-primary" style="font-weight: 700;">Complete Audit</button>
                 </div>
             </div>
         `;

@@ -1,7 +1,6 @@
 /**
- * SOMA LMS - Global i18n Translation Engine
+ * SOMA LMS - Global Translation Engine (100% English System)
  * Single source of truth for ALL text in the system.
- * Supports: en (English - Default), sw (Kiswahili - Tanzania)
  */
 
 export const translations = {
@@ -228,236 +227,18 @@ export const translations = {
         },
     },
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    sw: {
-        // ─── SIDEBAR MENU LABELS ─────────────────────────────────────────────
-        menu: {
-            dashboard:           'Dashibodi',
-            schools:             'Shule',
-            regionalOffices:     'Ofisi za Mikoa',
-            academicTemplates:   'Mifano ya Kitaaluma',
-            platformUsers:       'Watumiaji wa Mfumo',
-            databaseBackups:     'Nakala Rudufu za Data',
-            reports:             'Ripoti',
-            settings:            'Mipangilio',
-            myProfile:           'Wasifu Wangu',
-            studentsDirectory:   'Orodha ya Wanafunzi',
-            teachersStaffs:      'Walimu na Wafanyakazi',
-            classGuiders:        'Walimu Welekezaji',
-            subjectAllocations:  'Ugawaji wa Masomo',
-            academics:           'Masomo ya Kitaaluma',
-            classrooms:          'Madarasa',
-            timetables:          'Jedwali la Masaa',
-            myAssignedClasses:   'Madarasa Yangu',
-            mySchedule:          'Ratiba Yangu',
-            markEntry:           'Ingiza Alama',
-            attendanceTracker:   'Kumbukumbu za Mahudhurio',
-            parentDesk:          'Dawati la Wazazi',
-            mySubjects:          'Masomo Yangu',
-            grades:              'Alama na Daraja',
-            myChildren:          'Watoto Wangu',
-        },
-
-        // ─── TOPBAR ──────────────────────────────────────────────────────────
-        topbar: {
-            platformName: 'Mfumo wa SOMA LMS',
-            howdy:        'Karibu,',
-            logout:       'Toka',
-            langEn:       '🇺🇸 EN',
-            langSw:       '🇹🇿 SW',
-        },
-
-        // ─── COMMON / SHARED ─────────────────────────────────────────────────
-        common: {
-            loading:      'Inapakia...',
-            save:         'Hifadhi',
-            cancel:       'Ghairi',
-            edit:         'Hariri',
-            delete:       'Futa',
-            view:         'Angalia',
-            search:       'Tafuta...',
-            filter:       'Chuja',
-            submit:       'Wasilisha',
-            close:        'Funga',
-            yes:          'Ndiyo',
-            no:           'Hapana',
-            back:         'Rudi',
-            next:         'Endelea',
-            confirm:      'Thibitisha',
-            success:      'Imefanikiwa',
-            error:        'Hitilafu',
-            warning:      'Onyo',
-            noData:       'Hakuna rekodi zilizopatikana.',
-            allYears:     'Miaka Yote',
-            allMonths:    'Miezi Yote',
-            allStreams:   'Madarasa Yote',
-            actions:      'Vitendo',
-            status:       'Hali',
-            name:         'Jina',
-            date:         'Tarehe',
-            year:         'Mwaka',
-            month:        'Mwezi',
-            active:       'Amilifu',
-            inactive:     'Hafifu',
-            present:      'Yupo',
-            absent:       'Hayupo',
-            excused:      'Ana Udhuru',
-            total:        'Jumla',
-            january:      'Januari',
-            february:     'Februari',
-            march:        'Machi',
-            april:        'Aprili',
-            may:          'Mei',
-            june:         'Juni',
-            july:         'Julai',
-            august:       'Agosti',
-            september:    'Septemba',
-            october:      'Oktoba',
-            november:     'Novemba',
-            december:     'Desemba',
-            remarks:      'Maelezo',
-            noRemarks:    'Bila maelezo',
-            regId:        'Namba ya Usajili',
-            fullName:     'Jina Kamili',
-        },
-
-        // ─── ATTENDANCE PAGE ─────────────────────────────────────────────────
-        attendance: {
-            pageTitle:          'Daftari la Mahudhurio ya Kila Siku',
-            hubTitle:           'KITUO cha MAHUDHURIO YA KILA SIKU',
-            tabEntry:           '📋 Rekodi Mahudhurio ya Leo',
-            tabHistory:         '📜 Historia ya Mahudhurio',
-            selectClassroom:    '🏫 Chagua Darasa:',
-            selectDate:         '📆 Chagua Tarehe:',
-            modeLocked:         '🔒 Imefungwa na Kuhifadhiwa',
-            modeEdit:           '✏️ Hali ya Kuhariri',
-            totalRoster:        'WANAFUNZI WOTE',
-            rosterTitle:        '👥 Orodha ya Wanafunzi',
-            searchPlaceholder:  '🔍 Tafuta mwanafunzi kwa jina au namba...',
-            colNum:             '#',
-            colRegId:           'Namba ya Usajili',
-            colName:            'Jina Kamili',
-            colStatus:          'Hali ya Mahudhurio (Bonyeza Kubadilisha)',
-            colStatusLocked:    'Hali ya Mahudhurio',
-            remarksLabel:       '📝 Maelezo ya Ziada (Hiari):',
-            remarksPlaceholder: 'Weka maelezo ya ziada (mfano: Baraka amepatwa na dharura ya kifamilia)...',
-            savedNotice:        '🔒 Mahudhurio ya siku hii yamehifadhiwa. Bonyeza Hariri kubadilisha.',
-            btnEdit:            '✏️ Hariri Mahudhurio',
-            btnSave:            '💾 HIFADHI MAHUDHURIO',
-            btnCancel:          '❌ Ghairi',
-            btnFilter:          '🔍 Chuja Historia',
-            historyTitle:       '📜 Kumbukumbu za Mahudhurio Zilizohifadhiwa',
-            histColDate:        'Tarehe na Siku',
-            histColClass:       'Darasa na Mwaka',
-            histColBreakdown:   'Muhtasari wa Mahudhurio',
-            histColRemarks:     'Maelezo',
-            histColAction:      'Kitendo',
-            noStudents:         'Hakuna wanafunzi waliopo kwenye darasa hili.',
-            noHistory:          'Hakuna kumbukumbu za mahudhurio kwa vichujio ulivyochagua.',
-            filterYear:         '📅 Mwaka wa Masomo:',
-            filterMonth:        '🗓️ Mwezi:',
-            filterRoom:         '🏫 Darasa:',
-            accessDeniedTitle:  'Imezuiwa: Ni Mwalimu wa Darasa Tu',
-            savedMsg:           'Mahudhurio yamehifadhiwa kikamilifu!',
-            errorSaving:        'Hitilafu wakati wa kuhifadhi. Jaribu tena.',
-            networkError:       'Hitilafu ya mtandao. Angalia muunganisho wako.',
-            saving:             'Inahifadhi...',
-        },
-
-        // ─── PROFILE PAGE ─────────────────────────────────────────────────────
-        profile: {
-            pageTitle:          'Wasifu Wangu',
-            fullName:           'Jina Kamili',
-            regId:              'Namba ya Usajili / Namba ya Mfanyakazi',
-            role:               'Wajibu',
-            locked:             '🔒 Imefungwa',
-            editableSection:    '✏️ Taarifa Zinazoweza Kubadilishwa',
-            phone:              'Namba ya Simu',
-            email:              'Barua Pepe',
-            gender:             'Jinsia',
-            male:               'Mwanaume',
-            female:             'Mwanamke',
-            btnSave:            '💾 Hifadhi Mabadiliko ya Wasifu',
-            securitySection:    '🔒 Usalama na Nenosiri',
-            currentPassword:    'Nenosiri la Sasa',
-            newPassword:        'Nenosiri Jipya',
-            confirmPassword:    'Thibitisha Nenosiri Jipya',
-            btnChangePassword:  '🔑 Badili Nenosiri Sasa',
-        },
-
-        // ─── DASHBOARD SHARED ─────────────────────────────────────────────────
-        dashboard: {
-            welcomeBack:        'Karibu tena,',
-            quickStats:         'Takwimu za Haraka',
-            recentActivity:     'Shughuli za Hivi Karibuni',
-            noActivity:         'Hakuna shughuli za hivi karibuni.',
-        },
-
-        // ─── TEACHER DASHBOARD ────────────────────────────────────────────────
-        teacherDashboard: {
-            mySubjects:         'Masomo Yangu',
-            totalStudents:      'Jumla ya Wanafunzi',
-            formMasterClass:    'Darasa Ninaloliongoza',
-            todayPeriods:       'Vipindi vya Leo',
-            myTodaySchedule:    'Ratiba ya Kufundisha Leo',
-            day:                'Siku',
-            stream:             'Darasa',
-            subject:            'Somo',
-            period:             'Kipindi',
-            time:               'Muda',
-            noSchedule:         'Hakuna vipindi vilivyopangwa kwa leo.',
-        },
-
-        // ─── HEADMASTER DASHBOARD ──────────────────────────────────────────────
-        headmasterDashboard: {
-            totalStudents:      'Jumla ya Wanafunzi',
-            totalTeachers:      'Jumla ya Walimu',
-            totalClasses:       'Jumla ya Madarasa',
-            averageAttendance:  'Kiwango cha Mahudhurio',
-        },
-
-        // ─── PROFILE ─────────────────────────────────────────────────────────
-        profile: {
-            breadcrumb:       'SOMA LMS, Wasifu Wangu',
-            roleLabel:        'Nafasi',
-            schoolLabel:      'Shule',
-            secLockedTitle:   'Taarifa za Kudumu (Haiwezi Kubadilishwa na Mtumiaji)',
-            secLockedDesc:    'Majina Kamili na Namba ya Usajili ni vitambulisho vya kudumu shuleni kwako. Ni Mwalimu Mkuu pekee anayeweza kuvibadilisha ikiwa kuna uhitaji.',
-            lblFullName:      'Jina Kamili',
-            lblRegId:         'Namba ya Usajili',
-            lblRole:          'Wadhifa',
-            secEditableTitle: 'Taarifa Unazoweza Kurekebisha',
-            lblPhone:         'Namba ya Simu',
-            phPhone:          'Mfano: +255712345678',
-            lblEmail:         'Barua Pepe',
-            phEmail:          'Mfano: user@school.ac.tz',
-            lblGender:        'Jinsia',
-            optMale:          'Mwanaume',
-            optFemale:        'Mwanamke',
-            btnSaveProfile:   'Hifadhi Mabadiliko ya Wasifu',
-            secSecurityTitle: 'Badilisha Nenosiri',
-            lblCurrPass:      'Nenosiri la Sasa',
-            phCurrPass:       'Weka nenosiri lako la sasa',
-            lblNewPass:       'Nenosiri Jipya',
-            phNewPass:        'Kamwe zisipungue herufi 8',
-            lblConfirmPass:   'Rudia Nenosiri Jipya',
-            phConfirmPass:    'Rudia nenosiri jipya',
-            btnSavePassword:  'Badili Nenosiri Sasa',
-            saving:           'Inahifadhi...',
-            changing:         'Inabadilisha...',
-            profileSaved:     'Wasifu umehuishwa kikamilifu!',
-            profileSaveErr:   'Hitilafu wakati wa kuhifadhi wasifu.',
-            pwdSaved:         'Nenosiri limebadilishwa kikamilifu!',
-            pwdErr:           'Hitilafu wakati wa kubadili nenosiri.',
-        },
-    }
+    sw: {}
 };
 
+// English-Only System Directive: Alias sw to en to prevent Swahili language rendering anywhere
+translations.sw = translations.en;
+
 /**
- * Get the current active language key ('en' or 'sw')
+ * Get the current active language key ('en') - Locked to 100% English
  */
 export function getLang() {
-    return localStorage.getItem('soma_lang') || 'en';
+    try { localStorage.setItem('soma_lang', 'en'); } catch(e) {}
+    return 'en';
 }
 
 /**

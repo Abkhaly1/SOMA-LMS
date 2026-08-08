@@ -8,3 +8,7 @@
 - **Proprietary License Notice**: All source files must include the proprietary copyright banner protecting SOMA LMS software intellectual property.
 - **Domain & Signature Lock (`license_guard.php`)**: Maintain hardware/domain license key verification to prevent unauthorized cloning, stolen database reuse, or unauthorized third-party hosting.
 - **Environment Integrity**: Ensure sensitive database credentials (`.env`, `db.php`) remain protected and isolated from repository leaks.
+
+## 3. English-Only System Directive (Strict No-Swahili Rule)
+- **100% English UI**: SOMA LMS must be 100% in English. DO NOT add, re-introduce, or write Kiswahili / Swahili words, translations, labels, buttons, messages, modal titles, or options anywhere in the system codebase, UI, database seeds, or templates.
+- **Language Lock**: The system language must remain strictly English (`en`). All UI elements, comments, tooltips, placeholders, select options, and dynamic notifications must be exclusively in English.
