@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Profile ‹ Wasifu Wangu ‹ SOMA LMS</title>
+    <title>My Profile ‹ SOMA LMS</title>
 
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/layout.css">
@@ -11,6 +11,12 @@
 
     <script type="module" src="layouts/global-layout.js"></script>
     <script type="module" src="js/auth/auth-guard.js"></script>
+    <script type="module">
+        // Pre-load i18n before DOM renders so labels are correct on first paint
+        import { t as getTranslations, getLang } from './js/i18n.js';
+        window.__i18n  = getTranslations();
+        window.__lang  = getLang();
+    </script>
 
     <style>
         .profile-container {
@@ -87,7 +93,7 @@
 
             <main class="app-content-wrapper">
                 <div class="app-content">
-                    <app-breadcrumb path="SOMA LMS, Wasifu Wangu (My Profile)"></app-breadcrumb>
+                    <app-breadcrumb id="profileBreadcrumb" path="SOMA LMS, My Profile"></app-breadcrumb>
 
                     <div class="profile-container" style="margin-top: 16px;">
                         
@@ -99,9 +105,9 @@
                                 <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #94a3b8; flex-wrap: wrap;">
                                     <span>ID / Reg Code: <strong style="color: #34d399;" id="hdrUserCode">-</strong></span>
                                     <span>•</span>
-                                    <span>Nafasi: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span></span>
+                                    <span id="hdrRoleLabel">Role: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span></span>
                                     <span>•</span>
-                                    <span>Shule: <strong style="color: white;" id="hdrSchoolName">-</strong></span>
+                                    <span id="hdrSchoolLabel">School: <strong style="color: white;" id="hdrSchoolName">-</strong></span>
                                 </div>
                             </div>
                         </div>
@@ -111,33 +117,33 @@
 
                         <!-- 🔒 SECTION 1: PERMANENT & LOCKED IDENTIFIERS (READ-ONLY) -->
                         <div class="card" style="padding: 24px; margin-bottom: 24px;">
-                            <h3 class="form-section-title">🔒 Taarifa za Kudumu (Haiwezi Kubadilishwa na Mtumiaji)</h3>
-                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;">
-                                Majina Kamili na Namba ya Usajili ni vitambulisho vya kudumu shuleni kwako. Ni Mwalimu Mkuu pekee anayeweza kuvibadilisha ikiwa kuna uhitaji.
+                            <h3 class="form-section-title" id="secLockedTitle">🔒 Permanent Identifiers (Cannot be changed by user)</h3>
+                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;" id="secLockedDesc">
+                                Full Name and Registration Code are permanent identifiers. Only the Headmaster can change them if required.
                             </p>
 
                             <div class="profile-grid">
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Jina Kamili (Full Name)</label>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblFullName">Full Name</label>
                                     <div class="locked-field-badge">
                                         <span id="txtFullName">-</span>
-                                        <span>🔒 Lock</span>
+                                        <span id="lockLabel1">🔒 Lock</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Namba ya Usajili (Reg Code / Staff ID)</label>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblRegId">Reg Code / Staff ID</label>
                                     <div class="locked-field-badge" style="background: #ecfdf5; border-color: #a7f3d0; color: #047857;">
                                         <code style="font-family: monospace; font-size: 14px; font-weight: 800;" id="txtUserCode">-</code>
-                                        <span>🔒 Lock</span>
+                                        <span id="lockLabel2">🔒 Lock</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;">Wadhifa (Role)</label>
+                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblRole">Role</label>
                                     <div class="locked-field-badge">
                                         <span id="txtRole">-</span>
-                                        <span>🔒 Lock</span>
+                                        <span id="lockLabel3">🔒 Lock</span>
                                     </div>
                                 </div>
                             </div>
@@ -145,32 +151,32 @@
 
                         <!-- ✏️ SECTION 2: EDITABLE PROFILE DETAILS (PHONE, EMAIL, GENDER) -->
                         <div class="card" style="padding: 24px; margin-bottom: 24px;">
-                            <h3 class="form-section-title">✏️ Taarifa Unazoweza Kurekebisha (Editable Information)</h3>
+                            <h3 class="form-section-title" id="secEditableTitle">✏️ Editable Information</h3>
                             
                             <form id="formUpdateProfile">
                                 <div class="profile-grid">
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Namba ya Simu (Phone Number) <span style="color: red;">*</span></label>
-                                        <input type="text" id="inpPhone" class="form-control" placeholder="Mfano: +255712345678" style="font-weight: 700;" required>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblPhone">Phone Number <span style="color: red;">*</span></label>
+                                        <input type="text" id="inpPhone" class="form-control" placeholder="e.g. +255712345678" style="font-weight: 700;" required>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Barua Pepe (Email Address)</label>
-                                        <input type="email" id="inpEmail" class="form-control" placeholder="Mfano: user@school.ac.tz" style="font-weight: 600;">
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblEmail">Email Address</label>
+                                        <input type="email" id="inpEmail" class="form-control" placeholder="e.g. user@school.ac.tz" style="font-weight: 600;">
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Jinsia (Gender) <span style="color: red;">*</span></label>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblGender">Gender <span style="color: red;">*</span></label>
                                         <select id="inpGender" class="form-control" style="font-weight: 700;" required>
-                                            <option value="Male">Mwanaume (Male)</option>
-                                            <option value="Female">Mwanamke (Female)</option>
+                                            <option value="Male" id="optMale">Male</option>
+                                            <option value="Female" id="optFemale">Female</option>
                                         </select>
                                     </div>
                                 </div>
 
                                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                                     <button type="submit" id="btnSaveProfile" class="btn btn-primary" style="font-weight: 800; background: #047857; border-color: #047857; padding: 10px 24px;">
-                                        💾 Hifadhi Mabadiliko ya Wasifu
+                                        💾 Save Profile Changes
                                     </button>
                                 </div>
                             </form>
@@ -178,30 +184,30 @@
 
                         <!-- 🔐 SECTION 3: CHANGE PASSWORD -->
                         <div class="card" style="padding: 24px; margin-bottom: 24px;">
-                            <h3 class="form-section-title">🔐 Badilisha Nenosiri (Security & Password)</h3>
+                            <h3 class="form-section-title" id="secSecurityTitle">🔐 Security & Password</h3>
                             
                             <form id="formChangePassword">
                                 <div class="profile-grid">
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Nenosiri la Sasa (Current Password)</label>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblCurrPass">Current Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpCurrPass" class="form-control" placeholder="Weka nenosiri lako la sasa" required style="padding-right: 40px;">
+                                            <input type="password" id="inpCurrPass" class="form-control" placeholder="Enter your current password" required style="padding-right: 40px;">
                                             <button type="button" class="btn-toggle-pwd" data-target="inpCurrPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Nenosiri Jipya (New Password)</label>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblNewPass">New Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpNewPass" class="form-control" placeholder="Kamwe zisipungue herufi 8" required style="padding-right: 40px;">
+                                            <input type="password" id="inpNewPass" class="form-control" placeholder="Minimum 8 characters" required style="padding-right: 40px;">
                                             <button type="button" class="btn-toggle-pwd" data-target="inpNewPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;">Rudia Nenosiri Jipya (Confirm Password)</label>
+                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblConfirmPass">Confirm New Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpConfirmPass" class="form-control" placeholder="Rudia nenosiri jipya" required style="padding-right: 40px;">
+                                            <input type="password" id="inpConfirmPass" class="form-control" placeholder="Re-enter new password" required style="padding-right: 40px;">
                                             <button type="button" class="btn-toggle-pwd" data-target="inpConfirmPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
                                         </div>
                                     </div>
@@ -209,7 +215,7 @@
 
                                 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
                                     <button type="submit" id="btnSavePassword" class="btn btn-primary" style="font-weight: 800; background: #0284c7; border-color: #0284c7; padding: 10px 24px;">
-                                        🔑 Badili Nenosiri Sasa
+                                        🔑 Change Password Now
                                     </button>
                                 </div>
                             </form>
@@ -253,7 +259,46 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserProfile();
+
+            const t = window.__i18n.profile || {};
+            const c = window.__i18n.common || {};
+
+            // Apply translations to dynamic text
+            document.getElementById('profileBreadcrumb').setAttribute('path', t.breadcrumb || 'SOMA LMS, My Profile');
+            document.getElementById('hdrRoleLabel').innerHTML = `${t.roleLabel || 'Role'}: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span>`;
+            document.getElementById('hdrSchoolLabel').innerHTML = `${t.schoolLabel || 'School'}: <strong style="color: white;" id="hdrSchoolName">-</strong>`;
+
+            document.getElementById('secLockedTitle').innerHTML = `🔒 ${t.secLockedTitle || 'Permanent Identifiers'}`;
+            document.getElementById('secLockedDesc').textContent = t.secLockedDesc || 'Full Name and Registration Code are permanent...';
+            document.getElementById('lblFullName').textContent = t.lblFullName || 'Full Name';
+            document.getElementById('lblRegId').textContent = t.lblRegId || 'Reg Code / Staff ID';
+            document.getElementById('lblRole').textContent = t.lblRole || 'Role';
+            
+            document.getElementById('lockLabel1').textContent = `🔒 ${c.lock || 'Lock'}`;
+            document.getElementById('lockLabel2').textContent = `🔒 ${c.lock || 'Lock'}`;
+            document.getElementById('lockLabel3').textContent = `🔒 ${c.lock || 'Lock'}`;
+
+            document.getElementById('secEditableTitle').innerHTML = `✏️ ${t.secEditableTitle || 'Editable Information'}`;
+            document.getElementById('lblPhone').innerHTML = `${t.lblPhone || 'Phone Number'} <span style="color: red;">*</span>`;
+            document.getElementById('inpPhone').placeholder = t.phPhone || 'e.g. +255712345678';
+            document.getElementById('lblEmail').textContent = t.lblEmail || 'Email Address';
+            document.getElementById('inpEmail').placeholder = t.phEmail || 'e.g. user@school.ac.tz';
+            document.getElementById('lblGender').innerHTML = `${t.lblGender || 'Gender'} <span style="color: red;">*</span>`;
+            document.getElementById('optMale').textContent = t.optMale || 'Male';
+            document.getElementById('optFemale').textContent = t.optFemale || 'Female';
+            document.getElementById('btnSaveProfile').textContent = `💾 ${t.btnSaveProfile || 'Save Profile Changes'}`;
+
+            document.getElementById('secSecurityTitle').innerHTML = `🔐 ${t.secSecurityTitle || 'Security & Password'}`;
+            document.getElementById('lblCurrPass').textContent = t.lblCurrPass || 'Current Password';
+            document.getElementById('inpCurrPass').placeholder = t.phCurrPass || 'Enter your current password';
+            document.getElementById('lblNewPass').textContent = t.lblNewPass || 'New Password';
+            document.getElementById('inpNewPass').placeholder = t.phNewPass || 'Minimum 8 characters';
+            document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass || 'Confirm New Password';
+            document.getElementById('inpConfirmPass').placeholder = t.phConfirmPass || 'Re-enter new password';
+            document.getElementById('btnSavePassword').textContent = `🔑 ${t.btnSavePassword || 'Change Password Now'}`;
+
             const storedRole = localStorage.getItem('soma_role') || sessionStorage.getItem('soma_role');
             if (storedRole) {
                 applyRoleTheme(storedRole);
@@ -293,7 +338,7 @@
                 const btn = document.getElementById('btnSaveProfile');
                 const alertBox = document.getElementById('profileAlert');
                 btn.disabled = true;
-                btn.textContent = 'Inahifadhi...';
+                btn.textContent = window.__i18n.profile?.saving || 'Saving...';
                 alertBox.style.display = 'none';
 
                 const phone = document.getElementById('inpPhone').value.trim();
@@ -311,21 +356,21 @@
 
                     if (res.ok && result.success) {
                         alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || 'Wasifu umehuishwa kikamilifu!';
+                        alertBox.textContent = result.message || (window.__i18n.profile?.profileSaved || 'Profile updated successfully!');
                         alertBox.style.display = 'block';
                         await loadUserProfile();
                     } else {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || 'Hitilafu wakati wa kuhifadhi wasifu.';
+                        alertBox.textContent = result.message || (window.__i18n.profile?.profileSaveErr || 'Error saving profile.');
                         alertBox.style.display = 'block';
                     }
                 } catch(err) {
                     alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = 'Hitilafu ya mtandao wakati wa kuhifadhi.';
+                    alertBox.textContent = window.__i18n.common?.networkError || 'Network error.';
                     alertBox.style.display = 'block';
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = '💾 Hifadhi Mabadiliko ya Wasifu';
+                    btn.textContent = `💾 ${window.__i18n.profile?.btnSaveProfile || 'Save Profile Changes'}`;
                 }
             });
 
@@ -335,7 +380,7 @@
                 const btn = document.getElementById('btnSavePassword');
                 const alertBox = document.getElementById('profileAlert');
                 btn.disabled = true;
-                btn.textContent = 'Inabadilisha...';
+                btn.textContent = window.__i18n.profile?.changing || 'Changing...';
                 alertBox.style.display = 'none';
 
                 const current_password = document.getElementById('inpCurrPass').value;
@@ -353,21 +398,21 @@
 
                     if (res.ok && result.success) {
                         alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || 'Nenosiri limebadilishwa kikamilifu!';
+                        alertBox.textContent = result.message || (window.__i18n.profile?.pwdSaved || 'Password changed successfully!');
                         alertBox.style.display = 'block';
                         document.getElementById('formChangePassword').reset();
                     } else {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || 'Hitilafu wakati wa kubadili nenosiri.';
+                        alertBox.textContent = result.message || (window.__i18n.profile?.pwdErr || 'Error changing password.');
                         alertBox.style.display = 'block';
                     }
                 } catch(err) {
                     alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = 'Hitilafu ya mtandao.';
+                    alertBox.textContent = window.__i18n.common?.networkError || 'Network error.';
                     alertBox.style.display = 'block';
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = '🔑 Badili Nenosiri Sasa';
+                    btn.textContent = `🔑 ${window.__i18n.profile?.btnSavePassword || 'Change Password Now'}`;
                 }
             });
         });

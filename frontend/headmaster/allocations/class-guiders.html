@@ -60,7 +60,7 @@
                                 </div>
                                 <div>
                                     <h2 style="margin: 0; font-size: 18px; font-weight: 800; color: white; line-height: 1.2;">
-                                        Class Guiders & Patrons Workspace (Mwalimu Mlezi)
+                                        <span data-i18n="headmasterDashboard.allocations.guidersWorkspace">Class Guiders & Patrons Workspace</span>
                                     </h2>
                                     <div style="color: #ccfbf1; font-size: 12px;">
                                         Assign and manage Class Guider Teachers responsible for daily morning attendance & classroom cohorts.
@@ -104,7 +104,7 @@
                                         Classroom Streams & Class Guider Assignments
                                     </h3>
                                     <p style="margin: 2px 0 0 0; font-size: 12px; color: var(--c-text-muted);">
-                                        Select a teacher to assign as the official Class Guider (Mwalimu Mlezi) for each classroom stream.
+                                        <span data-i18n="headmasterDashboard.allocations.guidersDesc">Select a teacher to assign as the official Class Guider for each classroom stream.</span>
                                     </p>
                                 </div>
                                 <div style="display:flex;gap:10px;">
@@ -120,7 +120,7 @@
                                             <th>Grade Level</th>
                                             <th>Classroom Stream</th>
                                             <th>Max Seats</th>
-                                            <th>Current Class Guider (Mwalimu Mlezi)</th>
+                                            <th data-i18n="headmasterDashboard.allocations.currentGuider">Current Class Guider</th>
                                             <th style="text-align: right;">Action</th>
                                         </tr>
                                     </thead>
@@ -160,7 +160,7 @@
 
                     if (a.unassigned_count > 0) {
                         const roomNames = (a.unassigned_rooms || []).map(r => r.room_name).join(', ');
-                        $('#alertBannerText').text(`${a.unassigned_count} Classroom(s) currently have NO Class Guider (Mwalimu Mlezi):`);
+                        $('#alertBannerText').text(`${a.unassigned_count} Classroom(s) currently have NO Class Guider:`);
                         $('#alertBannerList').text(roomNames);
                         $('#alertBannerRooms').show();
                     } else {
