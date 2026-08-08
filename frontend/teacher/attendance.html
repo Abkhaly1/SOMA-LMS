@@ -179,7 +179,7 @@
                                         </div>
 
                                         <div style="margin-top: 14px;">
-                                            <span id="updateModeBadge" class="badge" style="background: #0284c7; color: white; font-weight: 800; font-size: 12px; padding: 6px 12px;">Mode: New Entry</span>
+                                            <span id="updateModeBadge" class="badge" style="background: #059669; color: white; font-weight: 800; font-size: 12px; padding: 6px 12px;">🔒 Imefungwa (Saved &amp; Sealed)</span>
                                         </div>
                                     </div>
                                 </div>
@@ -240,7 +240,7 @@
                                                 <th style="padding: 12px; font-size: 12px; font-weight: 800;">#</th>
                                                 <th style="padding: 12px; font-size: 12px; font-weight: 800;">Namba ya Usajili</th>
                                                 <th style="padding: 12px; font-size: 12px; font-weight: 800;">Jina Kamili la Mwanafunzi</th>
-                                                <th style="padding: 12px; font-size: 12px; font-weight: 800; text-align: right;">Hali ya Mahudhurio (Status Toggle)</th>
+                                                <th style="padding: 12px; font-size: 12px; font-weight: 800; text-align: right;" id="thStatusCol">Hali ya Mahudhurio</th>
                                             </tr>
                                         </thead>
                                         <tbody id="tbRoster">
@@ -257,11 +257,9 @@
                                     <textarea id="inpRemarks" class="form-control" rows="2" placeholder="Weka maelezo ya ziada ya siku hii (mfano: Baraka amepatwa na dharura ya kifamilia...)" style="width: 100%; font-size: 13px;"></textarea>
                                 </div>
 
-                                <!-- SAVE BUTTON -->
-                                <div style="display: flex; justify-content: flex-end; margin-top: 20px;">
-                                    <button type="button" id="btnSaveAttendance" class="btn btn-primary" style="font-weight: 800; background: #d97706; border-color: #d97706; padding: 12px 28px; font-size: 15px;">
-                                        💾 HIFADHI MAHUDHURIO (SAVE ATTENDANCE)
-                                    </button>
+                                <!-- ACTION BUTTONS CONTAINER -->
+                                <div id="actionButtonsContainer" style="margin-top: 24px;">
+                                    <!-- Rendered dynamically by updateUIState() -->
                                 </div>
                             </div>
                         </div>
@@ -369,11 +367,12 @@
             const hcAbsent  = document.getElementById('hcAbsent');
             const hcExcused = document.getElementById('hcExcused');
 
-            const tbRoster          = document.getElementById('tbRoster');
-            const inpRemarks        = document.getElementById('inpRemarks');
-            const inpSearchStudent  = document.getElementById('inpSearchStudent');
-            const btnSaveAttendance = document.getElementById('btnSaveAttendance');
-            const attNotice         = document.getElementById('attNotice');
+            const thStatusCol             = document.getElementById('thStatusCol');
+            const tbRoster                = document.getElementById('tbRoster');
+            const inpRemarks              = document.getElementById('inpRemarks');
+            const inpSearchStudent        = document.getElementById('inpSearchStudent');
+            const actionButtonsContainer = document.getElementById('actionButtonsContainer');
+            const attNotice               = document.getElementById('attNotice');
 
             const histFilterYear  = document.getElementById('histFilterYear');
             const histFilterMonth = document.getElementById('histFilterMonth');
@@ -388,6 +387,8 @@
 
             let currentRosterData = [];
             let currentStatusMap  = {}; // student_id => 'Present'|'Absent'|'Excused'
+            let isSavedRecord = false;
+            let isEditMode    = false;
 
             // Tab Switching
             btnTabEntry.addEventListener('click', () => {
@@ -420,56 +421,6 @@
             // Search Student Listener
             inpSearchStudent.addEventListener('input', () => {
                 renderRosterTable();
-            });
-
-            // Save Daily Attendance
-            btnSaveAttendance.addEventListener('click', async () => {
-                const selectedCid = selManagedClassroom.value;
-                const selectedDate = inpAttendanceDate.value;
-                const remarks = inpRemarks.value.trim();
-
-                if (!selectedCid) {
-                    alert('Tafadhali chagua darasa kwanza.');
-                    return;
-                }
-
-                btnSaveAttendance.disabled = true;
-                btnSaveAttendance.textContent = 'Inahifadhi...';
-                attNotice.style.display = 'none';
-
-                try {
-                    const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=save_daily_attendance', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({
-                            classroom_id: selectedCid,
-                            attendance_date: selectedDate,
-                            statuses: currentStatusMap,
-                            remarks: remarks
-                        })
-                    });
-
-                    const data = await res.json();
-
-                    if (res.ok && data.success) {
-                        attNotice.className = 'alert alert-success';
-                        attNotice.textContent = '✅ ' + (data.message || 'Mahudhurio yamehifadhiwa kikamilifu!');
-                        attNotice.style.display = 'block';
-                        await loadDailyAttendance();
-                    } else {
-                        attNotice.className = 'alert alert-danger';
-                        attNotice.textContent = '❌ ' + (data.message || 'Hitilafu wakati wa kuhifadhi mahudhurio.');
-                        attNotice.style.display = 'block';
-                    }
-                } catch(e) {
-                    attNotice.className = 'alert alert-danger';
-                    attNotice.textContent = '❌ Hitilafu ya mtandao wakati wa kuhifadhi.';
-                    attNotice.style.display = 'block';
-                } finally {
-                    btnSaveAttendance.disabled = false;
-                    btnSaveAttendance.textContent = '💾 HIFADHI MAHUDHURIO (SAVE ATTENDANCE)';
-                }
             });
 
             // Filter History Button Listener
@@ -515,13 +466,10 @@
                     lblDateFormatted.textContent = `Date: ${data.date_formatted}`;
                     inpRemarks.value = data.general_remarks || '';
 
-                    if (data.is_update_mode) {
-                        updateModeBadge.textContent = 'Mode: Updating Saved Entry ✏️';
-                        updateModeBadge.style.background = '#0284c7';
-                    } else {
-                        updateModeBadge.textContent = 'Mode: New Entry 🆕';
-                        updateModeBadge.style.background = '#059669';
-                    }
+                    isSavedRecord = data.is_update_mode === true;
+                    // If it is ALREADY a saved record, default to LOCKED/SEALED mode!
+                    // If it is a NEW record, default directly to EDIT mode so teacher can take attendance!
+                    isEditMode = !isSavedRecord;
 
                     currentRosterData = data.roster || [];
                     currentStatusMap = {};
@@ -530,14 +478,83 @@
                     });
 
                     updateHeadcountUI();
-                    renderRosterTable();
+                    renderUIState();
 
                 } catch(e) {
                     console.error('Error loading daily attendance:', e);
                 }
             }
 
-            // Render Roster Table
+            // Update UI State (Locked vs Edit Mode)
+            function renderUIState() {
+                if (isEditMode) {
+                    // EDIT MODE ACTIVE
+                    updateModeBadge.innerHTML = '✏️ Hali ya Kuhariri (Edit Mode)';
+                    updateModeBadge.style.background = '#0284c7';
+                    thStatusCol.textContent = 'Hali ya Mahudhurio (Status Toggle)';
+
+                    inpRemarks.readOnly = false;
+                    inpRemarks.style.background = '#ffffff';
+
+                    actionButtonsContainer.innerHTML = `
+                        <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px;">
+                            ${isSavedRecord ? `
+                                <button type="button" id="btnCancelEdit" class="btn btn-outline" style="font-weight: 700; font-size: 14px; padding: 10px 20px;">
+                                    ❌ Ghairi (Cancel Edit)
+                                </button>
+                            ` : ''}
+                            <button type="button" id="btnSaveAttendance" class="btn btn-primary" style="font-weight: 800; background: #047857; border-color: #047857; padding: 12px 28px; font-size: 15px;">
+                                💾 HIFADHI MAHUDHURIO (SAVE ATTENDANCE)
+                            </button>
+                        </div>
+                    `;
+
+                    // Attach event listeners for dynamic buttons
+                    const btnSave = document.getElementById('btnSaveAttendance');
+                    if (btnSave) btnSave.addEventListener('click', saveAttendanceHandler);
+
+                    const btnCancel = document.getElementById('btnCancelEdit');
+                    if (btnCancel) {
+                        btnCancel.addEventListener('click', async () => {
+                            isEditMode = false;
+                            await loadDailyAttendance();
+                        });
+                    }
+
+                } else {
+                    // LOCKED / SEALED MODE
+                    updateModeBadge.innerHTML = '🔒 Imefungwa &amp; Imekamilika (Saved &amp; Sealed)';
+                    updateModeBadge.style.background = '#059669';
+                    thStatusCol.textContent = 'Hali ya Mahudhurio (Status)';
+
+                    inpRemarks.readOnly = true;
+                    inpRemarks.style.background = '#f8fafc';
+
+                    actionButtonsContainer.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1.5px solid #a7f3d0; padding: 16px 20px; border-radius: 10px; flex-wrap: wrap; gap: 12px;">
+                            <div style="display: flex; align-items: center; gap: 10px; color: #047857; font-weight: 800; font-size: 14px;">
+                                <span>🔒</span>
+                                <span>Mahudhurio ya siku hii yamehifadhiwa tayari. Ili kurekebisha au kubadili, bonyeza kitufe cha kuhariri.</span>
+                            </div>
+                            <button type="button" id="btnEnableEdit" class="btn btn-primary" style="font-weight: 800; background: #d97706; border-color: #d97706; padding: 10px 24px; font-size: 14px;">
+                                ✏️ Fungua Kuhariri (Edit Roll-Call)
+                            </button>
+                        </div>
+                    `;
+
+                    const btnEnableEdit = document.getElementById('btnEnableEdit');
+                    if (btnEnableEdit) {
+                        btnEnableEdit.addEventListener('click', () => {
+                            isEditMode = true;
+                            renderUIState();
+                        });
+                    }
+                }
+
+                renderRosterTable();
+            }
+
+            // Render Roster Table (Switches between Locked Badges vs Active Toggles)
             function renderRosterTable() {
                 const search = inpSearchStudent.value.toLowerCase().trim();
                 const filtered = currentRosterData.filter(r => 
@@ -559,9 +576,31 @@
                 let html = '';
                 filtered.forEach((r, idx) => {
                     const st = currentStatusMap[r.student_id] || 'Present';
-                    const isPres = st === 'Present' ? 'active-present' : '';
-                    const isAbs  = st === 'Absent' ? 'active-absent' : '';
-                    const isExc  = st === 'Excused' ? 'active-excused' : '';
+
+                    let statusCellHTML = '';
+                    if (isEditMode) {
+                        // INTERACTIVE TOGGLES IN EDIT MODE
+                        const isPres = st === 'Present' ? 'active-present' : '';
+                        const isAbs  = st === 'Absent' ? 'active-absent' : '';
+                        const isExc  = st === 'Excused' ? 'active-excused' : '';
+
+                        statusCellHTML = `
+                            <div class="att-toggle-group" style="justify-content: flex-end;">
+                                <button type="button" class="att-btn ${isPres}" onclick="window.setStudentStatus('${r.student_id}', 'Present')">🟢 Present</button>
+                                <button type="button" class="att-btn ${isAbs}" onclick="window.setStudentStatus('${r.student_id}', 'Absent')">🔴 Absent</button>
+                                <button type="button" class="att-btn ${isExc}" onclick="window.setStudentStatus('${r.student_id}', 'Excused')">🟡 Excused</button>
+                            </div>
+                        `;
+                    } else {
+                        // LOCKED ELEGANT BADGES IN SEALED MODE
+                        if (st === 'Present') {
+                            statusCellHTML = `<span class="badge" style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟢 Present</span>`;
+                        } else if (st === 'Absent') {
+                            statusCellHTML = `<span class="badge" style="background: #fef2f2; color: #b91c1c; border: 1.5px solid #fecaca; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🔴 Absent</span>`;
+                        } else {
+                            statusCellHTML = `<span class="badge" style="background: #fffbeb; color: #b45309; border: 1.5px solid #fde68a; font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px;">🟡 Excused</span>`;
+                        }
+                    }
 
                     html += `
                         <tr style="border-bottom: 1px solid #e2e8f0;">
@@ -571,11 +610,7 @@
                             </td>
                             <td style="padding: 12px; font-weight: 700; color: #1e293b;">${r.full_name}</td>
                             <td style="padding: 12px; text-align: right;">
-                                <div class="att-toggle-group" style="justify-content: flex-end;">
-                                    <button type="button" class="att-btn ${isPres}" onclick="window.setStudentStatus('${r.student_id}', 'Present')">🟢 Present</button>
-                                    <button type="button" class="att-btn ${isAbs}" onclick="window.setStudentStatus('${r.student_id}', 'Absent')">🔴 Absent</button>
-                                    <button type="button" class="att-btn ${isExc}" onclick="window.setStudentStatus('${r.student_id}', 'Excused')">🟡 Excused</button>
-                                </div>
+                                ${statusCellHTML}
                             </td>
                         </tr>
                     `;
@@ -586,10 +621,69 @@
 
             // Window level method to toggle student status
             window.setStudentStatus = (studentId, status) => {
+                if (!isEditMode) return;
                 currentStatusMap[studentId] = status;
                 updateHeadcountUI();
                 renderRosterTable();
             };
+
+            // Save Handler
+            async function saveAttendanceHandler() {
+                const btnSave = document.getElementById('btnSaveAttendance');
+                const selectedCid = selManagedClassroom.value;
+                const selectedDate = inpAttendanceDate.value;
+                const remarks = inpRemarks.value.trim();
+
+                if (!selectedCid) {
+                    alert('Tafadhali chagua darasa kwanza.');
+                    return;
+                }
+
+                if (btnSave) {
+                    btnSave.disabled = true;
+                    btnSave.textContent = 'Inahifadhi...';
+                }
+                attNotice.style.display = 'none';
+
+                try {
+                    const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=save_daily_attendance', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        credentials: 'include',
+                        body: JSON.stringify({
+                            classroom_id: selectedCid,
+                            attendance_date: selectedDate,
+                            statuses: currentStatusMap,
+                            remarks: remarks
+                        })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok && data.success) {
+                        attNotice.className = 'alert alert-success';
+                        attNotice.textContent = '✅ ' + (data.message || 'Mahudhurio yamehifadhiwa kikamilifu!');
+                        attNotice.style.display = 'block';
+                        
+                        // Switch back to LOCKED state immediately after save!
+                        isEditMode = false;
+                        await loadDailyAttendance();
+                    } else {
+                        attNotice.className = 'alert alert-danger';
+                        attNotice.textContent = '❌ ' + (data.message || 'Hitilafu wakati wa kuhifadhi mahudhurio.');
+                        attNotice.style.display = 'block';
+                    }
+                } catch(e) {
+                    attNotice.className = 'alert alert-danger';
+                    attNotice.textContent = '❌ Hitilafu ya mtandao wakati wa kuhifadhi.';
+                    attNotice.style.display = 'block';
+                } finally {
+                    if (btnSave) {
+                        btnSave.disabled = false;
+                        btnSave.textContent = '💾 HIFADHI MAHUDHURIO (SAVE ATTENDANCE)';
+                    }
+                }
+            }
 
             // Update Headcount Cards
             function updateHeadcountUI() {
@@ -652,7 +746,7 @@
                                 </td>
                                 <td style="padding: 12px; text-align: right;">
                                     <button type="button" class="btn btn-sm" style="background: #d97706; color: white; font-weight: 700;" onclick="window.editHistoryEntry('${h.attendance_date}', '${h.classroom_id}')">
-                                        ✏️ Hariri Roll-Call
+                                        ✏️ Fungua Kuhariri
                                     </button>
                                 </td>
                             </tr>
@@ -674,8 +768,10 @@
                 // Switch to Entry Tab
                 btnTabEntry.click();
 
-                // Load that date's attendance
+                // Load that date's attendance & enable edit mode directly
                 await loadDailyAttendance();
+                isEditMode = true;
+                renderUIState();
             };
 
             function htmlspecialchars(str) {
