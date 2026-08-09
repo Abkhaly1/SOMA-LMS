@@ -251,9 +251,9 @@ try {
                 SELECT dad.status
                 FROM daily_attendance_details dad
                 JOIN daily_attendance da ON dad.daily_attendance_id = da.id
-                WHERE da.school_id = ? AND da.classroom_id = ? AND dad.student_id = ?
+                WHERE da.classroom_id = ? AND dad.student_id = ?
             ");
-            $s1->execute([$schoolId, $classroomId, $sid]);
+            $s1->execute([$classroomId, $sid]);
             $res1 = $s1->fetchAll(PDO::FETCH_COLUMN);
 
             // Query student_attendance
@@ -322,10 +322,10 @@ try {
             JOIN daily_attendance da ON dad.daily_attendance_id = da.id
             LEFT JOIN classrooms c ON da.classroom_id = c.id
             LEFT JOIN users u ON da.recorded_by_teacher_id = u.id
-            WHERE dad.student_id = ? AND da.school_id = ?
+            WHERE dad.student_id = ?
             ORDER BY da.attendance_date DESC
         ");
-        $stmtLog1->execute([$studentId, $schoolId]);
+        $stmtLog1->execute([$studentId]);
         $logs1 = $stmtLog1->fetchAll(PDO::FETCH_ASSOC);
 
         // Fetch attendance logs from student_attendance
