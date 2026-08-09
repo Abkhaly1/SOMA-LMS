@@ -147,9 +147,9 @@ try {
         $stmtLock = $conn->prepare("
             SELECT is_locked, locked_at, locked_by
             FROM marks_entry_locks
-            WHERE school_id = ? AND academic_year = ? AND term = ? AND classroom_id = ? AND subject_code = ? AND is_locked = 1
+            WHERE school_id = ? AND classroom_id = ? AND subject_code = ? AND term = ? AND is_locked = 1
         ");
-        $stmtLock->execute([$schoolId, $academicYearId, $term, $classroomId, $subjectCode]);
+        $stmtLock->execute([$schoolId, $classroomId, $subjectCode, $term]);
         $lockRow = $stmtLock->fetch(PDO::FETCH_ASSOC);
         $isLocked = !empty($lockRow);
 
@@ -333,8 +333,8 @@ try {
             $cid = $stmtC->fetchColumn();
 
             if ($cid) {
-                $stmtLock = $conn->prepare("SELECT is_locked FROM marks_entry_locks WHERE school_id = ? AND academic_year = ? AND term = ? AND classroom_id = ? AND subject_code = ? AND is_locked = 1");
-                $stmtLock->execute([$schoolId, $academicYearId, $term, $cid, $subjectCode]);
+                $stmtLock = $conn->prepare("SELECT is_locked FROM marks_entry_locks WHERE school_id = ? AND classroom_id = ? AND subject_code = ? AND term = ? AND is_locked = 1");
+                $stmtLock->execute([$schoolId, $cid, $subjectCode, $term]);
                 if ($stmtLock->fetchColumn()) {
                     http_response_code(423);
                     echo json_encode(["success" => false, "message" => "Locked: This score sheet has been finalized. Any future adjustments require supervisor override from Headmaster Portal."]);
