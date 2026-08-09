@@ -152,14 +152,14 @@ class AppCsvImportModal extends HTMLElement {
                 <div id="importAlert" class="alert alert-danger" style="display: none; margin-bottom: 16px;"></div>
 
                 <div class="form-group" style="margin-bottom: 16px;">
-                    <label class="form-label" style="font-weight: 700;">Chagua Faili la CSV / Excel</label>
+                    <label class="form-label" style="font-weight: 700;">Select CSV / Excel File</label>
                     <input type="file" id="csvFileInput" class="form-control" accept=".csv, .txt" style="height: 40px; padding: 4px 12px;">
                 </div>
 
                 <!-- Progress Bar Section -->
                 <div id="importProgressContainer" style="display: none; margin-bottom: 16px;">
                     <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px;">
-                        <span id="importStatusText">Inakagua mfumo...</span>
+                        <span id="importStatusText">Validating file & database...</span>
                         <span id="importProgressText">0%</span>
                     </div>
                     <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden;">
@@ -170,7 +170,7 @@ class AppCsvImportModal extends HTMLElement {
                 <!-- Duplicate Conflict Preview Section -->
                 <div id="conflictSection" style="display: none; margin-bottom: 20px;">
                     <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e; margin-bottom: 12px;">
-                        ⚠️ Imegundua <strong id="conflictCountNum">0</strong> akaunti ambazo tayari zipo kwenye mfumo au zimejirudia kwenye faili. Chagua hatua ya kuchukua:
+                        ⚠️ Detected <strong id="conflictCountNum">0</strong> account(s) that already exist in the system or are duplicated in the file. Choose action:
                     </div>
 
                     <div id="conflictTableWrapper" style="max-height: 160px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; background: #ffffff;">
@@ -207,7 +207,7 @@ class AppCsvImportModal extends HTMLElement {
 
                 <div style="display: flex; gap: 8px; justify-content: flex-end;">
                     <button type="button" id="btnCloseImportModal" class="btn btn-outline">Cancel</button>
-                    <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800;" disabled>Validate & Start Import ➔</button>
+                    <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800;" disabled>Verify & Start Import ➔</button>
                 </div>
             </div>
         `;
@@ -224,22 +224,22 @@ class AppCsvImportModal extends HTMLElement {
             let optionsHtml = '';
             this._availableClassrooms.forEach(c => {
                 const availableSeats = Math.max(0, c.capacity - c.filled_count);
-                optionsHtml += `<option value="${c.id}">${c.grade_name} - ${c.classroom_name} (Viti Wazi: ${availableSeats} / ${c.capacity})</option>`;
+                optionsHtml += `<option value="${c.id}">${c.grade_name} - ${c.classroom_name} (Open Seats: ${availableSeats} / ${c.capacity})</option>`;
             });
 
             container.innerHTML = `
                 <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 8px;">
                     <div style="font-weight: 800; font-size: 13px; color: #166534; margin-bottom: 8px;">
-                        🏫 Je, unataka wanafunzi hawa wote wapya watengewe Darasa Moja sasa hivi?
+                        🏫 Allocate all new imported students to a classroom now?
                     </div>
                     <div style="font-size: 13px; margin-bottom: 10px;">
                         <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer;">
                             <input type="radio" name="assign_classroom_choice" value="none" checked id="radioAllocNone">
-                            <span>🔘 <strong>Hapana, waweke bila darasa (Unallocated Pool):</strong> Utawapangia madarasa baadae.</span>
+                            <span>🔘 <strong>No, keep unallocated (Unallocated Pool):</strong> You will assign classrooms later.</span>
                         </label>
                         <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                             <input type="radio" name="assign_classroom_choice" value="select" id="radioAllocSelect">
-                            <span>🏫 <strong>Ndiyo, wapange wote moja kwa moja kwenye darasa hili:</strong></span>
+                            <span>🏫 <strong>Yes, assign all imported students to this classroom:</strong></span>
                         </label>
                     </div>
 
