@@ -143,6 +143,9 @@ try {
         $total = (int)$stmtCnt->fetchColumn();
         $totalPages = max(1, ceil($total / $limit));
 
+        $term = $_GET['term'] ?? 'Term 1';
+        $params[':term'] = $term;
+
         $stmtRoster = $conn->prepare("
             SELECT u.id AS student_id, u.full_name, u.user_code,
                    COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
@@ -150,25 +153,54 @@ try {
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
-            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year)
+            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
             $whereSql
             ORDER BY u.full_name ASC
-            LIMIT $offset, $limit
         ");
         $stmtRoster->execute($params);
         $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
+
+        // Compute total scores, letter grades, remarks & calculate live subject ranking / position
+        $allScored = [];
+        foreach ($roster as &$student) {
+            $ca = floatval($student['ca_mark']);
+            $termMark = floatval($student['terminal_mark']);
+            $total = $ca + $termMark;
+            $student['total_score'] = $total;
+
+            // Letter Grade & Remark
+            if ($total >= 80) { $student['grade_letter'] = 'A'; $student['grade_remark'] = 'Excellent'; }
+            else if ($total >= 70) { $student['grade_letter'] = 'B'; $student['grade_remark'] = 'Very Good'; }
+            else if ($total >= 60) { $student['grade_letter'] = 'C'; $student['grade_remark'] = 'Good'; }
+            else if ($total >= 40) { $student['grade_letter'] = 'D'; $student['grade_remark'] = 'Satisfactory'; }
+            else { $student['grade_letter'] = 'F'; $student['grade_remark'] = 'Fail'; }
+
+            $allScored[] = $student;
+        }
+
+        // Rank students by total_score DESC
+        usort($allScored, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
+
+        $rankMap = [];
+        $currentRank = 1;
+        foreach ($allScored as $idx => $s) {
+            if ($idx > 0 && $s['total_score'] < $allScored[$idx - 1]['total_score']) {
+                $currentRank = $idx + 1;
+            }
+            $rankMap[$s['student_id']] = $currentRank;
+        }
+
+        // Attach rank position to roster
+        foreach ($roster as &$student) {
+            $student['subject_rank'] = $rankMap[$student['student_id']] ?? '-';
+        }
 
         echo json_encode([
             "success" => true,
             "stream" => $streamName,
             "subject" => $subjectCode,
-            "roster" => $roster,
-            "pagination" => [
-                "total" => $total,
-                "page" => $page,
-                "limit" => $limit,
-                "total_pages" => $totalPages
-            ]
+            "term" => $term,
+            "roster" => $roster
         ]);
         exit();
     }
@@ -178,6 +210,7 @@ try {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $subjectCode = $input['subject_code'] ?? '';
         $trackType   = $input['track_type'] ?? 'terminal'; // ca or terminal
+        $term        = $input['term'] ?? 'Term 1';
         $marksData   = $input['marks'] ?? [];
 
         if (empty($subjectCode) || empty($marksData)) {
@@ -192,22 +225,22 @@ try {
 
             if ($trackType === 'ca') {
                 $stmt = $conn->prepare("
-                    INSERT INTO marks_entry (school_id, academic_year, student_id, subject_code, continuous_assessment_mark)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, continuous_assessment_mark)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE continuous_assessment_mark = VALUES(continuous_assessment_mark)
                 ");
-                $stmt->execute([$schoolId, $academicYearId, $studentId, $subjectCode, $score]);
+                $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
             } else {
                 $stmt = $conn->prepare("
-                    INSERT INTO marks_entry (school_id, academic_year, student_id, subject_code, terminal_mark)
-                    VALUES (?, ?, ?, ?, ?)
+                    INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, terminal_mark)
+                    VALUES (?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE terminal_mark = VALUES(terminal_mark)
                 ");
-                $stmt->execute([$schoolId, $academicYearId, $studentId, $subjectCode, $score]);
+                $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
             }
         }
         $conn->commit();
-        echo json_encode(["success" => true, "message" => "Assessment scores batch saved successfully."]);
+        echo json_encode(["success" => true, "message" => "Assessment scores batch saved successfully for $term."]);
         exit();
     }
 
