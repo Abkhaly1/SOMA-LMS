@@ -122,6 +122,37 @@ try {
         exit();
     }
 
+    if ($method === 'GET' && $action === 'compare_terms') {
+        $stmtT1 = $conn->prepare("SELECT name, weight_percent, is_terminal FROM assessment_types WHERE school_id = ? AND term = 'Term 1' ORDER BY is_terminal ASC, name ASC");
+        $stmtT1->execute([$schoolId]);
+        $t1 = $stmtT1->fetchAll(PDO::FETCH_ASSOC);
+
+        $stmtT2 = $conn->prepare("SELECT name, weight_percent, is_terminal FROM assessment_types WHERE school_id = ? AND term = 'Term 2' ORDER BY is_terminal ASC, name ASC");
+        $stmtT2->execute([$schoolId]);
+        $t2 = $stmtT2->fetchAll(PDO::FETCH_ASSOC);
+
+        $formatSummary = function($rows) {
+            if (empty($rows)) return "Default (30.00% CA + 70.00% Terminal)";
+            $parts = [];
+            foreach ($rows as $r) {
+                $parts[] = floatval($r['weight_percent']) . "% " . $r['name'];
+            }
+            return implode(" + ", $parts);
+        };
+
+        $t1Sum = $formatSummary($t1);
+        $t2Sum = $formatSummary($t2);
+        $isIdentical = (!empty($t1) && !empty($t2) && json_encode($t1) === json_encode($t2));
+
+        echo json_encode([
+            'success' => true,
+            'term1' => ['types' => $t1, 'summary' => $t1Sum, 'has_policy' => !empty($t1)],
+            'term2' => ['types' => $t2, 'summary' => $t2Sum, 'has_policy' => !empty($t2)],
+            'is_identical' => $isIdentical
+        ]);
+        exit();
+    }
+
     echo json_encode(['success' => false, 'message' => 'Unknown action.']);
 } catch (PDOException $e) {
     if ($conn->inTransaction()) $conn->rollBack();

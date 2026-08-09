@@ -45,6 +45,9 @@
                             <button class="btn btn-secondary" onclick="unlockPolicyEdit()" style="font-weight: 800; font-size: 12px; border-color: #047857; background: white; color: #047857;">✏️ Unlock to Edit Policy</button>
                         </div>
 
+                        <!-- Term Comparison Alert Banner -->
+                        <div id="termComparisonBanner" style="display: none; margin-bottom: 20px; padding: 14px 18px; border-radius: 10px; font-size: 13px; font-weight: 700; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;"></div>
+
                         <!-- Policy Presets Banner -->
                         <div id="presetsBanner" style="background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 18px 20px; margin-bottom: 24px; box-shadow: 0 2px 4px rgba(0,0,0,0.03);">
                             <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
@@ -89,12 +92,43 @@
                             </table>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 24px;">
                             <div style="font-size: 12px; color: var(--c-text-muted);">
                                 🛡️ Calculated weights are automatically applied during student cumulative average & subject rank calculation loops.
                             </div>
                             <button class="btn btn-primary" id="btnSavePolicy" onclick="savePolicy()" style="font-weight: 800; background: #047857; border-color: #047857; padding: 12px 28px;">💾 Save Assessment Policy Matrix</button>
                         </div>
+
+                        <!-- SYSTEM OPERATING MANUAL & DOCUMENTATION GUIDE -->
+                        <div style="background: #f8fafc; border: 1.5px solid #cbd5e1; border-radius: 12px; padding: 20px; margin-top: 10px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3 style="margin: 0; font-size: 16px; font-weight: 800; color: #0f172a;">📘 Assessment & Grading Engine Operating Guide</h3>
+                                <span class="badge" style="background: #e2e8f0; color: #334155; font-weight: 700; padding: 4px 10px;">System Rules & Logic</span>
+                            </div>
+                            <div style="font-size: 13px; color: #334155; line-height: 1.6;">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+                                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                                        <strong style="color: #0284c7; display: block; margin-bottom: 4px;">1. 📊 Term 1 vs. Term 2 Consistency</strong>
+                                        <p style="margin: 0; font-size: 12px; color: #475569;">
+                                            When you configure <strong>Term 1</strong>, the system prompts you to complete <strong>Term 2</strong>. Before confirming Term 2, the system automatically compares both terms and notifies you if they match or differ.
+                                        </p>
+                                    </div>
+                                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                                        <strong style="color: #047857; display: block; margin-bottom: 4px;">2. 🌍 Multi-Year Global Policy Inheritance</strong>
+                                        <p style="margin: 0; font-size: 12px; color: #475569;">
+                                            You do not need to re-create assessment policies every single year. The active format set by the Headmaster applies automatically to all current and future academic years until modified.
+                                        </p>
+                                    </div>
+                                    <div style="background: white; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                                        <strong style="color: #b45309; display: block; margin-bottom: 4px;">3. 📜 Historical Transcript Lock Protection</strong>
+                                        <p style="margin: 0; font-size: 12px; color: #475569;">
+                                            Updating an assessment policy for a new term will <strong>never alter or corrupt historical student transcripts</strong> or past year results. Previously recorded student grades remain 100% frozen and preserved.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </main>
@@ -114,6 +148,9 @@
             const tbody = document.getElementById('categoryRows');
             tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Loading policy configuration...</td></tr>';
 
+            // Fetch Term Comparison
+            checkTermComparison();
+
             try {
                 const res = await fetch(`/soma-lms/api/headmaster/academics/assessment_config_api.php?term=${encodeURIComponent(term)}`, { credentials: 'include' });
                 const data = await res.json();
@@ -124,6 +161,66 @@
             } catch(e) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:crimson; padding:20px;">Error loading policy configuration.</td></tr>';
             }
+        }
+
+        async function checkTermComparison() {
+            const banner = document.getElementById('termComparisonBanner');
+            const currentTerm = document.getElementById('selTerm').value;
+
+            try {
+                const res = await fetch('/soma-lms/api/headmaster/academics/assessment_config_api.php?action=compare_terms', { credentials: 'include' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    const t1 = data.term1;
+                    const t2 = data.term2;
+
+                    if (currentTerm === 'Term 2') {
+                        banner.style.display = 'flex';
+                        if (data.is_identical) {
+                            banner.style.background = '#f0fdf4';
+                            banner.style.border = '1.5px solid #86efac';
+                            banner.style.color = '#166534';
+                            banner.innerHTML = `
+                                <span>✅ <strong>Term Policy Match</strong>: Term 2 structure matches Term 1 (${t1.summary}).</span>
+                                <span class="badge" style="background:#dcfce7; color:#166534;">Identical Structure</span>
+                            `;
+                        } else {
+                            banner.style.background = '#fffbeb';
+                            banner.style.border = '1.5px solid #fde68a';
+                            banner.style.color = '#92400e';
+                            banner.innerHTML = `
+                                <div>
+                                    ⚠️ <strong>Term Structure Difference Detected</strong>:<br>
+                                    • <strong>Term 1</strong>: ${t1.summary}<br>
+                                    • <strong>Term 2</strong>: ${t2.summary}
+                                </div>
+                                <span class="badge" style="background:#fef3c7; color:#92400e;">Custom Term 2 Load</span>
+                            `;
+                        }
+                    } else {
+                        // Term 1 view
+                        if (t1.has_policy && !t2.has_policy) {
+                            banner.style.display = 'flex';
+                            banner.style.background = '#eff6ff';
+                            banner.style.border = '1.5px solid #93c5fd';
+                            banner.style.color = '#1e40af';
+                            banner.innerHTML = `
+                                <span>🎯 <strong>Term 1 Established!</strong> Term 2 is currently using default settings. Switch to <strong>Term 2</strong> to complete annual setup.</span>
+                                <button class="btn btn-secondary" onclick="switchToTerm2()" style="font-weight:800; font-size:12px; background:white; color:#1e40af; border-color:#93c5fd;">➡️ Configure Term 2</button>
+                            `;
+                        } else {
+                            banner.style.display = 'none';
+                        }
+                    }
+                }
+            } catch(e) {
+                banner.style.display = 'none';
+            }
+        }
+
+        function switchToTerm2() {
+            document.getElementById('selTerm').value = 'Term 2';
+            loadPolicy();
         }
 
         function renderRows(types, locked = true) {
@@ -301,6 +398,12 @@
                 const data = await res.json();
                 if (res.ok && data.success) {
                     alert(data.message);
+                    if (term === 'Term 1') {
+                        if (confirm("Term 1 Policy saved successfully!\n\nWould you like to switch to Term 2 now to review or complete Term 2 configuration?")) {
+                            switchToTerm2();
+                            return;
+                        }
+                    }
                     loadPolicy();
                 } else {
                     alert(data.message || 'Failed to save policy matrix.');
