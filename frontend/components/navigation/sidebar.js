@@ -45,7 +45,8 @@ class AppSidebar extends HTMLElement {
     }
 
     render() {
-        const menus = (getMenuConfig()[this.role] || getMenuConfig()['default']);
+        const menuObj = getMenuConfig();
+        const menus = menuObj[this.role] || (this.role === 'headmaster' || this.role === 'tenant_admin' ? (menuObj['headmaster'] || menuObj['tenant_admin']) : null) || menuObj['default'];
         const currentPath = window.location.pathname;
         const frontendIndex = currentPath.indexOf('/frontend/');
         const basePath = (frontendIndex !== -1) ? currentPath.substring(0, frontendIndex + '/frontend/'.length) : '/';
