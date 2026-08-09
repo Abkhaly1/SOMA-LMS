@@ -29,12 +29,22 @@
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                             <div>
-                                <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-                                    <select id="pStream" class="form-control" style="font-weight: 700;"><option value="">Select Stream...</option></select>
+                                <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
+                                    <select id="pStream" class="form-control" style="font-weight: 700; flex: 1; min-width: 140px;"><option value="">Select Stream...</option></select>
+                                    <input type="text" id="pSearch" placeholder="🔍 Search name/phone..." class="form-control" style="width: 170px; font-size: 13px;">
                                     <button class="btn btn-outline" id="btnLoadP" style="font-weight: 700;">Load Directory</button>
                                 </div>
                                 <div id="pDirectory" style="border: 1px solid var(--c-border-light); border-radius: 8px; max-height: 400px; overflow-y: auto; padding: 12px;">
                                     Select class stream above to view guardian contact catalog.
+                                </div>
+                                <!-- PAGINATION -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; font-size: 12px;">
+                                    <span id="pPageInfo" style="color: var(--c-text-muted); font-weight: 600;">0 guardians</span>
+                                    <div style="display: flex; gap: 6px; align-items: center;">
+                                        <button type="button" id="pPrevBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>&laquo; Prev</button>
+                                        <span id="pPageSpan" style="font-weight: 700; color: var(--c-text-primary);">Page 1/1</span>
+                                        <button type="button" id="pNextBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>Next &raquo;</button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -56,6 +66,8 @@
     </div>
 
     <script>
+        let pState = { page: 1, limit: 25, search: '', totalPages: 1 };
+
         document.addEventListener('DOMContentLoaded', async () => {
             try {
                 const res = await fetch('/soma-lms/api/teacher/teacher_portal_api.php?action=dashboard', { credentials: 'include' });
@@ -67,7 +79,39 @@
                 }
             } catch(e) {}
 
-            document.getElementById('btnLoadP').addEventListener('click', loadP);
+            document.getElementById('btnLoadP').addEventListener('click', () => {
+                pState.page = 1;
+                loadP();
+            });
+
+            document.getElementById('pStream').addEventListener('change', () => {
+                pState.page = 1;
+                loadP();
+            });
+
+            let pSearchDebounce;
+            document.getElementById('pSearch').addEventListener('input', (e) => {
+                clearTimeout(pSearchDebounce);
+                pSearchDebounce = setTimeout(() => {
+                    pState.search = e.target.value.trim();
+                    pState.page = 1;
+                    loadP();
+                }, 300);
+            });
+
+            document.getElementById('pPrevBtn').addEventListener('click', () => {
+                if (pState.page > 1) {
+                    pState.page--;
+                    loadP();
+                }
+            });
+
+            document.getElementById('pNextBtn').addEventListener('click', () => {
+                if (pState.page < pState.totalPages) {
+                    pState.page++;
+                    loadP();
+                }
+            });
         });
 
         async function loadP() {
@@ -77,11 +121,21 @@
             container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--c-text-muted);">Loading catalog...</div>';
 
             try {
-                const res = await fetch(`/soma-lms/api/teacher/teacher_portal_api.php?action=get_parents_catalog&stream=${encodeURIComponent(stream)}`, { credentials: 'include' });
+                const searchQ = encodeURIComponent(pState.search);
+                const res = await fetch(`/soma-lms/api/teacher/teacher_portal_api.php?action=get_parents_catalog&stream=${encodeURIComponent(stream)}&page=${pState.page}&limit=${pState.limit}&search=${searchQ}`, { credentials: 'include' });
                 const data = await res.json();
+
                 if (res.ok && data.success) {
                     const catalog = data.catalog || [];
-                    if (catalog.length === 0) { container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--c-text-muted);">No parent contact records.</div>'; return; }
+                    const pag = data.pagination || {};
+
+                    pState.totalPages = pag.total_pages || 1;
+                    document.getElementById('pPageInfo').textContent = `${pag.total || 0} guardians`;
+                    document.getElementById('pPageSpan').textContent = `Page ${pState.page}/${pState.totalPages}`;
+                    document.getElementById('pPrevBtn').disabled = pState.page <= 1;
+                    document.getElementById('pNextBtn').disabled = pState.page >= pState.totalPages;
+
+                    if (catalog.length === 0) { container.innerHTML = '<div style="padding: 16px; text-align: center; color: var(--c-text-muted);">No parent contact records found.</div>'; return; }
 
                     let html = '<ul style="list-style:none; padding:0; margin:0;">';
                     catalog.forEach(p => {

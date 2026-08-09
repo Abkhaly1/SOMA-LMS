@@ -18,21 +18,44 @@ if (!$school_id && $_SESSION['role'] === 'super_admin') {
 }
 
 try {
-    $query = "SELECT id, full_name, phone, email, status, created_at FROM users WHERE role = 'parent'";
+    $search = trim($_GET['search'] ?? '');
+    $page   = max(1, intval($_GET['page'] ?? 1));
+    $limit  = max(10, min(500, intval($_GET['limit'] ?? 25)));
+    $offset = ($page - 1) * $limit;
+
+    $queryWhere = "WHERE role = 'parent'";
     $params = [];
 
     if ($school_id) {
-        $query .= " AND school_id = ?";
-        $params[] = $school_id;
+        $queryWhere .= " AND school_id = :school_id";
+        $params[':school_id'] = $school_id;
     }
 
-    $query .= " ORDER BY created_at DESC";
+    if ($search !== '') {
+        $queryWhere .= " AND (full_name LIKE :search OR phone LIKE :search OR email LIKE :search)";
+        $params[':search'] = '%' . $search . '%';
+    }
 
+    $stmtCnt = $conn->prepare("SELECT COUNT(*) FROM users $queryWhere");
+    $stmtCnt->execute($params);
+    $total = (int)$stmtCnt->fetchColumn();
+    $totalPages = max(1, ceil($total / $limit));
+
+    $query = "SELECT id, full_name, phone, email, status, created_at FROM users $queryWhere ORDER BY created_at DESC LIMIT $offset, $limit";
     $stmt = $conn->prepare($query);
     $stmt->execute($params);
     $parents = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode(["success" => true, "data" => $parents]);
+    echo json_encode([
+        "success" => true,
+        "data" => $parents,
+        "pagination" => [
+            "total" => $total,
+            "page" => $page,
+            "limit" => $limit,
+            "total_pages" => $totalPages
+        ]
+    ]);
 
 } catch (Exception $e) {
     http_response_code(500);

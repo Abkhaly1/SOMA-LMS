@@ -66,17 +66,21 @@
                     </div>
 
                     <div class="table-wrapper">
-                        <div class="table-toolbar">
-                            <div class="table-actions">
-                                <select class="form-select btn-sm" style="width:150px;">
+                        <div class="table-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin-bottom: 16px;">
+                            <div class="table-actions" style="display: flex; gap: 8px; align-items: center;">
+                                <select class="form-select btn-sm" style="width:140px;">
                                     <option>Bulk Actions</option>
                                     <option>Suspend</option>
                                 </select>
                                 <button class="btn btn-outline btn-sm">Apply</button>
                             </div>
-                            <div class="table-search-bar">
-                                <input type="text" class="form-control btn-sm" placeholder="Search teachers..." style="width:250px;">
-                                <button class="btn btn-secondary btn-sm">Search</button>
+                            <div class="table-search-bar" style="display: flex; gap: 8px; align-items: center;">
+                                <input type="text" id="searchInput" class="form-control btn-sm" placeholder="🔍 Search teacher name or department..." style="width:260px;">
+                                <select id="limitSelect" class="form-select btn-sm" style="width:110px; font-weight:700;">
+                                    <option value="25">25 / page</option>
+                                    <option value="50">50 / page</option>
+                                    <option value="100">100 / page</option>
+                                </select>
                             </div>
                         </div>
 
@@ -87,7 +91,7 @@
                                     <th>Full Name</th>
                                     <th>Phone Number</th>
                                     <th>Status</th>
-                                    <th>Registered Date</th>
+                                    <th>Created Date</th>
                                     <th style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
@@ -97,6 +101,16 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- PAGINATION CONTROLS -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 13px;">
+                            <div id="pageInfo" style="color: #64748b; font-weight: 600;">Showing 0 of 0 teachers</div>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <button type="button" id="prevBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>&laquo; Previous</button>
+                                <span id="pageSpan" style="padding: 6px 12px; background: #f1f5f9; border-radius: 6px; font-weight: 700; color: #0f172a;">Page 1 of 1</span>
+                                <button type="button" id="nextBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>Next &raquo;</button>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -106,6 +120,8 @@
 
     <!-- JS -->
     <script>
+        let state = { page: 1, limit: 25, search: '', totalPages: 1 };
+
         document.addEventListener('DOMContentLoaded', async () => {
             const toggleBtn = document.getElementById('toggleSidebar');
             const sidebar = document.getElementById('sidebar');
@@ -115,10 +131,49 @@
                 });
             }
 
-            // Fetch Teachers
+            // Search listener
+            let searchDebounce;
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(() => {
+                    state.search = e.target.value.trim();
+                    state.page = 1;
+                    loadTeachers();
+                }, 300);
+            });
+
+            // Limit listener
+            document.getElementById('limitSelect').addEventListener('change', (e) => {
+                state.limit = parseInt(e.target.value, 10);
+                state.page = 1;
+                loadTeachers();
+            });
+
+            // Pagination Listeners
+            document.getElementById('prevBtn').addEventListener('click', () => {
+                if (state.page > 1) {
+                    state.page--;
+                    loadTeachers();
+                }
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', () => {
+                if (state.page < state.totalPages) {
+                    state.page++;
+                    loadTeachers();
+                }
+            });
+
+            loadTeachers();
+        });
+
+        async function loadTeachers() {
             const tbody = document.getElementById('teachersTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: var(--sp-6); color: #64748b;">Loading teachers...</td></tr>';
+
             try {
-                const res = await fetch('/soma-lms/api/teachers/list.php', { credentials: 'include' });
+                const searchQ = encodeURIComponent(state.search);
+                const res = await fetch(`/soma-lms/api/teachers/list.php?page=${state.page}&limit=${state.limit}&search=${searchQ}`, { credentials: 'include' });
                 
                 if (res.status === 403) {
                     window.location.href = '../login.html';
@@ -128,11 +183,23 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    if (data.data.length === 0) {
-                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No teachers found. <a href="teacher-add.html">Add one</a></td></tr>`;
+                    const teachers = data.data || [];
+                    const pag = data.pagination || {};
+
+                    state.totalPages = pag.total_pages || 1;
+                    const startIdx = pag.total > 0 ? (state.page - 1) * state.limit + 1 : 0;
+                    const endIdx = Math.min(pag.total, state.page * state.limit);
+
+                    document.getElementById('pageInfo').textContent = `Showing ${startIdx} to ${endIdx} of ${pag.total} teachers`;
+                    document.getElementById('pageSpan').textContent = `Page ${state.page} of ${state.totalPages}`;
+                    document.getElementById('prevBtn').disabled = state.page <= 1;
+                    document.getElementById('nextBtn').disabled = state.page >= state.totalPages;
+
+                    if (teachers.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No teachers found matching criteria. <a href="teacher-add.html">Add one</a></td></tr>`;
                     } else {
                         tbody.innerHTML = '';
-                        data.data.forEach(teacher => {
+                        teachers.forEach(teacher => {
                             const tr = document.createElement('tr');
                             
                             let badgeClass = 'badge-inactive';
@@ -162,7 +229,7 @@
                 console.error(error);
                 tbody.innerHTML = `<tr><td colspan="6" style="color:var(--c-danger-text); text-align:center;">Error loading data.</td></tr>`;
             }
-        });
+        }
     </script>
 </body>
 </html>

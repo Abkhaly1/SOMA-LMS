@@ -30,20 +30,48 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    $search = trim($_GET['search'] ?? '');
+    $page   = max(1, intval($_GET['page'] ?? 1));
+    $limit  = max(10, min(500, intval($_GET['limit'] ?? 25)));
+    $offset = ($page - 1) * $limit;
+
+    $whereSql = "WHERE role = 'teacher' AND school_id = :school_id";
+    $params = [':school_id' => $school_id];
+
+    if ($search !== '') {
+        $whereSql .= " AND (full_name LIKE :search OR user_code LIKE :search OR phone LIKE :search OR email LIKE :search OR department LIKE :search)";
+        $params[':search'] = '%' . $search . '%';
+    }
+
+    $stmtCnt = $conn->prepare("SELECT COUNT(*) FROM users $whereSql");
+    $stmtCnt->execute($params);
+    $total = (int)$stmtCnt->fetchColumn();
+    $totalPages = max(1, ceil($total / $limit));
+
     $stmt = $conn->prepare("
         SELECT id, user_code, full_name, gender, email, phone, department, status, created_at 
         FROM users 
-        WHERE role = 'teacher' AND school_id = ?
+        $whereSql
         ORDER BY created_at DESC
+        LIMIT $offset, $limit
     ");
-    $stmt->execute([$school_id]);
+    $stmt->execute($params);
     
-    $teachers = $stmt->fetchAll();
+    $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    echo json_encode(["success" => true, "data" => $teachers]);
+    echo json_encode([
+        "success" => true,
+        "data" => $teachers,
+        "pagination" => [
+            "total" => $total,
+            "page" => $page,
+            "limit" => $limit,
+            "total_pages" => $totalPages
+        ]
+    ]);
 
 } catch (PDOException $e) {
     http_response_code(500);
-    echo json_encode(["success" => false, "message" => "System error."]);
+    echo json_encode(["success" => false, "message" => "System error: " . $e->getMessage()]);
 }
 ?>

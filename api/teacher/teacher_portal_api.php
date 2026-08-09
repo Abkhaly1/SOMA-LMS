@@ -107,15 +107,41 @@ try {
         exit();
     }
 
-    // 2. SCORE SHEET ROSTER
+    // 2. SCORE SHEET ROSTER WITH PAGINATION & SEARCH
     if ($action === 'get_scoresheet') {
         $streamName  = $_GET['stream'] ?? '';
         $subjectCode = $_GET['subject'] ?? '';
+        $search      = trim($_GET['search'] ?? '');
+        $page        = max(1, intval($_GET['page'] ?? 1));
+        $limit       = max(10, min(500, intval($_GET['limit'] ?? 50)));
+        $offset      = ($page - 1) * $limit;
 
         if (empty($streamName)) {
             echo json_encode(["success" => false, "message" => "Stream parameter is required."]);
             exit();
         }
+
+        $whereSql = "WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname) AND sca.academic_year = :year AND sca.status = 'Active'";
+        $params = [':subj' => $subjectCode, ':year' => $academicYearId, ':cname' => $streamName];
+
+        if ($search !== '') {
+            $whereSql .= " AND (u.full_name LIKE :search OR u.user_code LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $stmtCnt = $conn->prepare("
+            SELECT COUNT(*)
+            FROM student_classroom_allocations sca
+            JOIN users u ON sca.student_id = u.id
+            JOIN classrooms c ON sca.classroom_id = c.id
+            $whereSql
+        ");
+        // Count statement doesn't need :subj
+        $paramsCnt = $params;
+        unset($paramsCnt[':subj']);
+        $stmtCnt->execute($paramsCnt);
+        $total = (int)$stmtCnt->fetchColumn();
+        $totalPages = max(1, ceil($total / $limit));
 
         $stmtRoster = $conn->prepare("
             SELECT u.id AS student_id, u.full_name, u.user_code,
@@ -125,17 +151,24 @@ try {
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
             LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year)
-            WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname) AND sca.academic_year = :year AND sca.status = 'Active'
+            $whereSql
             ORDER BY u.full_name ASC
+            LIMIT $offset, $limit
         ");
-        $stmtRoster->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':cname' => $streamName]);
+        $stmtRoster->execute($params);
         $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode([
             "success" => true,
             "stream" => $streamName,
             "subject" => $subjectCode,
-            "roster" => $roster
+            "roster" => $roster,
+            "pagination" => [
+                "total" => $total,
+                "page" => $page,
+                "limit" => $limit,
+                "total_pages" => $totalPages
+            ]
         ]);
         exit();
     }
@@ -387,9 +420,34 @@ try {
         exit();
     }
 
-    // 5. PARENT DESK CATALOG
+    // 5. PARENT DESK CATALOG WITH PAGINATION & SEARCH
     if ($action === 'get_parents_catalog') {
         $streamName = $_GET['stream'] ?? '';
+        $search     = trim($_GET['search'] ?? '');
+        $page       = max(1, intval($_GET['page'] ?? 1));
+        $limit      = max(10, min(500, intval($_GET['limit'] ?? 25)));
+        $offset     = ($page - 1) * $limit;
+
+        $whereSql = "WHERE c.classroom_name = :cname AND sca.academic_year = :year AND sca.status = 'Active'";
+        $params = [':cname' => $streamName, ':year' => $academicYearId];
+
+        if ($search !== '') {
+            $whereSql .= " AND (u.full_name LIKE :search OR u.user_code LIKE :search OR p.guardian_name LIKE :search OR p.guardian_phone LIKE :search)";
+            $params[':search'] = '%' . $search . '%';
+        }
+
+        $stmtCnt = $conn->prepare("
+            SELECT COUNT(*)
+            FROM student_classroom_allocations sca
+            JOIN users u ON sca.student_id = u.id
+            JOIN classrooms c ON sca.classroom_id = c.id
+            LEFT JOIN parent_profiles p ON (u.id = p.student_id)
+            $whereSql
+        ");
+        $stmtCnt->execute($params);
+        $total = (int)$stmtCnt->fetchColumn();
+        $totalPages = max(1, ceil($total / $limit));
+
         $stmtParent = $conn->prepare("
             SELECT u.full_name AS student_name, u.user_code,
                    COALESCE(p.guardian_name, 'Juma Mlimani Kassim') AS parent_name,
@@ -399,16 +457,23 @@ try {
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
             LEFT JOIN parent_profiles p ON (u.id = p.student_id)
-            WHERE c.classroom_name = :cname AND sca.academic_year = :year AND sca.status = 'Active'
+            $whereSql
             ORDER BY u.full_name ASC
+            LIMIT $offset, $limit
         ");
-        $stmtParent->execute([':cname' => $streamName, ':year' => $academicYearId]);
+        $stmtParent->execute($params);
         $catalog = $stmtParent->fetchAll(PDO::FETCH_ASSOC);
 
         echo json_encode([
             "success" => true,
             "stream" => $streamName,
-            "catalog" => $catalog
+            "catalog" => $catalog,
+            "pagination" => [
+                "total" => $total,
+                "page" => $page,
+                "limit" => $limit,
+                "total_pages" => $totalPages
+            ]
         ]);
         exit();
     }

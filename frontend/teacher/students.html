@@ -43,9 +43,26 @@
                     </div>
 
                     <div class="card">
-                        <div class="card-body" style="padding: 0;">
+                        <div class="card-body" style="padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+                                <input type="text" id="tchStudentSearch" class="form-control" placeholder="🔍 Search student name or code..." style="width: 260px; font-size: 13px;">
+                                <select id="tchStudentLimit" class="form-control" style="width: 110px; font-weight: 700;">
+                                    <option value="25">25 / page</option>
+                                    <option value="50">50 / page</option>
+                                    <option value="100">100 / page</option>
+                                </select>
+                            </div>
                             <div id="studentsContainer">
                                 <app-table-skeleton rows="5" cols="4"></app-table-skeleton>
+                            </div>
+                            <!-- PAGINATION -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 13px;">
+                                <div id="tchPageInfo" style="color: #64748b; font-weight: 600;">Showing 0 of 0 students</div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button type="button" id="tchPrevBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>&laquo; Previous</button>
+                                    <span id="tchPageSpan" style="padding: 6px 12px; background: #f1f5f9; border-radius: 6px; font-weight: 700; color: #0f172a;">Page 1 of 1</span>
+                                    <button type="button" id="tchNextBtn" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>Next &raquo;</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -93,6 +110,8 @@
     </div>
 
     <script>
+        let tchStudentState = { page: 1, limit: 25, search: '', totalPages: 1 };
+
         document.addEventListener('DOMContentLoaded', async () => {
             const viewModal = document.getElementById('teacherViewStudentModal');
             document.getElementById('closeTchViewModal').addEventListener('click', () => viewModal.style.display = 'none');
@@ -111,36 +130,92 @@
                 viewModal.style.display = 'flex';
             });
 
+            // Search listener
+            let searchDebounce;
+            document.getElementById('tchStudentSearch').addEventListener('input', (e) => {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(() => {
+                    tchStudentState.search = e.target.value.trim();
+                    tchStudentState.page = 1;
+                    loadTeacherStudents();
+                }, 300);
+            });
+
+            // Limit listener
+            document.getElementById('tchStudentLimit').addEventListener('change', (e) => {
+                tchStudentState.limit = parseInt(e.target.value, 10);
+                tchStudentState.page = 1;
+                loadTeacherStudents();
+            });
+
+            // Pagination listeners
+            document.getElementById('tchPrevBtn').addEventListener('click', () => {
+                if (tchStudentState.page > 1) {
+                    tchStudentState.page--;
+                    loadTeacherStudents();
+                }
+            });
+
+            document.getElementById('tchNextBtn').addEventListener('click', () => {
+                if (tchStudentState.page < tchStudentState.totalPages) {
+                    tchStudentState.page++;
+                    loadTeacherStudents();
+                }
+            });
+
+            loadTeacherStudents();
+        });
+
+        async function loadTeacherStudents() {
+            const container = document.getElementById('studentsContainer');
+            container.innerHTML = '<app-table-skeleton rows="5" cols="4"></app-table-skeleton>';
+
             try {
-                const res = await fetch('/soma-lms/api/students/list.php', { credentials: 'include' });
+                const searchQ = encodeURIComponent(tchStudentState.search);
+                const res = await fetch(`/soma-lms/api/students/list.php?page=${tchStudentState.page}&limit=${tchStudentState.limit}&search=${searchQ}`, { credentials: 'include' });
                 const result = await res.json();
-                if (res.ok && result.success && result.data.length > 0) {
-                    const cols = [
-                        { key: 'code', label: 'Student ID', type: 'text' },
-                        { key: 'name', label: 'Student Name', type: 'avatar' },
-                        { key: 'class', label: 'Class', type: 'text' },
-                        { key: 'status', label: 'Status', type: 'status' }
-                    ];
-                    const data = result.data.map(item => ({
-                        id: item.id,
-                        code: item.user_code || 'STD/2026/001',
-                        class: item.class_name || 'Standard 7 A',
-                        name: { initials: item.full_name ? item.full_name.charAt(0).toUpperCase() : 'S', name: item.full_name },
-                        status: item.status === 'active' ? 'Active' : 'Suspended'
-                    }));
-                    const table = document.createElement('app-table');
-                    table.setAttribute('columns', JSON.stringify(cols));
-                    table.setAttribute('data', JSON.stringify(data));
-                    table.setAttribute('actions', 'view'); // Only View action, NO Edit, NO Delete!
-                    document.getElementById('studentsContainer').innerHTML = '';
-                    document.getElementById('studentsContainer').appendChild(table);
-                } else {
-                    document.getElementById('studentsContainer').innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students found.</div>';
+                if (res.ok && result.success) {
+                    const students = result.data || [];
+                    const pag = result.pagination || {};
+
+                    tchStudentState.totalPages = pag.total_pages || 1;
+                    const startIdx = pag.total > 0 ? (tchStudentState.page - 1) * tchStudentState.limit + 1 : 0;
+                    const endIdx = Math.min(pag.total, tchStudentState.page * tchStudentState.limit);
+
+                    document.getElementById('tchPageInfo').textContent = `Showing ${startIdx} to ${endIdx} of ${pag.total} students`;
+                    document.getElementById('tchPageSpan').textContent = `Page ${tchStudentState.page} of ${tchStudentState.totalPages}`;
+                    document.getElementById('tchPrevBtn').disabled = tchStudentState.page <= 1;
+                    document.getElementById('tchNextBtn').disabled = tchStudentState.page >= tchStudentState.totalPages;
+
+                    if (students.length > 0) {
+                        const cols = [
+                            { key: 'code', label: 'Student ID', type: 'text' },
+                            { key: 'name', label: 'Student Name', type: 'avatar' },
+                            { key: 'class', label: 'Class', type: 'text' },
+                            { key: 'status', label: 'Status', type: 'status' }
+                        ];
+                        const data = students.map(item => ({
+                            id: item.id,
+                            code: item.user_code || 'STD/2026/001',
+                            class: item.class_name || 'Unassigned',
+                            name: { initials: item.full_name ? item.full_name.charAt(0).toUpperCase() : 'S', name: item.full_name },
+                            status: item.status === 'active' ? 'Active' : 'Suspended'
+                        }));
+                        const table = document.createElement('app-table');
+                        table.setAttribute('columns', JSON.stringify(cols));
+                        table.setAttribute('data', JSON.stringify(data));
+                        table.setAttribute('actions', 'view'); // Only View action!
+                        container.innerHTML = '';
+                        container.appendChild(table);
+                    } else {
+                        container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students found matching criteria.</div>';
+                    }
                 }
             } catch (e) {
                 console.error("Error loading students:", e);
+                container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-danger);">Error loading students.</div>';
             }
-        });
+        }
     </script>
 </body>
 </html>
