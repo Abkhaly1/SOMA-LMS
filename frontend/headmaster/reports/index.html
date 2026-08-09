@@ -228,16 +228,30 @@
                         <div class="filter-bar">
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <label style="font-size: 12px; font-weight: 700; color: #475569;">Academic Year:</label>
-                                <select id="selYear" class="form-control" style="width: 140px; font-weight: 700;">
+                                <select id="selYear" class="form-control" style="width: 130px; font-weight: 700;">
                                     <option value="2026">2026</option>
                                     <option value="2025">2025</option>
                                 </select>
                             </div>
 
-                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; max-width: 320px;">
+                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; max-width: 260px;">
                                 <label style="font-size: 12px; font-weight: 700; color: #475569;">Select Classroom:</label>
                                 <select id="selClassroom" class="form-control" style="font-weight: 600;">
                                     <option value="">-- Loading Classrooms --</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; max-width: 260px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #475569;">Filter Student Roster:</label>
+                                <input type="text" id="rosterSearch" placeholder="🔍 Search name or reg code..." class="form-control" style="font-size: 13px;">
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 4px;">
+                                <label style="font-size: 12px; font-weight: 700; color: #475569;">Per Page:</label>
+                                <select id="rosterLimit" class="form-control" style="width: 110px; font-weight: 700;">
+                                    <option value="25">25 / page</option>
+                                    <option value="50">50 / page</option>
+                                    <option value="100">100 / page</option>
                                 </select>
                             </div>
 
@@ -274,6 +288,16 @@
                                         <tr><td colspan="9" style="text-align: center; padding: 24px; color: #64748b;">Select a classroom above to load attendance.</td></tr>
                                     </tbody>
                                 </table>
+                            </div>
+
+                            <!-- PAGINATION CONTROLS -->
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; font-size: 13px;">
+                                <div id="rosterPaginationInfo" style="color: #64748b; font-weight: 600;">Showing 0 of 0 students</div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <button type="button" id="btnPrevPage" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>&laquo; Previous</button>
+                                    <span id="currentPageSpan" style="padding: 6px 12px; background: #f1f5f9; border-radius: 6px; font-weight: 700; color: #0f172a;">Page 1 of 1</span>
+                                    <button type="button" id="btnNextPage" class="btn btn-outline btn-sm" style="font-weight: 700;" disabled>Next &raquo;</button>
+                                </div>
                             </div>
                         </div>
 
@@ -381,6 +405,15 @@
     </div>
 
     <script>
+        let rosterState = {
+            classroomId: 0,
+            year: '2026',
+            page: 1,
+            limit: 25,
+            search: '',
+            totalPages: 1
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
             // Tab switching logic
             const tabBtns = document.querySelectorAll('.report-tab-btn');
@@ -409,14 +442,50 @@
 
             document.getElementById('selYear').addEventListener('change', (e) => {
                 const yr = e.target.value;
+                rosterState.year = yr;
+                rosterState.page = 1;
                 loadOverviewAnalytics(yr);
                 loadClassrooms(yr);
             });
 
             document.getElementById('btnLoadRoster').addEventListener('click', () => {
-                const cid = document.getElementById('selClassroom').value;
-                const yr = document.getElementById('selYear').value;
-                if (cid) loadClassroomRoster(cid, yr);
+                rosterState.classroomId = document.getElementById('selClassroom').value;
+                rosterState.year = document.getElementById('selYear').value;
+                rosterState.page = 1;
+                if (rosterState.classroomId) loadClassroomRoster();
+            });
+
+            // Search input filter listener
+            let searchTimeout;
+            document.getElementById('rosterSearch').addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    rosterState.search = e.target.value.trim();
+                    rosterState.page = 1;
+                    if (rosterState.classroomId) loadClassroomRoster();
+                }, 300);
+            });
+
+            // Page limit listener
+            document.getElementById('rosterLimit').addEventListener('change', (e) => {
+                rosterState.limit = parseInt(e.target.value, 10);
+                rosterState.page = 1;
+                if (rosterState.classroomId) loadClassroomRoster();
+            });
+
+            // Pagination Controls
+            document.getElementById('btnPrevPage').addEventListener('click', () => {
+                if (rosterState.page > 1) {
+                    rosterState.page--;
+                    loadClassroomRoster();
+                }
+            });
+
+            document.getElementById('btnNextPage').addEventListener('click', () => {
+                if (rosterState.page < rosterState.totalPages) {
+                    rosterState.page++;
+                    loadClassroomRoster();
+                }
             });
 
             // Modal listeners
@@ -526,6 +595,7 @@
                 if (res.ok && data.success && data.years.length > 0) {
                     const sel = document.getElementById('selYear');
                     sel.innerHTML = data.years.map(y => `<option value="${y}">${y}</option>`).join('');
+                    rosterState.year = data.years[0];
                     loadClassrooms(data.years[0]);
                 }
             } catch (err) {
@@ -542,35 +612,56 @@
 
                 if (res.ok && data.success && data.classrooms.length > 0) {
                     sel.innerHTML = data.classrooms.map(c => `<option value="${c.id}">${c.grade_name} ${c.classroom_name} (${c.student_count} students)</option>`).join('');
-                    loadClassroomRoster(data.classrooms[0].id, year);
+                    rosterState.classroomId = data.classrooms[0].id;
+                    rosterState.page = 1;
+                    loadClassroomRoster();
                 } else {
                     sel.innerHTML = '<option value="">-- No Classrooms --</option>';
+                    document.getElementById('rosterTableBody').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: #64748b;">No classrooms available for this year.</td></tr>';
                 }
             } catch (err) {
                 console.error("Error loading classrooms:", err);
             }
         }
 
-        // 4. Fetch Classroom Roster
-        async function loadClassroomRoster(classroomId, year = '2026') {
+        // 4. Fetch Paginated Classroom Roster
+        async function loadClassroomRoster() {
+            const cid = rosterState.classroomId;
+            const yr = rosterState.year;
+            const page = rosterState.page;
+            const limit = rosterState.limit;
+            const search = encodeURIComponent(rosterState.search);
+
             const rosterBody = document.getElementById('rosterTableBody');
             rosterBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: #64748b;">Loading roster...</td></tr>';
 
             try {
-                const res = await fetch(`/soma-lms/api/headmaster/reports/attendance_analytics_api.php?action=classroom_roster&classroom_id=${classroomId}&year=${year}`, { credentials: 'include' });
+                const res = await fetch(`/soma-lms/api/headmaster/reports/attendance_analytics_api.php?action=classroom_roster&classroom_id=${cid}&year=${yr}&page=${page}&limit=${limit}&search=${search}`, { credentials: 'include' });
                 const data = await res.json();
 
                 if (res.ok && data.success) {
                     const roster = data.roster || [];
-                    document.getElementById('rosterCountBadge').textContent = `${roster.length} Students`;
+                    const pag = data.pagination || {};
+
+                    rosterState.totalPages = pag.total_pages || 1;
+                    document.getElementById('rosterCountBadge').textContent = `${pag.total || 0} Students`;
+
+                    // Update Pagination Controls
+                    const startIdx = pag.total > 0 ? (page - 1) * limit + 1 : 0;
+                    const endIdx = Math.min(pag.total, page * limit);
+                    document.getElementById('rosterPaginationInfo').textContent = `Showing ${startIdx} to ${endIdx} of ${pag.total} students`;
+                    document.getElementById('currentPageSpan').textContent = `Page ${page} of ${rosterState.totalPages}`;
+                    document.getElementById('btnPrevPage').disabled = page <= 1;
+                    document.getElementById('btnNextPage').disabled = page >= rosterState.totalPages;
 
                     if (roster.length > 0) {
                         let html = '';
                         roster.forEach((s, idx) => {
+                            const rowNum = startIdx + idx;
                             const rateColor = s.attendance_rate < 75 ? '#b91c1c' : (s.attendance_rate < 90 ? '#b45309' : '#15803d');
                             html += `
                                 <tr style="border-bottom: 1px solid #f1f5f9;">
-                                    <td style="padding: 10px 14px; font-weight: 700; color: #64748b;">${idx + 1}</td>
+                                    <td style="padding: 10px 14px; font-weight: 700; color: #64748b;">${rowNum}</td>
                                     <td style="padding: 10px 14px; font-weight: 700; color: #0f172a;">${s.full_name}</td>
                                     <td style="padding: 10px 14px; font-weight: 600; color: #64748b;">${s.user_code}</td>
                                     <td style="padding: 10px 14px;">${s.gender}</td>
@@ -588,7 +679,7 @@
                         });
                         rosterBody.innerHTML = html;
                     } else {
-                        rosterBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: #64748b;">No students allocated to this classroom.</td></tr>';
+                        rosterBody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px; color: #64748b;">No students found matching search criteria.</td></tr>';
                     }
                 }
             } catch (err) {
@@ -601,7 +692,7 @@
             const modal = document.getElementById('studentTimelineModal');
             modal.style.display = 'flex';
 
-            const yr = document.getElementById('selYear')?.value || '2026';
+            const yr = rosterState.year || '2026';
 
             document.getElementById('modalStudentName').textContent = 'Loading Profile...';
             document.getElementById('modalStudentMeta').textContent = 'Reg Code: --';

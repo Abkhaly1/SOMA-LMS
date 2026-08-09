@@ -221,27 +221,51 @@ try {
         exit();
     }
 
-    // 4. CLASSROOM ROSTER WITH ATTENDANCE STATS
+    // 4. CLASSROOM ROSTER WITH ATTENDANCE STATS & PAGINATION
     if ($action === 'classroom_roster') {
         $classroomId = intval($_GET['classroom_id'] ?? 0);
+        $search      = trim($_GET['search'] ?? '');
+        $page        = max(1, intval($_GET['page'] ?? 1));
+        $limit       = max(10, min(200, intval($_GET['limit'] ?? 25)));
+        $offset      = ($page - 1) * $limit;
 
         if (!$classroomId) {
             echo json_encode(['success' => false, 'message' => 'Classroom ID is required.']);
             exit();
         }
 
-        // Fetch students in this classroom
+        // Count total students matching filter
+        $whereSql = "WHERE sca.school_id = :school_id AND sca.classroom_id = :classroom_id AND sca.academic_year = :year";
+        $paramsCount = [':school_id' => $schoolId, ':classroom_id' => $classroomId, ':year' => $year];
+
+        if ($search !== '') {
+            $whereSql .= " AND (u.full_name LIKE :search OR u.user_code LIKE :search)";
+            $paramsCount[':search'] = '%' . $search . '%';
+        }
+
+        $stmtCnt = $conn->prepare("
+            SELECT COUNT(*)
+            FROM student_classroom_allocations sca
+            JOIN users u ON sca.student_id = u.id
+            $whereSql
+        ");
+        $stmtCnt->execute($paramsCount);
+        $totalStudents = (int)$stmtCnt->fetchColumn();
+        $totalPages = max(1, ceil($totalStudents / $limit));
+
+        // Fetch paginated students in this classroom
         $stmtRoster = $conn->prepare("
             SELECT u.id AS student_id, u.full_name, u.user_code, u.gender
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
-            WHERE sca.school_id = ? AND sca.classroom_id = ? AND sca.academic_year = ?
+            $whereSql
             ORDER BY u.full_name ASC
+            LIMIT $offset, $limit
         ");
-        $stmtRoster->execute([$schoolId, $classroomId, $year]);
+        $stmtRoster->execute($paramsCount);
         $students = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch attendance for each student in this classroom
+        // Fetch attendance stats for each student in the page
         $rosterData = [];
         foreach ($students as $s) {
             $sid = $s['student_id'];
@@ -288,7 +312,17 @@ try {
             ];
         }
 
-        echo json_encode(['success' => true, 'classroom_id' => $classroomId, 'roster' => $rosterData]);
+        echo json_encode([
+            'success' => true,
+            'classroom_id' => $classroomId,
+            'roster' => $rosterData,
+            'pagination' => [
+                'total' => $totalStudents,
+                'page'  => $page,
+                'limit' => $limit,
+                'total_pages' => $totalPages
+            ]
+        ]);
         exit();
     }
 
