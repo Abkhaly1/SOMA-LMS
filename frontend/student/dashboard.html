@@ -84,10 +84,10 @@
                         if (welcomeEl) welcomeEl.textContent = `Welcome, ${profile.full_name}`;
                     }
 
-                    document.getElementById('studentGrade').textContent = alloc.classroom_name ? `${alloc.grade_name || ''} ${alloc.classroom_name}` : 'Form 2';
-                    document.getElementById('studentSubjects').textContent = subjects.length ? subjects.length.toString() : '7';
-                    document.getElementById('studentAverage').textContent = '72%';
-                    document.getElementById('studentAttendance').textContent = '94%';
+                    document.getElementById('studentGrade').textContent = alloc.classroom_name ? `${alloc.grade_name || ''} ${alloc.classroom_name}` : (alloc.grade_name || 'Enrolled');
+                    document.getElementById('studentSubjects').textContent = subjects.length.toString();
+                    document.getElementById('studentAverage').textContent = data.gpa_average ? `${data.gpa_average}%` : 'N/A';
+                    document.getElementById('studentAttendance').textContent = data.attendance_rate ? `${data.attendance_rate}%` : '100%';
                     
                     if (subjects.length > 0) {
                         document.getElementById('studentTimetable').innerHTML = `
@@ -99,18 +99,17 @@
                         document.getElementById('studentTimetable').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your daily timetable will appear here once your school streams are loaded.</p>';
                     }
                 } else {
-                    // Fallback defaults if not logged in as student directly
-                    document.getElementById('studentGrade').textContent = 'Form 2';
-                    document.getElementById('studentSubjects').textContent = '7';
-                    document.getElementById('studentAverage').textContent = '72%';
-                    document.getElementById('studentAttendance').textContent = '94%';
+                    document.getElementById('studentGrade').textContent = 'Enrolled';
+                    document.getElementById('studentSubjects').textContent = '0';
+                    document.getElementById('studentAverage').textContent = 'N/A';
+                    document.getElementById('studentAttendance').textContent = 'N/A';
                 }
             } catch (e) {
                 console.error("Student dashboard API connection note:", e);
-                document.getElementById('studentGrade').textContent = 'Form 2';
-                document.getElementById('studentSubjects').textContent = '7';
-                document.getElementById('studentAverage').textContent = '72%';
-                document.getElementById('studentAttendance').textContent = '94%';
+                document.getElementById('studentGrade').textContent = 'Enrolled';
+                document.getElementById('studentSubjects').textContent = '0';
+                document.getElementById('studentAverage').textContent = 'N/A';
+                document.getElementById('studentAttendance').textContent = 'N/A';
             }
         });
     </script>

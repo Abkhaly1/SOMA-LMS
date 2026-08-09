@@ -34,25 +34,25 @@
                         <div class="dashboard-card">
                             <div class="parent-summary">
                                 <span class="parent-summary-title">Linked Child</span>
-                                <span class="parent-summary-value" id="parentChildName">Juma Abdallah</span>
+                                <span class="parent-summary-value" id="parentChildName">--</span>
                             </div>
                         </div>
                         <div class="dashboard-card">
                             <div class="parent-summary">
                                 <span class="parent-summary-title">Child's Grade</span>
-                                <span class="parent-summary-value" id="parentChildGrade">Form 1</span>
+                                <span class="parent-summary-value" id="parentChildGrade">--</span>
                             </div>
                         </div>
                         <div class="dashboard-card">
                             <div class="parent-summary">
                                 <span class="parent-summary-title">Latest Average</span>
-                                <span class="parent-summary-value" id="parentChildAverage">68%</span>
+                                <span class="parent-summary-value" id="parentChildAverage">--</span>
                             </div>
                         </div>
                         <div class="dashboard-card">
                             <div class="parent-summary">
                                 <span class="parent-summary-title">Attendance</span>
-                                <span class="parent-summary-value" id="parentAttendance">92%</span>
+                                <span class="parent-summary-value" id="parentAttendance">--</span>
                             </div>
                         </div>
                     </div>
@@ -77,18 +77,26 @@
                 if (res.ok && data.success) {
                     const profile = data.profile || {};
                     const alloc = data.current_allocation || {};
+                    const timeline = data.timeline_history || [];
                     
-                    if (profile.full_name) {
-                        document.getElementById('parentChildName').textContent = profile.full_name;
-                    }
-                    if (alloc.classroom_name) {
-                        document.getElementById('parentChildGrade').textContent = `${alloc.grade_name || ''} ${alloc.classroom_name}`;
-                    }
-                    document.getElementById('parentAcademicSummary').innerHTML = `<p style="margin:0;color:var(--c-text-secondary);">Currently tracking academic progress for <strong>${profile.full_name || 'your child'}</strong>.</p>`;
+                    document.getElementById('parentChildName').textContent = profile.full_name || 'Assigned Child';
+                    document.getElementById('parentChildGrade').textContent = alloc.classroom_name ? `${alloc.grade_name || ''} ${alloc.classroom_name}` : (alloc.grade_name || 'Enrolled');
+                    document.getElementById('parentChildAverage').textContent = data.gpa_average ? `${data.gpa_average}%` : 'N/A';
+                    document.getElementById('parentAttendance').textContent = data.attendance_rate ? `${data.attendance_rate}%` : '100%';
+
+                    document.getElementById('parentAcademicSummary').innerHTML = `<p style="margin:0;color:var(--c-text-secondary);">Tracking academic progress and attendance for <strong>${profile.full_name || 'your child'}</strong> (${alloc.grade_name || 'Class'} ${alloc.classroom_name || ''}).</p>`;
                 } else {
+                    document.getElementById('parentChildName').textContent = 'Assigned Child';
+                    document.getElementById('parentChildGrade').textContent = 'Enrolled';
+                    document.getElementById('parentChildAverage').textContent = 'N/A';
+                    document.getElementById('parentAttendance').textContent = 'N/A';
                     document.getElementById('parentAcademicSummary').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your child has no new academic alerts or messages today.</p>';
                 }
             } catch (e) {
+                document.getElementById('parentChildName').textContent = 'Assigned Child';
+                document.getElementById('parentChildGrade').textContent = 'Enrolled';
+                document.getElementById('parentChildAverage').textContent = 'N/A';
+                document.getElementById('parentAttendance').textContent = 'N/A';
                 document.getElementById('parentAcademicSummary').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your child has no new academic alerts or messages today.</p>';
             }
             document.getElementById('parentNotices').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">No recent school notices.</p>';
