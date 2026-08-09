@@ -26,17 +26,26 @@ $year = $_GET['year'] ?? $input['year'] ?? '2026';
 $engine = new TeacherAllocationEngine($conn);
 
 try {
-    // 1. Directory: list teachers with simple counts
+    // 1. Directory: list teachers with simple counts and qualified subjects list
     if ($method === 'GET' && $action === 'directory') {
         $stmt = $conn->prepare("SELECT id, full_name, user_code, department FROM users WHERE school_id = ? AND role IN ('teacher','tenant_admin') AND status = 'active' ORDER BY full_name ASC");
         $stmt->execute([$schoolId]);
         $teachers = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // counts for each teacher
+        // Fetch qualifications for each teacher
         foreach ($teachers as &$t) {
-            $ts = $conn->prepare("SELECT COUNT(*) FROM teacher_subject_qualifications WHERE teacher_id = ?");
-            $ts->execute([$t['id']]);
-            $t['qualified_subjects_count'] = intval($ts->fetchColumn());
+            $ts = $conn->prepare("
+                SELECT DISTINCT COALESCE(s.name, s.code, sas.subject_name, tsq.subject_id) AS subject_name, COALESCE(s.code, sas.subject_code, tsq.subject_id) AS subject_code
+                FROM teacher_subject_qualifications tsq
+                LEFT JOIN subjects s ON tsq.subject_id = s.id
+                LEFT JOIN school_approved_subjects sas ON (tsq.subject_id = sas.subject_code AND sas.school_id = ?)
+                WHERE tsq.teacher_id = ?
+            ");
+            $ts->execute([$schoolId, $t['id']]);
+            $quals = $ts->fetchAll(PDO::FETCH_ASSOC);
+
+            $t['qualified_subjects'] = $quals;
+            $t['qualified_subjects_count'] = count($quals);
 
             $tc = $conn->prepare("SELECT COUNT(*) FROM teacher_classroom_assignments WHERE teacher_id = ? AND academic_year_id = ?");
             $tc->execute([$t['id'], $year]);
