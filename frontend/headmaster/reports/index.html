@@ -448,12 +448,15 @@
                 loadClassrooms(yr);
             });
 
-            document.getElementById('btnLoadRoster').addEventListener('click', () => {
+            const triggerRosterLoad = () => {
                 rosterState.classroomId = document.getElementById('selClassroom').value;
                 rosterState.year = document.getElementById('selYear').value;
                 rosterState.page = 1;
                 if (rosterState.classroomId) loadClassroomRoster();
-            });
+            };
+
+            document.getElementById('selClassroom').addEventListener('change', triggerRosterLoad);
+            document.getElementById('btnLoadRoster').addEventListener('click', triggerRosterLoad);
 
             // Search input filter listener
             let searchTimeout;
