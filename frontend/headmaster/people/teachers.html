@@ -703,20 +703,38 @@
                 }
             }
 
+            let teacherSearchQuery = '';
+            document.addEventListener('toolbar-search', (e) => {
+                teacherSearchQuery = (e.detail ? e.detail.query : '').toLowerCase().trim();
+                teacherPage = 1;
+                renderPaginatedTeachers();
+            });
+
             // Render Paginated Teachers Table
             function renderPaginatedTeachers() {
                 const container = document.getElementById('teachersTableContainer');
                 const paginator = document.getElementById('teachersPagination');
 
-                if (!allTeachers || allTeachers.length === 0) {
-                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No teachers registered yet.</div>';
+                let filtered = allTeachers || [];
+                if (teacherSearchQuery) {
+                    filtered = filtered.filter(t => 
+                        (t.full_name && t.full_name.toLowerCase().includes(teacherSearchQuery)) ||
+                        (t.user_code && t.user_code.toLowerCase().includes(teacherSearchQuery)) ||
+                        (t.department && t.department.toLowerCase().includes(teacherSearchQuery)) ||
+                        (t.phone && t.phone.toLowerCase().includes(teacherSearchQuery)) ||
+                        (t.email && t.email.toLowerCase().includes(teacherSearchQuery))
+                    );
+                }
+
+                if (!filtered || filtered.length === 0) {
+                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No teachers found matching search criteria.</div>';
                     paginator.setAttribute('total-records', '0');
                     paginator.setAttribute('total-pages', '1');
                     paginator.setAttribute('current-page', '1');
                     return;
                 }
 
-                const totalRecords = allTeachers.length;
+                const totalRecords = filtered.length;
                 const totalPages = Math.ceil(totalRecords / teacherPageSize);
                 teacherPage = Math.min(teacherPage, totalPages);
 
@@ -726,7 +744,7 @@
                 paginator.setAttribute('page-size', teacherPageSize.toString());
 
                 const startIndex = (teacherPage - 1) * teacherPageSize;
-                const pageSlice = allTeachers.slice(startIndex, startIndex + teacherPageSize);
+                const pageSlice = filtered.slice(startIndex, startIndex + teacherPageSize);
 
                 const cols = [
                     { key: 'code', label: 'Staff ID', type: 'text' },

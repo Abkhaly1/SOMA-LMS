@@ -95,6 +95,19 @@ class AppWorkspaceToolbar extends HTMLElement {
     }
 
     setupEventListeners() {
+        const searchInput = this.querySelector('.toolbar-search-input');
+        if (searchInput) {
+            let searchDebounce;
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchDebounce);
+                searchDebounce = setTimeout(() => {
+                    this.dispatchEvent(new CustomEvent('toolbar-search', {
+                        bubbles: true,
+                        detail: { query: e.target.value.trim() }
+                    }));
+                }, 150);
+            });
+        }
         const pBtn = this.querySelector('.primary-action-btn');
         if (pBtn) {
             pBtn.addEventListener('click', () => {

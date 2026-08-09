@@ -669,20 +669,38 @@
                 }
             });
 
+            let studentSearchQuery = '';
+            document.addEventListener('toolbar-search', (e) => {
+                studentSearchQuery = (e.detail ? e.detail.query : '').toLowerCase().trim();
+                studentPage = 1;
+                renderPaginatedStudents();
+            });
+
             // Render Paginated Students Table
             function renderPaginatedStudents() {
                 const container = document.getElementById('studentsTableContainer');
                 const paginator = document.getElementById('studentsPagination');
 
-                if (!allStudents || allStudents.length === 0) {
-                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students registered yet.</div>';
+                let filtered = allStudents || [];
+                if (studentSearchQuery) {
+                    filtered = filtered.filter(s => 
+                        (s.full_name && s.full_name.toLowerCase().includes(studentSearchQuery)) ||
+                        (s.user_code && s.user_code.toLowerCase().includes(studentSearchQuery)) ||
+                        (s.class_name && s.class_name.toLowerCase().includes(studentSearchQuery)) ||
+                        (s.phone && s.phone.toLowerCase().includes(studentSearchQuery)) ||
+                        (s.email && s.email.toLowerCase().includes(studentSearchQuery))
+                    );
+                }
+
+                if (!filtered || filtered.length === 0) {
+                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students found matching search criteria.</div>';
                     paginator.setAttribute('total-records', '0');
                     paginator.setAttribute('total-pages', '1');
                     paginator.setAttribute('current-page', '1');
                     return;
                 }
 
-                const totalRecords = allStudents.length;
+                const totalRecords = filtered.length;
                 const totalPages = Math.ceil(totalRecords / studentPageSize);
                 studentPage = Math.min(studentPage, totalPages);
 
@@ -692,7 +710,7 @@
                 paginator.setAttribute('page-size', studentPageSize.toString());
 
                 const startIndex = (studentPage - 1) * studentPageSize;
-                const pageSlice = allStudents.slice(startIndex, startIndex + studentPageSize);
+                const pageSlice = filtered.slice(startIndex, startIndex + studentPageSize);
 
                 const cols = [
                     { key: 'code', label: 'Student ID', type: 'text' },

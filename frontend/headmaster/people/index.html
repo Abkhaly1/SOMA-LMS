@@ -688,20 +688,42 @@
                 }
             });
 
+            let peopleSearchQuery = '';
+            document.addEventListener('toolbar-search', (e) => {
+                peopleSearchQuery = (e.detail ? e.detail.query : '').toLowerCase().trim();
+                studentPage = 1;
+                teacherPage = 1;
+                parentPage = 1;
+                renderPaginatedStudents();
+                renderPaginatedTeachers();
+                renderPaginatedParents();
+            });
+
             // Render Paginated Students Table
             function renderPaginatedStudents() {
                 const container = document.getElementById('studentsTableContainer');
                 const paginator = document.getElementById('studentsPagination');
 
-                if (!allStudents || allStudents.length === 0) {
-                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students registered yet.</div>';
+                let filtered = allStudents || [];
+                if (peopleSearchQuery) {
+                    filtered = filtered.filter(s => 
+                        (s.full_name && s.full_name.toLowerCase().includes(peopleSearchQuery)) ||
+                        (s.user_code && s.user_code.toLowerCase().includes(peopleSearchQuery)) ||
+                        (s.class_name && s.class_name.toLowerCase().includes(peopleSearchQuery)) ||
+                        (s.phone && s.phone.toLowerCase().includes(peopleSearchQuery)) ||
+                        (s.email && s.email.toLowerCase().includes(peopleSearchQuery))
+                    );
+                }
+
+                if (!filtered || filtered.length === 0) {
+                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No students found matching search criteria.</div>';
                     paginator.setAttribute('total-records', '0');
                     paginator.setAttribute('total-pages', '1');
                     paginator.setAttribute('current-page', '1');
                     return;
                 }
 
-                const totalRecords = allStudents.length;
+                const totalRecords = filtered.length;
                 const totalPages = Math.ceil(totalRecords / studentPageSize);
                 studentPage = Math.min(studentPage, totalPages);
 
@@ -711,7 +733,7 @@
                 paginator.setAttribute('page-size', studentPageSize.toString());
 
                 const startIndex = (studentPage - 1) * studentPageSize;
-                const pageSlice = allStudents.slice(startIndex, startIndex + studentPageSize);
+                const pageSlice = filtered.slice(startIndex, startIndex + studentPageSize);
 
                 const cols = [
                     { key: 'code', label: 'Student ID', type: 'text' },
@@ -762,15 +784,26 @@
                 const container = document.getElementById('teachersTableContainer');
                 const paginator = document.getElementById('teachersPagination');
 
-                if (!allTeachers || allTeachers.length === 0) {
-                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No teachers registered yet.</div>';
+                let filtered = allTeachers || [];
+                if (peopleSearchQuery) {
+                    filtered = filtered.filter(t => 
+                        (t.full_name && t.full_name.toLowerCase().includes(peopleSearchQuery)) ||
+                        (t.user_code && t.user_code.toLowerCase().includes(peopleSearchQuery)) ||
+                        (t.department && t.department.toLowerCase().includes(peopleSearchQuery)) ||
+                        (t.phone && t.phone.toLowerCase().includes(peopleSearchQuery)) ||
+                        (t.email && t.email.toLowerCase().includes(peopleSearchQuery))
+                    );
+                }
+
+                if (!filtered || filtered.length === 0) {
+                    container.innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-text-muted);">No teachers found matching search criteria.</div>';
                     paginator.setAttribute('total-records', '0');
                     paginator.setAttribute('total-pages', '1');
                     paginator.setAttribute('current-page', '1');
                     return;
                 }
 
-                const totalRecords = allTeachers.length;
+                const totalRecords = filtered.length;
                 const totalPages = Math.ceil(totalRecords / teacherPageSize);
                 teacherPage = Math.min(teacherPage, totalPages);
 
@@ -780,7 +813,7 @@
                 paginator.setAttribute('page-size', teacherPageSize.toString());
 
                 const startIndex = (teacherPage - 1) * teacherPageSize;
-                const pageSlice = allTeachers.slice(startIndex, startIndex + teacherPageSize);
+                const pageSlice = filtered.slice(startIndex, startIndex + teacherPageSize);
 
                 const cols = [
                     { key: 'code', label: 'Staff ID', type: 'text' },

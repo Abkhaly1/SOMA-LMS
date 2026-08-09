@@ -376,11 +376,14 @@
                 renderFacultyTable(allTeachers);
                 return;
             }
+            const queryClean = query.replace(/[^a-z0-9]/g, '');
             const filtered = allTeachers.filter(t => {
                 const name = (t.full_name || '').toLowerCase();
                 const code = (t.user_code || '').toLowerCase();
                 const dept = (t.department || '').toLowerCase();
-                return name.includes(query) || code.includes(query) || dept.includes(query);
+                const combined = `${name} ${code} ${dept}`;
+                const combinedClean = combined.replace(/[^a-z0-9]/g, '');
+                return combined.includes(query) || (queryClean !== '' && combinedClean.includes(queryClean));
             });
             renderFacultyTable(filtered);
         });
