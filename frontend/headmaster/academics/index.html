@@ -56,82 +56,82 @@
                     <app-workspace-layout hide-back style="gap: 10px;">
                         
                         <!-- ── HEADER BANNER ────────────────────────── -->
-                        <div class="workspace-header-card" style="margin-bottom: 8px; padding: 10px 16px;">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <a href="#" onclick="window.history.back(); return false;" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 700; white-space: nowrap; height: 32px; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3);">
+                        <div class="workspace-header-card" style="margin-bottom: 8px; padding: 8px 14px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <a href="#" onclick="window.history.back(); return false;" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 4px; text-decoration: none; font-weight: 700; white-space: nowrap; height: 30px; border-radius: 6px; background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3);">
                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
                                     Back
                                 </a>
-                                <div style="width: 36px; height: 36px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800;">
+                                <div style="width: 32px; height: 32px; border-radius: 50%; background: #10b981; color: white; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800;">
                                     🎓
                                 </div>
                                 <div>
-                                    <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: white; line-height: 1.2;">
-                                        Academic Curriculum Workspace
+                                    <h2 style="margin: 0; font-size: 15px; font-weight: 800; color: white; line-height: 1.2;">
+                                        Academic Curriculum
                                     </h2>
                                     <div style="color: #a7f3d0; font-size: 11px;">
-                                        Manage education levels, system grade tiers, and master subject curriculum for your school.
+                                        Manage school levels, grades, and subjects.
                                     </div>
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <span class="badge" style="background: #10b981; color: white; font-weight: 700; padding: 3px 8px; font-size: 11px;">Academic Year 2026</span>
+                                <span class="badge" style="background: #10b981; color: white; font-weight: 700; padding: 3px 8px; font-size: 11px;">Year 2026</span>
                             </div>
                         </div>
 
                         <!-- ── WORKSPACE SUMMARY CARDS ──────────────────────── -->
                         <app-workspace-summary style="margin-bottom: 8px; gap: 8px;">
-                            <app-workspace-summary-card id="cardLevelsCount" label="Registered Levels" value="-"></app-workspace-summary-card>
-                            <app-workspace-summary-card id="cardGradesCount" label="Active System Grades" value="-"></app-workspace-summary-card>
-                            <app-workspace-summary-card id="cardSubjectsCount" label="Approved Master Subjects" value="-"></app-workspace-summary-card>
-                            <app-workspace-summary-card id="cardAcademicYear" label="Academic Status" value="2026 Active"></app-workspace-summary-card>
+                            <app-workspace-summary-card id="cardLevelsCount" label="Levels" value="-"></app-workspace-summary-card>
+                            <app-workspace-summary-card id="cardGradesCount" label="Grades" value="-"></app-workspace-summary-card>
+                            <app-workspace-summary-card id="cardSubjectsCount" label="Subjects" value="-"></app-workspace-summary-card>
+                            <app-workspace-summary-card id="cardAcademicYear" label="Status" value="2026 Active"></app-workspace-summary-card>
                         </app-workspace-summary>
 
                         <!-- ── WORKSPACE TABS ────────────────────────── -->
                         <app-workspace-tabs active-tab="grades" style="margin-bottom: 6px;">
-                            <button class="workspace-tab" data-target="grades">📚 System Grade Tiers & Curriculum</button>
-                            <button class="workspace-tab" data-target="levels">🏫 Registered Education Levels</button>
-                            <button class="workspace-tab" data-target="subjects">📖 Approved Master Subjects</button>
+                            <button class="workspace-tab" data-target="grades">📚 Grade Tiers</button>
+                            <button class="workspace-tab" data-target="levels">🏫 Education Levels</button>
+                            <button class="workspace-tab" data-target="subjects">📖 Master Subjects</button>
                         </app-workspace-tabs>
 
                         <!-- ── TAB 1: SYSTEM GRADE TIERS & CURRICULUM ── -->
                         <app-workspace-content tab-id="grades" active="true">
-                            <div class="card" style="padding: var(--sp-6);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div class="card" style="padding: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--c-text-primary);">
-                                            System Grade Tiers Workspace
+                                        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--c-text-primary);">
+                                            Grade Tiers
                                         </h3>
-                                        <p style="color: var(--c-text-secondary); margin: 4px 0 0 0; font-size: 13px;">
-                                            Select any grade tier (e.g. Form 1, Form 2) to manage its Master Subject Curriculum in full-page workspace view.
+                                        <p style="color: var(--c-text-secondary); margin: 2px 0 0 0; font-size: 12px;">
+                                            Select a grade to open its curriculum workspace.
                                         </p>
                                     </div>
-                                    <div id="gradeLevelFilterContainer" style="display:flex;gap:10px;">
+                                    <div id="gradeLevelFilterContainer" style="display:flex;gap:6px;">
                                         <!-- Dynamically generated level filter pills -->
                                     </div>
                                 </div>
 
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 18px;" id="academicsGradesGrid">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;" id="academicsGradesGrid">
                                     <app-table-skeleton rows="4" cols="2"></app-table-skeleton>
                                 </div>
                             </div>
                         </app-workspace-content>
 
-                        <!-- ── TAB 3: REGISTERED EDUCATION LEVELS ── -->
+                        <!-- ── TAB 2: REGISTERED EDUCATION LEVELS ── -->
                         <app-workspace-content tab-id="levels">
-                            <div class="card" style="padding: var(--sp-6);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div class="card" style="padding: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--c-text-primary);">
-                                            Registered Education Levels
+                                        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--c-text-primary);">
+                                            Education Levels
                                         </h3>
-                                        <p style="color: var(--c-text-secondary); margin: 4px 0 0 0; font-size: 13px;">
-                                            Active education levels configured for your school (O-Level, A-Level, Primary, Nursery).
+                                        <p style="color: var(--c-text-secondary); margin: 2px 0 0 0; font-size: 12px;">
+                                            Active education levels configured for your school.
                                         </p>
                                     </div>
                                 </div>
 
-                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 20px;" id="academicsLevelsGrid">
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px;" id="academicsLevelsGrid">
                                     <app-table-skeleton rows="3" cols="2"></app-table-skeleton>
                                 </div>
                             </div>
@@ -139,14 +139,14 @@
 
                         <!-- ── TAB 3: APPROVED MASTER SUBJECTS ── -->
                         <app-workspace-content tab-id="subjects">
-                            <div class="card" style="padding: var(--sp-6);">
-                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                            <div class="card" style="padding: 16px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--c-text-primary);">
-                                            Approved Master Subject Library
+                                        <h3 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--c-text-primary);">
+                                            Master Subjects
                                         </h3>
-                                        <p style="color: var(--c-text-secondary); margin: 4px 0 0 0; font-size: 13px;">
-                                            Master curriculum subjects approved for your school across all education levels.
+                                        <p style="color: var(--c-text-secondary); margin: 2px 0 0 0; font-size: 12px;">
+                                            Approved master subjects for your school.
                                         </p>
                                     </div>
                                 </div>
@@ -242,21 +242,21 @@
                 const assignedCount = (gradeSubjectsMap[g.id] || []).length;
 
                 const badgeHtml = assignedCount > 0
-                    ? `<span style="background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">📘 ${assignedCount} Subjects Assigned</span>`
-                    : `<span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;">⚠️ 0 Subjects Assigned</span>`;
+                    ? `<span style="background:#d1fae5;color:#065f46;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">📘 ${assignedCount} Subjects</span>`
+                    : `<span style="background:#fee2e2;color:#dc2626;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700;">⚠️ 0 Subjects</span>`;
 
                 html += `
-                    <div class="grade-card">
+                    <div class="grade-card" style="padding: 14px; border-radius: 8px;">
                         <div>
-                            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-                                <h4 style="margin:0;font-size:18px;font-weight:800;color:var(--c-text-primary);">${g.grade_name}</h4>
-                                <span class="badge badge-info" style="font-size:11px;">${g.level_code}</span>
+                            <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+                                <h4 style="margin:0;font-size:15px;font-weight:800;color:var(--c-text-primary);">${g.grade_name}</h4>
+                                <span class="badge badge-info" style="font-size:10px;padding:2px 6px;">${g.level_code}</span>
                             </div>
                             <div style="margin-bottom:6px;">${badgeHtml}</div>
-                            <div style="font-size:12px;color:var(--c-text-muted);">${g.level_name} • Order Seq: ${g.order_seq}</div>
+                            <div style="font-size:11px;color:var(--c-text-muted);">${g.level_name}</div>
                         </div>
-                        <div>
-                            <button class="btn btn-primary btn-sm" style="font-weight:700;" onclick="window.location.href='grade-workspace.html?grade_id=${g.id}&code=${encodeURIComponent(g.level_code)}'">🔍 Open Grade Workspace ➡️</button>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-primary btn-sm" style="font-weight:700;font-size:12px;padding:4px 10px;width:100%;" onclick="window.location.href='grade-workspace.html?grade_id=${g.id}&code=${encodeURIComponent(g.level_code)}'">Open Grade ➔</button>
                         </div>
                     </div>
                 `;
@@ -279,22 +279,22 @@
             levels.forEach(lvl => {
                 const isActive = lvl.status === 'active';
                 const statusBadge = isActive
-                    ? '<span class="badge badge-success" style="font-weight:700;">Status: Active</span>'
-                    : '<span class="badge badge-secondary" style="font-weight:700;">Status: Inactive</span>';
+                    ? '<span class="badge badge-success" style="font-weight:700;font-size:10px;padding:2px 6px;">Active</span>'
+                    : '<span class="badge badge-secondary" style="font-weight:700;font-size:10px;padding:2px 6px;">Inactive</span>';
 
                 html += `
-                    <div class="level-card ${isActive ? 'active' : ''}">
+                    <div class="level-card ${isActive ? 'active' : ''}" style="padding: 14px; border-radius: 8px;">
                         <div>
-                            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-                                <div style="width:48px;height:48px;border-radius:50%;background:#059669;color:white;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:bold;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                                <div style="width:36px;height:36px;border-radius:50%;background:#059669;color:white;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:bold;">
                                     🏫
                                 </div>
                                 ${statusBadge}
                             </div>
-                            <h4 style="margin:0 0 6px 0;font-size:18px;font-weight:800;color:var(--c-text-primary);">${lvl.level_name}</h4>
-                            <div style="font-size:13px;color:var(--c-text-muted);margin-bottom:16px;">Code: <strong>${lvl.level_code}</strong> • Range: ${lvl.range_text || 'Universal'}</div>
+                            <h4 style="margin:0 0 4px 0;font-size:15px;font-weight:800;color:var(--c-text-primary);">${lvl.level_name}</h4>
+                            <div style="font-size:11px;color:var(--c-text-muted);margin-bottom:10px;">Code: <strong>${lvl.level_code}</strong> • Range: ${lvl.range_text || 'Universal'}</div>
                         </div>
-                        <button class="btn btn-outline btn-block" style="font-weight:700;" onclick="filterGradesByLevel('${lvl.level_code}')">Filter Grade Tiers for ${lvl.level_code} ➡️</button>
+                        <button class="btn btn-outline btn-sm btn-block" style="font-weight:700;font-size:12px;" onclick="filterGradesByLevel('${lvl.level_code}')">View Grades ➔</button>
                     </div>
                 `;
             });
