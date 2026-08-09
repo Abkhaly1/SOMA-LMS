@@ -146,6 +146,33 @@ try {
         $term = $_GET['term'] ?? 'Term 1';
         $params[':term'] = $term;
 
+        // Fetch education level type for the target classroom stream
+        $stmtLevel = $conn->prepare("
+            SELECT el.name AS level_type
+            FROM classrooms c
+            JOIN grades g ON c.grade_id = g.id
+            JOIN education_levels el ON g.level_id = el.id
+            WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+            LIMIT 1
+        ");
+        $stmtLevel->execute([':cname' => $streamName]);
+        $levelType = $stmtLevel->fetchColumn() ?: 'O-Level';
+
+        // Fetch official grading scale rules configured by Super Admin in Academic Curriculum
+        $stmtScales = $conn->prepare("
+            SELECT min_mark, max_mark, grade, remark, points
+            FROM grading_scales
+            WHERE level_type = :ltype
+            ORDER BY min_mark DESC
+        ");
+        $stmtScales->execute([':ltype' => $levelType]);
+        $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
+
+        if (empty($scales)) {
+            $stmtScales->execute([':ltype' => 'O-Level']);
+            $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         $stmtRoster = $conn->prepare("
             SELECT u.id AS student_id, u.full_name, u.user_code,
                    COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
@@ -160,21 +187,27 @@ try {
         $stmtRoster->execute($params);
         $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
-        // Compute total scores, letter grades, remarks & calculate live subject ranking / position
+        // Dynamically assign letter grades and remarks using database grading scale
         $allScored = [];
         foreach ($roster as &$student) {
             $ca = floatval($student['ca_mark']);
             $termMark = floatval($student['terminal_mark']);
-            $total = $ca + $termMark;
+            $total = round($ca + $termMark, 2);
             $student['total_score'] = $total;
 
-            // Letter Grade & Remark
-            if ($total >= 80) { $student['grade_letter'] = 'A'; $student['grade_remark'] = 'Excellent'; }
-            else if ($total >= 70) { $student['grade_letter'] = 'B'; $student['grade_remark'] = 'Very Good'; }
-            else if ($total >= 60) { $student['grade_letter'] = 'C'; $student['grade_remark'] = 'Good'; }
-            else if ($total >= 40) { $student['grade_letter'] = 'D'; $student['grade_remark'] = 'Satisfactory'; }
-            else { $student['grade_letter'] = 'F'; $student['grade_remark'] = 'Fail'; }
+            $matchedGrade = '-';
+            $matchedRemark = '-';
 
+            foreach ($scales as $sc) {
+                if ($total >= floatval($sc['min_mark']) && $total <= floatval($sc['max_mark'])) {
+                    $matchedGrade = $sc['grade'];
+                    $matchedRemark = $sc['remark'];
+                    break;
+                }
+            }
+
+            $student['grade_letter'] = $matchedGrade;
+            $student['grade_remark'] = $matchedRemark;
             $allScored[] = $student;
         }
 

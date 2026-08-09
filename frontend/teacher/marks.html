@@ -197,12 +197,9 @@
                         else if (rank === 3) rankBadge = `<span class="badge" style="background:#ffedd5; color:#9a3412; border:1px solid #fed7aa; font-weight:800; font-size:12px; padding:3px 8px;">🥉 3rd Position</span>`;
                         else rankBadge = `<span class="badge" style="background:#f8fafc; color:#64748b; font-weight:700; font-size:11px; padding:3px 8px;">${rank}th Position</span>`;
 
-                        let gradeBadge = '';
-                        if (s.grade_letter === 'A') gradeBadge = `<span class="badge badge-success" style="font-weight:800; font-size:11px;">A - Excellent</span>`;
-                        else if (s.grade_letter === 'B') gradeBadge = `<span class="badge badge-info" style="font-weight:800; font-size:11px;">B - Very Good</span>`;
-                        else if (s.grade_letter === 'C') gradeBadge = `<span class="badge" style="background:#fef3c7; color:#92400e; font-weight:800; font-size:11px;">C - Good</span>`;
-                        else if (s.grade_letter === 'D') gradeBadge = `<span class="badge" style="background:#ffedd5; color:#9a3412; font-weight:800; font-size:11px;">D - Satisfactory</span>`;
-                        else gradeBadge = `<span class="badge badge-danger" style="font-weight:800; font-size:11px;">F - Fail</span>`;
+                        let gradeBadge = s.grade_letter && s.grade_letter !== '-'
+                            ? `<span class="badge badge-success" style="font-weight:800; font-size:11px;">${s.grade_letter} - ${s.grade_remark}</span>`
+                            : `<span class="badge" style="background:#f1f5f9; color:#64748b; font-weight:700; font-size:11px;">-</span>`;
 
                         const caInput = track === 'ca'
                             ? `<input type="number" class="form-control mark-input" data-sid="${s.student_id}" value="${caVal}" min="0" max="40" placeholder="0" style="width: 75px; font-weight: 800; text-align: center; height: 34px; border-color: #047857;">`
