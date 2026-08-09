@@ -70,8 +70,27 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('parentAcademicSummary').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your child has no new academic alerts or messages today.</p>';
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const res = await fetch('/soma-lms/api/students/student_workspace.php', { credentials: 'include' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    const profile = data.profile || {};
+                    const alloc = data.current_allocation || {};
+                    
+                    if (profile.full_name) {
+                        document.getElementById('parentChildName').textContent = profile.full_name;
+                    }
+                    if (alloc.classroom_name) {
+                        document.getElementById('parentChildGrade').textContent = `${alloc.grade_name || ''} ${alloc.classroom_name}`;
+                    }
+                    document.getElementById('parentAcademicSummary').innerHTML = `<p style="margin:0;color:var(--c-text-secondary);">Currently tracking academic progress for <strong>${profile.full_name || 'your child'}</strong>.</p>`;
+                } else {
+                    document.getElementById('parentAcademicSummary').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your child has no new academic alerts or messages today.</p>';
+                }
+            } catch (e) {
+                document.getElementById('parentAcademicSummary').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">Your child has no new academic alerts or messages today.</p>';
+            }
             document.getElementById('parentNotices').innerHTML = '<p style="margin:0;color:var(--c-text-secondary);">No recent school notices.</p>';
         });
     </script>

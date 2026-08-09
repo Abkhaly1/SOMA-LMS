@@ -15,7 +15,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
     $schoolId = $row['id'] ?? null;
 }
 
-$studentId = $_GET['id'] ?? $_GET['student_id'] ?? '';
+$studentId = $_GET['id'] ?? $_GET['student_id'] ?? $_SESSION['user_id'] ?? '';
 $year      = $_GET['year'] ?? '2026';
 
 if (empty($studentId)) {
