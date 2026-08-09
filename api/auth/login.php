@@ -52,16 +52,14 @@ try {
     $stmt = $conn->prepare("
         SELECT id, user_code, full_name, email, phone, gender, password_hash, is_password_changed, first_login_completed, role, status, school_id 
         FROM users 
-        WHERE email = :identifier 
-           OR phone = :identifier 
-           OR phone = :phoneAlt 
-           OR user_code = :identifier 
-           OR LOWER(full_name) = LOWER(:identifier)
+        WHERE email = ? 
+           OR phone = ? 
+           OR phone = ? 
+           OR user_code = ? 
+           OR LOWER(full_name) = LOWER(?)
         LIMIT 1
     ");
-    $stmt->bindParam(":identifier", $identifier);
-    $stmt->bindParam(":phoneAlt", $phoneAlt);
-    $stmt->execute();
+    $stmt->execute([$identifier, $identifier, $phoneAlt, $identifier, $identifier]);
 
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
