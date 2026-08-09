@@ -56,9 +56,9 @@
                                     <span style="font-size: 13px; color: #475569; font-weight: 600;">Click a preset below to populate standard NECTA evaluation structures:</span>
                                 </div>
                                 <div style="display: flex; gap: 12px; flex-wrap: wrap;" id="presetButtonsGroup">
-                                    <button class="btn btn-preset" onclick="applyPreset('standard')" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #93c5fd; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">📊 30% CA + 70% Terminal</button>
-                                    <button class="btn btn-preset" onclick="applyPreset('single')" style="background: #fffbe6; color: #b45309; border: 1.5px solid #fde68a; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">🎯 100% Single Terminal Exam</button>
-                                    <button class="btn btn-preset" onclick="applyPreset('multi')" style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">📝 20% Quiz + 30% Mid-Term + 50% Terminal</button>
+                                    <button class="btn btn-preset" data-preset="standard" onclick="applyPreset('standard')" style="background: #eff6ff; color: #1d4ed8; border: 1.5px solid #93c5fd; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">📊 30% CA + 70% Terminal</button>
+                                    <button class="btn btn-preset" data-preset="single" onclick="applyPreset('single')" style="background: #fffbe6; color: #b45309; border: 1.5px solid #fde68a; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">🎯 100% Single Terminal Exam</button>
+                                    <button class="btn btn-preset" data-preset="multi" onclick="applyPreset('multi')" style="background: #ecfdf5; color: #047857; border: 1.5px solid #a7f3d0; font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">📝 20% Quiz + 30% Mid-Term + 50% Terminal</button>
                                 </div>
                             </div>
                         </div>
@@ -287,6 +287,17 @@
                 tbody.appendChild(tr);
             });
 
+            // Auto detect preset match
+            if (types.length === 2 && parseFloat(types[0].weight_percent) === 30 && parseFloat(types[1].weight_percent) === 70) {
+                updatePresetActiveVisuals('standard');
+            } else if (types.length === 1 && parseFloat(types[0].weight_percent) === 100) {
+                updatePresetActiveVisuals('single');
+            } else if (types.length === 3 && parseFloat(types[0].weight_percent) === 20 && parseFloat(types[1].weight_percent) === 30 && parseFloat(types[2].weight_percent) === 50) {
+                updatePresetActiveVisuals('multi');
+            } else {
+                updatePresetActiveVisuals(null);
+            }
+
             recalcTotal();
         }
 
@@ -364,8 +375,38 @@
             }
         }
 
+        function updatePresetActiveVisuals(activeType) {
+            const btns = document.querySelectorAll('.btn-preset');
+            btns.forEach(b => {
+                const presetKey = b.getAttribute('data-preset');
+                if (presetKey === activeType) {
+                    b.style.background = '#0f172a';
+                    b.style.color = '#ffffff';
+                    b.style.borderColor = '#0f172a';
+                    b.style.boxShadow = '0 4px 12px rgba(15, 23, 42, 0.25)';
+                    b.style.transform = 'translateY(-1px)';
+                    if (!b.textContent.includes('✓ ACTIVE:')) {
+                        b.innerHTML = '✓ ACTIVE: ' + b.innerHTML.replace('✓ ACTIVE: ', '');
+                    }
+                } else {
+                    b.style.boxShadow = 'none';
+                    b.style.transform = 'none';
+                    b.innerHTML = b.innerHTML.replace('✓ ACTIVE: ', '');
+                    if (presetKey === 'standard') {
+                        b.style.background = '#eff6ff'; b.style.color = '#1d4ed8'; b.style.borderColor = '#93c5fd';
+                    } else if (presetKey === 'single') {
+                        b.style.background = '#fffbe6'; b.style.color = '#b45309'; b.style.borderColor = '#fde68a';
+                    } else if (presetKey === 'multi') {
+                        b.style.background = '#ecfdf5'; b.style.color = '#047857'; b.style.borderColor = '#a7f3d0';
+                    }
+                }
+            });
+        }
+
         function applyPreset(type) {
             if (isPolicyLocked) return;
+            updatePresetActiveVisuals(type);
+
             if (type === 'standard') {
                 renderRows([
                     { name: 'Continuous Assessment (CA)', weight_percent: 30.00, is_terminal: 0 },
