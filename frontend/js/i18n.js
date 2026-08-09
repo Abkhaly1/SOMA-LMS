@@ -31,6 +31,9 @@ export const translations = {
             mySubjects:          'My Subjects',
             grades:              'Grades',
             myChildren:          'My Children',
+            assessmentConfig:    'Assessment Weight Policy',
+            comparativeAnalytics:'Comparative Analytics',
+            classLedger:         'Class Performance Ledger',
         },
 
         // ─── TOPBAR ──────────────────────────────────────────────────────────
