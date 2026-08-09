@@ -254,10 +254,6 @@
                                     <option value="100">100 / page</option>
                                 </select>
                             </div>
-
-                            <button type="button" id="btnLoadRoster" class="btn btn-primary" style="margin-top: 18px; font-weight: 700;">
-                                🔍 Load Roster
-                            </button>
                         </div>
 
                         <!-- Classroom Student Roster Table -->
@@ -456,7 +452,8 @@
             };
 
             document.getElementById('selClassroom').addEventListener('change', triggerRosterLoad);
-            document.getElementById('btnLoadRoster').addEventListener('click', triggerRosterLoad);
+            const btnLoad = document.getElementById('btnLoadRoster');
+            if (btnLoad) btnLoad.addEventListener('click', triggerRosterLoad);
 
             // Search input filter listener
             let searchTimeout;
