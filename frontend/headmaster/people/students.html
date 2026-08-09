@@ -61,7 +61,7 @@
                                 id="studentToolbar" 
                                 search-placeholder="Search students by name, Student ID, or class..." 
                                 primary-action="Register Student"
-                                secondary-actions='[{"label":"👥 Uhakiki wa Majina Sawa","action":"audit_same_names"},{"label":"📥 Bulk CSV Import","action":"import_students"},{"label":"📤 Export Data As...","menu":[{"label":"PDF Document (.pdf)","action":"export_students_pdf"},{"label":"Excel Spreadsheet (.xlsx)","action":"export_students_excel"},{"label":"CSV Raw File (.csv)","action":"export_students_csv"}]}]'>
+                                secondary-actions='[{"label":"📥 Bulk CSV Import","action":"import_students"},{"label":"📤 Export Data As...","menu":[{"label":"PDF Document (.pdf)","action":"export_students_pdf"},{"label":"Excel Spreadsheet (.xlsx)","action":"export_students_excel"},{"label":"CSV Raw File (.csv)","action":"export_students_csv"}]}]'>
                             </app-workspace-toolbar>
                             <div class="card" style="margin-top: var(--sp-3);">
                                 <div id="studentsTableContainer">
@@ -723,6 +723,40 @@
                 container.appendChild(table);
             }
 
+            // Auto-Check Duplicate Names
+            async function autoCheckDuplicates(role = 'student') {
+                try {
+                    const res = await fetch(`/soma-lms/api/headmaster/people/duplicate_names_api.php?role=${role}`, { credentials: 'include' });
+                    const data = await res.json();
+                    const container = document.getElementById(role === 'student' ? 'studentsTableContainer' : 'teachersTableContainer');
+                    
+                    let alertBox = document.getElementById(`autoCheckAlert_${role}`);
+                    if (!alertBox && container) {
+                        alertBox = document.createElement('div');
+                        alertBox.id = `autoCheckAlert_${role}`;
+                        alertBox.style.cssText = 'background: #fffbeb; border: 1px solid #fde68a; color: #92400e; padding: 12px 16px; border-radius: 8px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700;';
+                        container.parentNode.insertBefore(alertBox, container);
+                    }
+
+                    if (data.success && data.group_count > 0 && alertBox) {
+                        alertBox.style.display = 'flex';
+                        alertBox.innerHTML = `
+                            <span>⚠️ <strong>Duplicate Name Auto-Audit Alert:</strong> System detected ${data.group_count} duplicate name group(s) in database.</span>
+                            <button type="button" id="btnAutoViewDups_${role}" class="btn btn-sm" style="background: #b45309; color: white; border: none; font-weight: 800; padding: 5px 14px; border-radius: 6px; cursor: pointer;">Review Duplicates</button>
+                        `;
+                        document.getElementById(`btnAutoViewDups_${role}`).addEventListener('click', () => {
+                            if (sameNameModal && typeof sameNameModal.open === 'function') {
+                                sameNameModal.open(role);
+                            }
+                        });
+                    } else if (alertBox) {
+                        alertBox.style.display = 'none';
+                    }
+                } catch (e) {
+                    console.error("Auto check error:", e);
+                }
+            }
+
             // Load Students
             async function loadStudents() {
                 document.getElementById('studentsTableContainer').innerHTML = '<app-table-skeleton rows="6" cols="6"></app-table-skeleton>';
@@ -732,6 +766,7 @@
                     if (res.ok && result.success) {
                         allStudents = result.data || [];
                         renderPaginatedStudents();
+                        autoCheckDuplicates('student');
                     }
                 } catch (e) {
                     document.getElementById('studentsTableContainer').innerHTML = '<div style="padding: var(--sp-4); text-align: center; color: var(--c-danger);">Error loading students.</div>';

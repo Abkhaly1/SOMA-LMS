@@ -26,6 +26,26 @@ $role = $_GET['role'] ?? 'all'; // 'teacher', 'student', or 'all'
 
 try {
     if ($method === 'GET') {
+        $checkName = trim($_GET['name'] ?? '');
+        if ($checkName !== '') {
+            $stmtSingle = $conn->prepare("
+                SELECT id, user_code, full_name, role, gender, phone, email, status
+                FROM users
+                WHERE school_id = ? AND LOWER(TRIM(full_name)) = LOWER(TRIM(?))
+            ");
+            $stmtSingle->execute([$schoolId, $checkName]);
+            $existingUsers = $stmtSingle->fetchAll(PDO::FETCH_ASSOC);
+
+            echo json_encode([
+                'success' => true,
+                'name'    => $checkName,
+                'exists'  => count($existingUsers) > 0,
+                'count'   => count($existingUsers),
+                'users'   => $existingUsers
+            ]);
+            exit();
+        }
+
         // Find all full names that appear more than once in this school
         $queryGroup = "
             SELECT LOWER(TRIM(full_name)) AS norm_name, full_name, COUNT(*) AS dup_count
