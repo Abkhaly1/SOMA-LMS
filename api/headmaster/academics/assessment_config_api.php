@@ -23,22 +23,33 @@ $term = $_GET['term'] ?? $input['term'] ?? 'Term 1';
 
 try {
     if ($method === 'GET') {
+        // Fetch latest established policy for this term across all years (Global Policy Inheritance)
         $stmt = $conn->prepare("
-            SELECT id, name, weight_percent, is_terminal, created_at
+            SELECT id, name, weight_percent, is_terminal, academic_year, created_at
             FROM assessment_types
-            WHERE school_id = ? AND academic_year = ? AND term = ?
-            ORDER BY is_terminal ASC, name ASC
+            WHERE school_id = ? AND term = ?
+            ORDER BY academic_year DESC, created_at DESC, is_terminal ASC, name ASC
         ");
-        $stmt->execute([$schoolId, $year, $term]);
-        $types = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stmt->execute([$schoolId, $term]);
+        $allTypes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $types = [];
+        $hasSaved = false;
+        if (!empty($allTypes)) {
+            $hasSaved = true;
+            $latestYear = $allTypes[0]['academic_year'];
+            foreach ($allTypes as $t) {
+                if ($t['academic_year'] === $latestYear) {
+                    $types[] = $t;
+                }
+            }
+        }
 
         // Calculate total weight
         $totalWeight = 0;
         foreach ($types as $t) {
             $totalWeight += floatval($t['weight_percent']);
         }
-
-        $hasSaved = !empty($types);
 
         // Default profile if empty
         if (empty($types)) {
