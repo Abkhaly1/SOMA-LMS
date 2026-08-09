@@ -240,9 +240,13 @@
             }
             const qClean = q.replace(/[^a-z0-9]/g, '');
             const filtered = allClassrooms.filter(r => {
-                const text = `${r.level_code || ''} ${r.grade_name || ''} ${r.classroom_name || ''} ${r.guider_name || ''}`.toLowerCase();
-                const textClean = text.replace(/[^a-z0-9]/g, '');
-                return text.includes(q) || (qClean !== '' && textClean.includes(qClean));
+                const raw = `${r.level_code || ''} ${r.grade_name || ''} ${r.classroom_name || ''} ${r.guider_name || ''}`.toLowerCase();
+                const abbr = raw.replace(/\bform\s*(\d+)\b/gi, 'f$1 form$1 form $1')
+                                .replace(/\bstandard\s*(\d+)\b/gi, 'std$1 s$1 standard$1 standard $1')
+                                .replace(/\bstd\s*(\d+)\b/gi, 'std$1 s$1 standard$1 standard $1');
+                const fullText = `${raw} ${abbr}`;
+                const fullClean = fullText.replace(/[^a-z0-9]/g, '');
+                return fullText.includes(q) || (qClean !== '' && fullClean.includes(qClean));
             });
             renderClassroomsTable(filtered);
         });

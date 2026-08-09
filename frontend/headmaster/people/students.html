@@ -683,13 +683,17 @@
 
                 let filtered = allStudents || [];
                 if (studentSearchQuery) {
-                    filtered = filtered.filter(s => 
-                        (s.full_name && s.full_name.toLowerCase().includes(studentSearchQuery)) ||
-                        (s.user_code && s.user_code.toLowerCase().includes(studentSearchQuery)) ||
-                        (s.class_name && s.class_name.toLowerCase().includes(studentSearchQuery)) ||
-                        (s.phone && s.phone.toLowerCase().includes(studentSearchQuery)) ||
-                        (s.email && s.email.toLowerCase().includes(studentSearchQuery))
-                    );
+                    const q = studentSearchQuery;
+                    const qClean = q.replace(/[^a-z0-9]/g, '');
+                    filtered = filtered.filter(s => {
+                        const raw = `${s.full_name || ''} ${s.user_code || ''} ${s.class_name || ''} ${s.phone || ''} ${s.email || ''}`.toLowerCase();
+                        const abbr = raw.replace(/\bform\s*(\d+)\b/gi, 'f$1 form$1 form $1')
+                                        .replace(/\bstandard\s*(\d+)\b/gi, 'std$1 s$1 standard$1 standard $1')
+                                        .replace(/\bstd\s*(\d+)\b/gi, 'std$1 s$1 standard$1 standard $1');
+                        const fullText = `${raw} ${abbr}`;
+                        const fullClean = fullText.replace(/[^a-z0-9]/g, '');
+                        return fullText.includes(q) || (qClean !== '' && fullClean.includes(qClean));
+                    });
                 }
 
                 if (!filtered || filtered.length === 0) {
