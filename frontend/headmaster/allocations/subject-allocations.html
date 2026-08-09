@@ -370,7 +370,7 @@
             $('#tblFacultyBody').html(rows.join(''));
         }
 
-        $('#txtSearchTeacher').on('input', function() {
+        $(document).on('input', '#txtSearchTeacher', function() {
             const query = $(this).val().toLowerCase().trim();
             if (!query) {
                 renderFacultyTable(allTeachers);

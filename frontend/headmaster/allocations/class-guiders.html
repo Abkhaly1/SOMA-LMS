@@ -232,7 +232,7 @@
             } catch(e) { alert('Network error assigning Class Guider.'); }
         });
 
-        $('#searchRoomsInput').on('input', function() {
+        $(document).on('input', '#searchRoomsInput', function() {
             const q = $(this).val().trim().toLowerCase();
             if (!q) {
                 renderClassroomsTable(allClassrooms);
