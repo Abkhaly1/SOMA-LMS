@@ -26,4 +26,4 @@ import '../components/table/status-badge.js';
 import '../components/table/table-pagination.js';
 import '../components/table/table-states.js';
 import '../components/table/table-wrapper.js';
-import '../components/table/table-import-modal.js';
+import '../components/table/table-import-modal.js?v=20260809';
