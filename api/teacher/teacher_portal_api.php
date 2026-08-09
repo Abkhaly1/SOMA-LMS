@@ -107,72 +107,91 @@ try {
         exit();
     }
 
-    // 2. SCORE SHEET ROSTER WITH PAGINATION & SEARCH
+    // 2. SCORE SHEET ROSTER WITH ROW-LEVEL SECURITY & MULTI-LAYERED RANKING ENGINE
     if ($action === 'get_scoresheet') {
         $streamName  = $_GET['stream'] ?? '';
         $subjectCode = $_GET['subject'] ?? '';
+        $term        = $_GET['term'] ?? 'Term 1';
         $search      = trim($_GET['search'] ?? '');
-        $page        = max(1, intval($_GET['page'] ?? 1));
-        $limit       = max(10, min(500, intval($_GET['limit'] ?? 50)));
-        $offset      = ($page - 1) * $limit;
 
-        if (empty($streamName)) {
-            echo json_encode(["success" => false, "message" => "Stream parameter is required."]);
+        if (empty($streamName) || empty($subjectCode)) {
+            echo json_encode(["success" => false, "message" => "Stream and subject parameters are required."]);
             exit();
         }
 
+        // TASK 2.1: ROW-LEVEL ACCESS CONTROL (Who Enters Marks?)
+        // Teachers can ONLY select and open mark sheets for classrooms & subjects explicitly assigned to them
+        $userRole = $_SESSION['role'] ?? '';
+        if ($userRole === 'teacher') {
+            $stmtAccess = $conn->prepare("
+                SELECT COUNT(*) FROM teacher_subject_assignments tsa
+                JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
+                WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+            ");
+            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
+            if ((int)$stmtAccess->fetchColumn() === 0) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "Access Restricted: You are not assigned to teach $subjectCode for classroom '$streamName'."]);
+                exit();
+            }
+        }
+
+        // Fetch classroom details
+        $stmtC = $conn->prepare("SELECT id, classroom_name, grade_id FROM classrooms WHERE (classroom_name = :cname OR CAST(id AS CHAR) = :cname) AND school_id = :sch LIMIT 1");
+        $stmtC->execute([':cname' => $streamName, ':sch' => $schoolId]);
+        $classroom = $stmtC->fetch(PDO::FETCH_ASSOC);
+        $classroomId = $classroom ? intval($classroom['id']) : 0;
+        $gradeId = $classroom ? intval($classroom['grade_id']) : 0;
+
+        // TASK 2.3: CHECK READ-ONLY FINALIZATION LOCK
+        $stmtLock = $conn->prepare("
+            SELECT is_locked, locked_at, locked_by
+            FROM marks_entry_locks
+            WHERE school_id = ? AND academic_year = ? AND term = ? AND classroom_id = ? AND subject_code = ? AND is_locked = 1
+        ");
+        $stmtLock->execute([$schoolId, $academicYearId, $term, $classroomId, $subjectCode]);
+        $lockRow = $stmtLock->fetch(PDO::FETCH_ASSOC);
+        $isLocked = !empty($lockRow);
+
+        // TASK 2.2: FETCH STUDENT-LEVEL ENROLLMENTS (Only students actively registered for this subject)
         $whereSql = "WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname) AND sca.academic_year = :year AND sca.status = 'Active'";
-        $params = [':subj' => $subjectCode, ':year' => $academicYearId, ':cname' => $streamName];
+        $params = [':subj' => $subjectCode, ':year' => $academicYearId, ':cname' => $streamName, ':term' => $term, ':sch' => $schoolId];
 
         if ($search !== '') {
             $whereSql .= " AND (u.full_name LIKE :search OR u.user_code LIKE :search)";
             $params[':search'] = '%' . $search . '%';
         }
 
-        $stmtCnt = $conn->prepare("
-            SELECT COUNT(*)
-            FROM student_classroom_allocations sca
-            JOIN users u ON sca.student_id = u.id
-            JOIN classrooms c ON sca.classroom_id = c.id
-            $whereSql
-        ");
-        // Count statement doesn't need :subj
-        $paramsCnt = $params;
-        unset($paramsCnt[':subj']);
-        $stmtCnt->execute($paramsCnt);
-        $total = (int)$stmtCnt->fetchColumn();
-        $totalPages = max(1, ceil($total / $limit));
+        // Check if explicit subject enrollments exist for this classroom & subject
+        $stmtEnrCheck = $conn->prepare("SELECT COUNT(*) FROM student_subject_enrollments WHERE school_id = ? AND subject_code = ? AND academic_year_id = ?");
+        $stmtEnrCheck->execute([$schoolId, $subjectCode, $academicYearId]);
+        $hasEnrFilter = ((int)$stmtEnrCheck->fetchColumn() > 0);
 
-        $term = $_GET['term'] ?? 'Term 1';
-        $params[':term'] = $term;
+        $enrJoin = "";
+        if ($hasEnrFilter) {
+            $enrJoin = "JOIN student_subject_enrollments sse ON (sse.student_id = u.id AND sse.subject_code = :subj AND sse.school_id = :sch)";
+        }
 
-        // Fetch education level type for the target classroom stream
+        // Fetch grading scale rules configured in Academic Curriculum
         $stmtLevel = $conn->prepare("
             SELECT el.name AS level_type
             FROM classrooms c
             JOIN grades g ON c.grade_id = g.id
             JOIN education_levels el ON g.level_id = el.id
-            WHERE (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
-            LIMIT 1
+            WHERE c.id = :cid LIMIT 1
         ");
-        $stmtLevel->execute([':cname' => $streamName]);
+        $stmtLevel->execute([':cid' => $classroomId]);
         $levelType = $stmtLevel->fetchColumn() ?: 'O-Level';
 
-        // Fetch official grading scale rules configured by Super Admin in Academic Curriculum
-        $stmtScales = $conn->prepare("
-            SELECT min_mark, max_mark, grade, remark, points
-            FROM grading_scales
-            WHERE level_type = :ltype
-            ORDER BY min_mark DESC
-        ");
+        $stmtScales = $conn->prepare("SELECT min_mark, max_mark, grade, remark FROM grading_scales WHERE level_type = :ltype ORDER BY min_mark DESC");
         $stmtScales->execute([':ltype' => $levelType]);
         $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
-
         if (empty($scales)) {
             $stmtScales->execute([':ltype' => 'O-Level']);
             $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
         }
 
+        // Fetch score sheet roster
         $stmtRoster = $conn->prepare("
             SELECT u.id AS student_id, u.full_name, u.user_code,
                    COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
@@ -180,6 +199,7 @@ try {
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
+            $enrJoin
             LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
             $whereSql
             ORDER BY u.full_name ASC
@@ -187,8 +207,9 @@ try {
         $stmtRoster->execute($params);
         $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
-        // Dynamically assign letter grades and remarks using database grading scale
-        $allScored = [];
+        // TASK 3.1 & 3.2: CALCULATE SCORES, GRADES & MULTI-LAYERED RANKINGS (STREAM, GRADE-WIDE, SUBJECT-WIDE)
+
+        // 1. Stream Roster Scoring
         foreach ($roster as &$student) {
             $ca = floatval($student['ca_mark']);
             $termMark = floatval($student['terminal_mark']);
@@ -197,7 +218,6 @@ try {
 
             $matchedGrade = '-';
             $matchedRemark = '-';
-
             foreach ($scales as $sc) {
                 if ($total >= floatval($sc['min_mark']) && $total <= floatval($sc['max_mark'])) {
                     $matchedGrade = $sc['grade'];
@@ -205,27 +225,62 @@ try {
                     break;
                 }
             }
-
             $student['grade_letter'] = $matchedGrade;
             $student['grade_remark'] = $matchedRemark;
-            $allScored[] = $student;
         }
 
-        // Rank students by total_score DESC
-        usort($allScored, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
-
-        $rankMap = [];
-        $currentRank = 1;
-        foreach ($allScored as $idx => $s) {
-            if ($idx > 0 && $s['total_score'] < $allScored[$idx - 1]['total_score']) {
-                $currentRank = $idx + 1;
+        // Helper function for competition rank calculation with tie handling (Task 3.3)
+        $computeRankMap = function($items) {
+            usort($items, fn($a, $b) => $b['total_score'] <=> $a['total_score']);
+            $map = [];
+            $currentRank = 1;
+            foreach ($items as $idx => $s) {
+                if ($idx > 0 && $s['total_score'] < $items[$idx - 1]['total_score']) {
+                    $currentRank = $idx + 1;
+                }
+                $map[$s['student_id']] = $currentRank;
             }
-            $rankMap[$s['student_id']] = $currentRank;
-        }
+            return $map;
+        };
 
-        // Attach rank position to roster
+        // 1. Stream Rank
+        $streamRankMap = $computeRankMap($roster);
+
+        // 2. Grade-Wide Rank (Across all streams in this grade e.g. Form 1 Alpha, Beta, Charlie)
+        $stmtGradeAll = $conn->prepare("
+            SELECT u.id AS student_id,
+                   (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS total_score
+            FROM student_classroom_allocations sca
+            JOIN users u ON sca.student_id = u.id
+            JOIN classrooms c ON sca.classroom_id = c.id
+            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
+            WHERE c.grade_id = :gid AND c.school_id = :sch AND sca.academic_year = :year AND sca.status = 'Active'
+        ");
+        $stmtGradeAll->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term, ':gid' => $gradeId, ':sch' => $schoolId]);
+        $gradeWideRoster = $stmtGradeAll->fetchAll(PDO::FETCH_ASSOC);
+        $gradeRankMap = $computeRankMap($gradeWideRoster);
+
+        // 3. Subject-Specific Rank (Across entire school taking this course)
+        $stmtSubjAll = $conn->prepare("
+            SELECT u.id AS student_id,
+                   (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS total_score
+            FROM student_classroom_allocations sca
+            JOIN users u ON sca.student_id = u.id
+            JOIN classrooms c ON sca.classroom_id = c.id
+            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
+            WHERE c.school_id = :sch AND sca.academic_year = :year AND sca.status = 'Active'
+        ");
+        $stmtSubjAll->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term, ':sch' => $schoolId]);
+        $subjWideRoster = $stmtSubjAll->fetchAll(PDO::FETCH_ASSOC);
+        $subjRankMap = $computeRankMap($subjWideRoster);
+
+        // Attach multi-layered rank positions to roster
         foreach ($roster as &$student) {
-            $student['subject_rank'] = $rankMap[$student['student_id']] ?? '-';
+            $sid = $student['student_id'];
+            $student['subject_rank']    = $streamRankMap[$sid] ?? '-';
+            $student['stream_rank']     = $streamRankMap[$sid] ?? '-';
+            $student['grade_rank']      = $gradeRankMap[$sid] ?? '-';
+            $student['subject_wide_rank']= $subjRankMap[$sid] ?? '-';
         }
 
         echo json_encode([
@@ -233,14 +288,18 @@ try {
             "stream" => $streamName,
             "subject" => $subjectCode,
             "term" => $term,
+            "classroom_id" => $classroomId,
+            "is_locked" => $isLocked,
+            "locked_details" => $lockRow,
             "roster" => $roster
         ]);
         exit();
     }
 
-    // 3. SAVE MARKS BATCH
+    // 3. SAVE MARKS BATCH (WITH LOCK & ROW-LEVEL SECURITY ENFORCEMENT)
     if ($action === 'save_marks') {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $streamName  = $input['stream'] ?? '';
         $subjectCode = $input['subject_code'] ?? '';
         $trackType   = $input['track_type'] ?? 'terminal'; // ca or terminal
         $term        = $input['term'] ?? 'Term 1';
@@ -249,6 +308,39 @@ try {
         if (empty($subjectCode) || empty($marksData)) {
             echo json_encode(["success" => false, "message" => "Subject code and marks data required."]);
             exit();
+        }
+
+        // ROW-LEVEL ACCESS CHECK FOR TEACHER
+        $userRole = $_SESSION['role'] ?? '';
+        if ($userRole === 'teacher' && !empty($streamName)) {
+            $stmtAccess = $conn->prepare("
+                SELECT COUNT(*) FROM teacher_subject_assignments tsa
+                JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
+                WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+            ");
+            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
+            if ((int)$stmtAccess->fetchColumn() === 0) {
+                http_response_code(403);
+                echo json_encode(["success" => false, "message" => "Access Restricted: You are not assigned to edit marks for $subjectCode in '$streamName'."]);
+                exit();
+            }
+        }
+
+        // CHECK READ-ONLY FINALIZATION LOCK
+        if (!empty($streamName)) {
+            $stmtC = $conn->prepare("SELECT id FROM classrooms WHERE (classroom_name = :cname OR CAST(id AS CHAR) = :cname) AND school_id = :sch LIMIT 1");
+            $stmtC->execute([':cname' => $streamName, ':sch' => $schoolId]);
+            $cid = $stmtC->fetchColumn();
+
+            if ($cid) {
+                $stmtLock = $conn->prepare("SELECT is_locked FROM marks_entry_locks WHERE school_id = ? AND academic_year = ? AND term = ? AND classroom_id = ? AND subject_code = ? AND is_locked = 1");
+                $stmtLock->execute([$schoolId, $academicYearId, $term, $cid, $subjectCode]);
+                if ($stmtLock->fetchColumn()) {
+                    http_response_code(423);
+                    echo json_encode(["success" => false, "message" => "Locked: This score sheet has been finalized. Any future adjustments require supervisor override from Headmaster Portal."]);
+                    exit();
+                }
+            }
         }
 
         $conn->beginTransaction();
@@ -260,20 +352,52 @@ try {
                 $stmt = $conn->prepare("
                     INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, continuous_assessment_mark)
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE continuous_assessment_mark = VALUES(continuous_assessment_mark)
+                    ON DUPLICATE KEY UPDATE continuous_assessment_mark = VALUES(continuous_assessment_mark), updated_at = NOW()
                 ");
                 $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
             } else {
                 $stmt = $conn->prepare("
                     INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, terminal_mark)
                     VALUES (?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE terminal_mark = VALUES(terminal_mark)
+                    ON DUPLICATE KEY UPDATE terminal_mark = VALUES(terminal_mark), updated_at = NOW()
                 ");
                 $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
             }
         }
         $conn->commit();
         echo json_encode(["success" => true, "message" => "Assessment scores batch saved successfully for $term."]);
+        exit();
+    }
+
+    // 4. LOCK MARKS SHEET (SAVE AND LOCK MARKS FINALIZATION)
+    if ($action === 'lock_marks') {
+        $input = json_decode(file_get_contents('php://input'), true) ?? [];
+        $streamName  = $input['stream'] ?? '';
+        $subjectCode = $input['subject_code'] ?? '';
+        $term        = $input['term'] ?? 'Term 1';
+
+        if (empty($streamName) || empty($subjectCode)) {
+            echo json_encode(["success" => false, "message" => "Stream and subject_code are required."]);
+            exit();
+        }
+
+        $stmtC = $conn->prepare("SELECT id FROM classrooms WHERE (classroom_name = :cname OR CAST(id AS CHAR) = :cname) AND school_id = :sch LIMIT 1");
+        $stmtC->execute([':cname' => $streamName, ':sch' => $schoolId]);
+        $cid = intval($stmtC->fetchColumn());
+
+        if (!$cid) {
+            echo json_encode(["success" => false, "message" => "Classroom stream not found."]);
+            exit();
+        }
+
+        $stmtLock = $conn->prepare("
+            INSERT INTO marks_entry_locks (school_id, academic_year, term, classroom_id, subject_code, is_locked, locked_by, locked_at)
+            VALUES (?, ?, ?, ?, ?, 1, ?, NOW())
+            ON DUPLICATE KEY UPDATE is_locked = 1, locked_by = VALUES(locked_by), locked_at = NOW()
+        ");
+        $stmtLock->execute([$schoolId, $academicYearId, $term, $cid, $subjectCode, $_SESSION['user_id']]);
+
+        echo json_encode(["success" => true, "message" => "Score sheet finalized and locked into read-only mode."]);
         exit();
     }
 
