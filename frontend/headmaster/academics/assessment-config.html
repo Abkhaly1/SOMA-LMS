@@ -43,16 +43,22 @@
                             </div>
                         </div>
 
+                        <!-- Policy Lock Banner -->
+                        <div id="policyLockBanner" style="display: none; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; color: #065f46; font-weight: 700; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                            <span>🔒 ESTABLISHED ASSESSMENT POLICY MATRIX: Policy weights are active and locked across teacher score sheets.</span>
+                            <button class="btn btn-secondary" onclick="unlockPolicyEdit()" style="font-weight: 800; font-size: 12px; border-color: #047857; background: white; color: #047857;">✏️ Unlock to Edit Policy</button>
+                        </div>
+
                         <!-- Policy Presets Banner -->
-                        <div style="background: #f8fafc; border: 1px solid var(--c-border-light); border-radius: 10px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <div id="presetsBanner" style="background: #f8fafc; border: 1px solid var(--c-border-light); border-radius: 10px; padding: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
                             <div>
                                 <strong style="font-size: 13px; color: #0f172a;">⚡ Quick Policy Presets:</strong>
                                 <span style="font-size: 12px; color: var(--c-text-muted); margin-left: 6px;">Select standard Tanzanian school evaluation structure</span>
                             </div>
                             <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                <button class="btn btn-secondary" onclick="applyPreset('standard')" style="font-weight: 700; font-size: 12px;">📊 30% CA + 70% Terminal</button>
-                                <button class="btn btn-secondary" onclick="applyPreset('single')" style="font-weight: 700; font-size: 12px;">🎯 100% Single Terminal Exam</button>
-                                <button class="btn btn-secondary" onclick="applyPreset('multi')" style="font-weight: 700; font-size: 12px;">📝 20% Quiz + 30% Mid-Term + 50% Terminal</button>
+                                <button class="btn btn-secondary btn-preset" onclick="applyPreset('standard')" style="font-weight: 700; font-size: 12px;">📊 30% CA + 70% Terminal</button>
+                                <button class="btn btn-secondary btn-preset" onclick="applyPreset('single')" style="font-weight: 700; font-size: 12px;">🎯 100% Single Terminal Exam</button>
+                                <button class="btn btn-secondary btn-preset" onclick="applyPreset('multi')" style="font-weight: 700; font-size: 12px;">📝 20% Quiz + 30% Mid-Term + 50% Terminal</button>
                             </div>
                         </div>
 
@@ -72,7 +78,7 @@
                                 <tfoot>
                                     <tr style="background: #f1f5f9; font-weight: 800;">
                                         <td style="padding: 14px 16px;">
-                                            <button class="btn btn-secondary" onclick="addCategoryRow()" style="font-weight: 700; font-size: 12px;">➕ Add Assessment Category</button>
+                                            <button class="btn btn-secondary" id="btnAddCategory" onclick="addCategoryRow()" style="font-weight: 700; font-size: 12px;">➕ Add Assessment Category</button>
                                         </td>
                                         <td style="padding: 14px 16px; text-align: center; font-size: 15px;" id="totalWeightBadge">
                                             Total: <strong id="lblTotalWeight">100.00%</strong>
@@ -98,6 +104,8 @@
     </div>
 
     <script>
+        let isPolicyLocked = true;
+
         document.addEventListener('DOMContentLoaded', () => {
             loadPolicy();
             document.getElementById('selTerm').addEventListener('change', loadPolicy);
@@ -114,45 +122,99 @@
                 const res = await fetch(`/soma-lms/api/headmaster/academics/assessment_config_api.php?year=${year}&term=${encodeURIComponent(term)}`, { credentials: 'include' });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    renderRows(data.assessment_types || []);
+                    isPolicyLocked = data.has_saved_policy !== false;
+                    renderRows(data.assessment_types || [], isPolicyLocked);
                 }
             } catch(e) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:crimson; padding:20px;">Error loading policy configuration.</td></tr>';
             }
         }
 
-        function renderRows(types) {
+        function renderRows(types, locked = true) {
             const tbody = document.getElementById('categoryRows');
             tbody.innerHTML = '';
+
+            const lockBanner = document.getElementById('policyLockBanner');
+            const btnAdd = document.getElementById('btnAddCategory');
+            const btnSave = document.getElementById('btnSavePolicy');
+            const presetBtns = document.querySelectorAll('.btn-preset');
+
+            if (locked) {
+                lockBanner.style.display = 'flex';
+                btnAdd.style.display = 'none';
+                presetBtns.forEach(b => b.disabled = true);
+                btnSave.textContent = '✏️ Unlock to Modify Policy';
+                btnSave.style.background = '#0284c7';
+                btnSave.style.borderColor = '#0284c7';
+                btnSave.onclick = unlockPolicyEdit;
+                btnSave.disabled = false;
+            } else {
+                lockBanner.style.display = 'none';
+                btnAdd.style.display = 'inline-block';
+                presetBtns.forEach(b => b.disabled = false);
+                btnSave.textContent = '💾 Save Assessment Policy Matrix';
+                btnSave.style.background = '#047857';
+                btnSave.style.borderColor = '#047857';
+                btnSave.onclick = savePolicy;
+            }
 
             if (types.length === 0) {
                 applyPreset('standard');
                 return;
             }
 
-            types.forEach((t, i) => {
+            const disAttr = locked ? 'disabled readonly' : '';
+
+            types.forEach((t) => {
                 const tr = document.createElement('tr');
                 tr.style.borderBottom = '1px solid #f1f5f9';
                 tr.innerHTML = `
                     <td style="padding: 10px 16px;">
-                        <input type="text" class="form-control cat-name" value="${t.name}" placeholder="e.g. Mid-Term Exam" style="font-weight:700;">
+                        <input type="text" class="form-control cat-name" value="${t.name}" placeholder="e.g. Mid-Term Exam" style="font-weight:700;" ${disAttr}>
                     </td>
                     <td style="padding: 10px 16px; text-align: center;">
                         <div style="display:inline-flex; align-items:center; gap:6px;">
-                            <input type="number" step="0.01" class="form-control cat-weight" value="${t.weight_percent}" oninput="recalcTotal()" style="width: 100px; text-align:center; font-weight:800; height:36px;"> %
+                            <input type="number" step="0.01" class="form-control cat-weight" value="${t.weight_percent}" oninput="recalcTotal()" style="width: 100px; text-align:center; font-weight:800; height:36px;" ${disAttr}> %
                         </div>
                     </td>
                     <td style="padding: 10px 16px; text-align: center;">
-                        <input type="checkbox" class="cat-terminal" ${t.is_terminal ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;">
+                        <input type="checkbox" class="cat-terminal" ${t.is_terminal ? 'checked' : ''} style="width:18px; height:18px; cursor:pointer;" ${disAttr}>
                     </td>
                     <td style="padding: 10px 16px; text-align: center;">
-                        <button class="btn btn-secondary" onclick="this.closest('tr').remove(); recalcTotal();" style="color:crimson; font-weight:800; padding:4px 10px;">✕</button>
+                        ${locked ? '<span style="color:#94a3b8; font-weight:700;">🔒 Locked</span>' : '<button class="btn btn-secondary" onclick="this.closest(\'tr\').remove(); recalcTotal();" style="color:crimson; font-weight:800; padding:4px 10px;">✕</button>'}
                     </td>
                 `;
                 tbody.appendChild(tr);
             });
 
             recalcTotal();
+        }
+
+        function unlockPolicyEdit() {
+            if (confirm('Are you sure you want to unlock the Assessment Weight Policy matrix for editing?\n\nModifying assessment weights re-calculates overall term cumulative averages for all students.')) {
+                isPolicyLocked = false;
+                const inps = document.querySelectorAll('.cat-name, .cat-weight, .cat-terminal');
+                inps.forEach(i => {
+                    i.removeAttribute('disabled');
+                    i.removeAttribute('readonly');
+                });
+                renderRows(getCurrentTypesFromDOM(), false);
+            }
+        }
+
+        function getCurrentTypesFromDOM() {
+            const names = document.querySelectorAll('.cat-name');
+            const weights = document.querySelectorAll('.cat-weight');
+            const terminals = document.querySelectorAll('.cat-terminal');
+            const types = [];
+            names.forEach((nInp, i) => {
+                types.push({
+                    name: nInp.value.trim(),
+                    weight_percent: parseFloat(weights[i].value) || 0,
+                    is_terminal: terminals[i].checked ? 1 : 0
+                });
+            });
+            return types;
         }
 
         function addCategoryRow(name = 'New Assessment', weight = 10, isTerminal = false) {
@@ -194,49 +256,38 @@
             if (sum === 100.00) {
                 lbl.style.color = '#047857';
                 badge.innerHTML = '<span class="badge badge-success" style="font-size: 12px; padding: 6px 12px;">✅ Policy Load Valid (100%)</span>';
-                btn.disabled = false;
+                if (!isPolicyLocked) btn.disabled = false;
             } else {
                 lbl.style.color = 'crimson';
                 badge.innerHTML = `<span class="badge badge-danger" style="font-size: 12px; padding: 6px 12px;">❌ Invalid Sum (${sum.toFixed(2)}% != 100%)</span>`;
-                btn.disabled = true;
+                if (!isPolicyLocked) btn.disabled = true;
             }
         }
 
         function applyPreset(type) {
+            if (isPolicyLocked) return;
             if (type === 'standard') {
                 renderRows([
                     { name: 'Continuous Assessment (CA)', weight_percent: 30.00, is_terminal: 0 },
                     { name: 'Terminal Exam', weight_percent: 70.00, is_terminal: 1 }
-                ]);
+                ], false);
             } else if (type === 'single') {
                 renderRows([
                     { name: 'Terminal Exam', weight_percent: 100.00, is_terminal: 1 }
-                ]);
+                ], false);
             } else if (type === 'multi') {
                 renderRows([
                     { name: 'Weekly Test / Quiz', weight_percent: 20.00, is_terminal: 0 },
                     { name: 'Mid-Term Exam', weight_percent: 30.00, is_terminal: 0 },
                     { name: 'Terminal Exam', weight_percent: 50.00, is_terminal: 1 }
-                ]);
+                ], false);
             }
         }
 
         async function savePolicy() {
             const year = document.getElementById('selYear').value;
             const term = document.getElementById('selTerm').value;
-            const names = document.querySelectorAll('.cat-name');
-            const weights = document.querySelectorAll('.cat-weight');
-            const terminals = document.querySelectorAll('.cat-terminal');
-
-            const categories = [];
-            names.forEach((nInp, i) => {
-                const name = nInp.value.trim();
-                const weight = parseFloat(weights[i].value) || 0;
-                const isTerminal = terminals[i].checked ? 1 : 0;
-                if (name) {
-                    categories.push({ name, weight_percent: weight, is_terminal: isTerminal });
-                }
-            });
+            const categories = getCurrentTypesFromDOM();
 
             try {
                 const res = await fetch('/soma-lms/api/headmaster/academics/assessment_config_api.php', {

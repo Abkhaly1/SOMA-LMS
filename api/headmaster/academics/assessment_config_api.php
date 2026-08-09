@@ -38,6 +38,8 @@ try {
             $totalWeight += floatval($t['weight_percent']);
         }
 
+        $hasSaved = !empty($types);
+
         // Default profile if empty
         if (empty($types)) {
             $types = [
@@ -51,6 +53,7 @@ try {
             'success' => true,
             'year' => $year,
             'term' => $term,
+            'has_saved_policy' => $hasSaved,
             'assessment_types' => $types,
             'total_weight' => round($totalWeight, 2),
             'is_valid_policy' => (round($totalWeight, 2) === 100.00)
