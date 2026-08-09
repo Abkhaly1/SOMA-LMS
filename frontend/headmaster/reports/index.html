@@ -395,6 +395,11 @@
                     const targetId = btn.getAttribute('data-tab');
                     const targetContent = document.getElementById(targetId);
                     if (targetContent) targetContent.style.display = 'block';
+
+                    if (targetId === 'tabRoster') {
+                        const yr = document.getElementById('selYear')?.value || '2026';
+                        loadClassrooms(yr);
+                    }
                 });
             });
 

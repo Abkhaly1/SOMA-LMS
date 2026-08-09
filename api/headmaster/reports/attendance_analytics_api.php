@@ -189,9 +189,9 @@ try {
     if ($action === 'years') {
         $stmtYears = $conn->prepare("
             SELECT DISTINCT academic_year FROM (
-                SELECT academic_year_id AS academic_year FROM daily_attendance WHERE school_id = ?
+                SELECT da.academic_year_id AS academic_year FROM daily_attendance da JOIN classrooms c ON da.classroom_id = c.id WHERE c.school_id = ?
                 UNION
-                SELECT academic_year FROM student_classroom_allocations WHERE school_id = ?
+                SELECT sca.academic_year FROM student_classroom_allocations sca WHERE sca.school_id = ?
                 UNION
                 SELECT '2026' AS academic_year
             ) AS combined ORDER BY academic_year DESC
