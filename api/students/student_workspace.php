@@ -242,30 +242,27 @@ try {
     $stmtAtt->execute([$studentId, $schoolId, $year]);
     $attendance = $stmtAtt->fetch(PDO::FETCH_ASSOC);
 
-    if (empty($attendance['days_present']) && empty($attendance['days_absent'])) {
+    if (!$attendance || (empty($attendance['days_present']) && empty($attendance['days_absent']) && empty($attendance['days_excused']))) {
         $attendance = [
-            'days_present' => 184,
-            'days_absent'  => 12,
-            'days_excused' => 4,
-            'attendance_pct' => 92.0
+            'days_present'   => 0,
+            'days_absent'    => 0,
+            'days_excused'   => 0,
+            'attendance_pct' => 0
         ];
     } else {
         $totDays = intval($attendance['days_present']) + intval($attendance['days_absent']) + intval($attendance['days_excused']);
-        $attendance['attendance_pct'] = $totDays > 0 ? round(($attendance['days_present'] / $totDays) * 100, 1) : 100;
+        $attendance['attendance_pct'] = $totDays > 0 ? round(($attendance['days_present'] / $totDays) * 100, 1) : 0;
     }
 
-    // 5. Financial Ledger Summary
+    // 5. Financial Ledger Summary — placeholder until finance module is implemented
     $financials = [
-        'annual_tuition'   => 1200000.00,
-        'scholarship_disc' => 200000.00,
-        'net_payable'      => 1000000.00,
-        'total_paid'       => 750000.00,
-        'outstanding_bal'  => 250000.00,
-        'payment_status'   => 'Partial (75% Paid)',
-        'recent_receipts'  => [
-            ['receipt_no' => 'RCP-2026-0811', 'date' => '2026-01-15', 'amount' => 500000.00, 'mode' => 'Bank Transfer'],
-            ['receipt_no' => 'RCP-2026-1490', 'date' => '2026-05-10', 'amount' => 250000.00, 'mode' => 'Mobile Money (M-Pesa)']
-        ]
+        'annual_tuition'   => 0,
+        'scholarship_disc' => 0,
+        'net_payable'      => 0,
+        'total_paid'       => 0,
+        'outstanding_bal'  => 0,
+        'payment_status'   => 'N/A',
+        'recent_receipts'  => []
     ];
 
     echo json_encode([
