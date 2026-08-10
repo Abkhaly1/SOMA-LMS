@@ -8,7 +8,7 @@ try {
     $conn->exec("CREATE TABLE teacher_subject_assignments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         class_stream_id VARCHAR(50) NOT NULL,
         subject_code VARCHAR(50) NOT NULL,
         teacher_id VARCHAR(36) NULL,
@@ -21,7 +21,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS class_teachers (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         class_stream_id VARCHAR(50) NOT NULL,
         teacher_id VARCHAR(36) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,14 +45,14 @@ try {
 
             // Seed Form Master for Form 1A
             $conn->exec("INSERT INTO class_teachers (school_id, academic_year_id, class_stream_id, teacher_id) VALUES
-                ('$sid', '2026', 'Form 1A', '$t1')
+                ('$sid', '" . date('Y') . "', 'Form 1A', '$t1')
                 ON DUPLICATE KEY UPDATE teacher_id=VALUES(teacher_id)");
 
             // Seed Subject Assignments across class streams
             $streams = ['Form 1A', 'Form 1B', 'Form 2A', 'Form 2B', 'Form 3A', 'Form 4M'];
             $subjectCodes = ['B-MATH', 'PHY', 'CHE', 'BIO', 'ENG', 'KISW', 'HIST', 'GEO'];
 
-            $stmtAssign = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year_id, class_stream_id, subject_code, teacher_id) VALUES (?, '2026', ?, ?, ?)");
+            $stmtAssign = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year_id, class_stream_id, subject_code, teacher_id) VALUES (?, '" . date('Y') . "', ?, ?, ?)");
 
             foreach ($streams as $sIdx => $st) {
                 foreach ($subjectCodes as $cIdx => $sc) {

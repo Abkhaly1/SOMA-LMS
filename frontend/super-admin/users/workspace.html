@@ -178,7 +178,7 @@
                     };
 
                     const roleText = roleLabels[data.role] || data.role;
-                    const codeText = data.user_code || (data.role === 'teacher' ? 'TCH/2026/001' : 'STD/2026/001');
+                    const codeText = data.user_code || (data.role === 'teacher' ? 'TCH/202X/001' : 'STD/${new Date().getFullYear()}/001');
 
                     // Update Workspace Header
                     const header = document.getElementById('wsHeader');

@@ -20,7 +20,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS class_timetables (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday') NOT NULL,
         period_id INT NOT NULL,
         class_stream_id VARCHAR(50) NOT NULL,

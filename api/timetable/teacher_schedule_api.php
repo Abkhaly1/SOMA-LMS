@@ -17,7 +17,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 }
 
 $teacherId = $_GET['teacher_id'] ?? $_SESSION['user_id'];
-$year = $_GET['year'] ?? '2026';
+$year = $_GET['year'] ?? date('Y');
 $viewClassroom = $_GET['view_classroom'] ?? '0'; // 1 to view homeroom class timetable
 
 try {

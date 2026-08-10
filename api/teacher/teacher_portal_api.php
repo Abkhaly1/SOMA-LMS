@@ -18,7 +18,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 }
 
 $action = $_GET['action'] ?? $_POST['action'] ?? 'dashboard';
-$academicYearId = $_GET['academic_year'] ?? '2026';
+$academicYearId = $_GET['academic_year'] ?? date('Y');
 
 try {
     // 1. DASHBOARD & OVERVIEW DATA
@@ -91,6 +91,23 @@ try {
         $stmtTT->execute([':teacher_id' => $teacherId, ':year_id' => $academicYearId, ':day_name' => $dayOfWeek]);
         $schedule = $stmtTT->fetchAll(PDO::FETCH_ASSOC);
 
+        // Fetch Assessment Types
+        $stmtTypes = $conn->prepare("SELECT id, name, weight_percent, is_terminal, academic_year FROM assessment_types WHERE school_id = ? AND is_archived = 0 ORDER BY academic_year DESC, id ASC");
+        $stmtTypes->execute([$schoolId]);
+        $allTypes = $stmtTypes->fetchAll(PDO::FETCH_ASSOC);
+        $assessmentTypes = [];
+        if (!empty($allTypes)) {
+            $latestYr = $allTypes[0]['academic_year'];
+            foreach ($allTypes as $t) {
+                if ($t['academic_year'] === $latestYr) $assessmentTypes[] = $t;
+            }
+        } else {
+            $assessmentTypes = [
+                ['id' => 'ca', 'name' => 'CA Mark', 'weight_percent' => 40],
+                ['id' => 'terminal', 'name' => 'Terminal', 'weight_percent' => 60]
+            ];
+        }
+
         echo json_encode([
             "success" => true,
             "teacher" => $teacher,
@@ -102,7 +119,8 @@ try {
                 "today_periods_count" => count($schedule)
             ],
             "allocations" => $allocations,
-            "schedule" => $schedule
+            "schedule" => $schedule,
+            "assessment_types" => $assessmentTypes
         ]);
         exit();
     }
@@ -124,9 +142,16 @@ try {
         $userRole = $_SESSION['role'] ?? '';
         if ($userRole === 'teacher') {
             $stmtAccess = $conn->prepare("
-                SELECT COUNT(*) FROM teacher_subject_assignments tsa
-                JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
-                WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                SELECT COUNT(*) FROM (
+                    SELECT tsa.teacher_id FROM teacher_subject_assignments tsa
+                    JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
+                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    UNION
+                    SELECT tca.teacher_id FROM teacher_classroom_assignments tca
+                    JOIN classrooms c ON tca.classroom_id = c.id
+                    JOIN subjects s ON tca.subject_id = s.id
+                    WHERE tca.teacher_id = :tid AND s.code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                ) as combined_access
             ");
             $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
             if ((int)$stmtAccess->fetchColumn() === 0) {
@@ -191,42 +216,68 @@ try {
             $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        // Fetch score sheet roster
+        // Fetch score sheet roster (students only)
         $stmtRoster = $conn->prepare("
-            SELECT u.id AS student_id, u.full_name, u.user_code,
-                   COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
-                   COALESCE(me.terminal_mark, 0) AS terminal_mark
+            SELECT u.id AS student_id, u.full_name, u.user_code
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
             $enrJoin
-            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
             $whereSql
             ORDER BY u.full_name ASC
         ");
         $stmtRoster->execute($params);
-        $roster = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
+        $students = $stmtRoster->fetchAll(PDO::FETCH_ASSOC);
 
-        // TASK 3.1 & 3.2: CALCULATE SCORES, GRADES & MULTI-LAYERED RANKINGS (STREAM, GRADE-WIDE, SUBJECT-WIDE)
+        // Fetch dynamic marks for these students
+        $stmtMarks = $conn->prepare("
+            SELECT student_id, assessment_type_id, score
+            FROM marks_entry_dynamic
+            WHERE subject_code = :subj AND academic_year = :year AND term = :term AND school_id = :sch
+        ");
+        $stmtMarks->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term, ':sch' => $schoolId]);
+        $dynamicMarks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
 
-        // 1. Stream Roster Scoring
-        foreach ($roster as &$student) {
-            $ca = floatval($student['ca_mark']);
-            $termMark = floatval($student['terminal_mark']);
-            $total = round($ca + $termMark, 2);
-            $student['total_score'] = $total;
+        $marksMap = [];
+        foreach ($dynamicMarks as $dm) {
+            $marksMap[$dm['student_id']][$dm['assessment_type_id']] = floatval($dm['score']);
+        }
 
-            $matchedGrade = '-';
-            $matchedRemark = '-';
+        // Fetch legacy marks as fallback (if any)
+        $stmtLegacy = $conn->prepare("SELECT student_id, continuous_assessment_mark, terminal_mark FROM marks_entry WHERE subject_code = :subj AND academic_year = :year AND term = :term");
+        $stmtLegacy->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term]);
+        $legacyMarks = $stmtLegacy->fetchAll(PDO::FETCH_ASSOC);
+        $legacyMap = [];
+        foreach ($legacyMarks as $lm) {
+            $legacyMap[$lm['student_id']] = [
+                'ca' => floatval($lm['continuous_assessment_mark']),
+                'terminal' => floatval($lm['terminal_mark'])
+            ];
+        }
+
+        // Combine marks into roster
+        $roster = [];
+        foreach ($students as $stu) {
+            $sid = $stu['student_id'];
+            $stuMarks = $marksMap[$sid] ?? $legacyMap[$sid] ?? [];
+            $totalMark = 0;
+            foreach ($stuMarks as $score) {
+                $totalMark += floatval($score);
+            }
+            
+            $stu['marks'] = $stuMarks;
+            $stu['total_score'] = round($totalMark, 2);
+            $stu['grade_letter'] = '-';
+            $stu['grade_remark'] = '-';
+            
             foreach ($scales as $sc) {
-                if ($total >= floatval($sc['min_mark']) && $total <= floatval($sc['max_mark'])) {
-                    $matchedGrade = $sc['grade'];
-                    $matchedRemark = $sc['remark'];
+                if ($totalMark >= floatval($sc['min_mark']) && $totalMark <= floatval($sc['max_mark'])) {
+                    $stu['grade_letter'] = $sc['grade'];
+                    $stu['grade_remark'] = $sc['remark'];
                     break;
                 }
             }
-            $student['grade_letter'] = $matchedGrade;
-            $student['grade_remark'] = $matchedRemark;
+            $roster[] = $stu;
         }
 
         // Helper function for competition rank calculation with tie handling (Task 3.3)
@@ -247,14 +298,16 @@ try {
         $streamRankMap = $computeRankMap($roster);
 
         // 2. Grade-Wide Rank (Across all streams in this grade e.g. Form 1 Alpha, Beta, Charlie)
+        // Using a fast SUM aggregation on marks_entry_dynamic
         $stmtGradeAll = $conn->prepare("
-            SELECT u.id AS student_id,
-                   (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS total_score
+            SELECT sca.student_id, COALESCE(SUM(m.score), 0) AS total_score
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
-            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
+            $enrJoin
+            LEFT JOIN marks_entry_dynamic m ON (m.student_id = sca.student_id AND m.subject_code = :subj AND m.academic_year = :year AND m.term = :term)
             WHERE c.grade_id = :gid AND c.school_id = :sch AND sca.academic_year = :year AND sca.status = 'Active'
+            GROUP BY sca.student_id
         ");
         $stmtGradeAll->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term, ':gid' => $gradeId, ':sch' => $schoolId]);
         $gradeWideRoster = $stmtGradeAll->fetchAll(PDO::FETCH_ASSOC);
@@ -262,13 +315,14 @@ try {
 
         // 3. Subject-Specific Rank (Across entire school taking this course)
         $stmtSubjAll = $conn->prepare("
-            SELECT u.id AS student_id,
-                   (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS total_score
+            SELECT sca.student_id, COALESCE(SUM(m.score), 0) AS total_score
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id
-            LEFT JOIN marks_entry me ON (me.student_id = u.id AND me.subject_code = :subj AND me.academic_year = :year AND me.term = :term)
+            $enrJoin
+            LEFT JOIN marks_entry_dynamic m ON (m.student_id = sca.student_id AND m.subject_code = :subj AND m.academic_year = :year AND m.term = :term)
             WHERE c.school_id = :sch AND sca.academic_year = :year AND sca.status = 'Active'
+            GROUP BY sca.student_id
         ");
         $stmtSubjAll->execute([':subj' => $subjectCode, ':year' => $academicYearId, ':term' => $term, ':sch' => $schoolId]);
         $subjWideRoster = $stmtSubjAll->fetchAll(PDO::FETCH_ASSOC);
@@ -283,6 +337,23 @@ try {
             $student['subject_wide_rank']= $subjRankMap[$sid] ?? '-';
         }
 
+        // Fetch Assessment Types
+        $stmtTypes = $conn->prepare("SELECT id, name, weight_percent, is_terminal, academic_year FROM assessment_types WHERE school_id = ? AND is_archived = 0 ORDER BY academic_year DESC, id ASC");
+        $stmtTypes->execute([$schoolId]);
+        $allTypes = $stmtTypes->fetchAll(PDO::FETCH_ASSOC);
+        $assessmentTypes = [];
+        if (!empty($allTypes)) {
+            $latestYr = $allTypes[0]['academic_year'];
+            foreach ($allTypes as $t) {
+                if ($t['academic_year'] === $latestYr) $assessmentTypes[] = $t;
+            }
+        } else {
+            $assessmentTypes = [
+                ['id' => 'ca', 'name' => 'CA Mark', 'weight_percent' => 40],
+                ['id' => 'terminal', 'name' => 'Terminal', 'weight_percent' => 60]
+            ];
+        }
+
         echo json_encode([
             "success" => true,
             "stream" => $streamName,
@@ -291,6 +362,7 @@ try {
             "classroom_id" => $classroomId,
             "is_locked" => $isLocked,
             "locked_details" => $lockRow,
+            "assessment_types" => $assessmentTypes,
             "roster" => $roster
         ]);
         exit();
@@ -301,12 +373,12 @@ try {
         $input = json_decode(file_get_contents('php://input'), true) ?? [];
         $streamName  = $input['stream'] ?? '';
         $subjectCode = $input['subject_code'] ?? '';
-        $trackType   = $input['track_type'] ?? 'terminal'; // ca or terminal
+        $trackType   = $input['track_type'] ?? ''; // this is now the assessment_type_id
         $term        = $input['term'] ?? 'Term 1';
         $marksData   = $input['marks'] ?? [];
 
-        if (empty($subjectCode) || empty($marksData)) {
-            echo json_encode(["success" => false, "message" => "Subject code and marks data required."]);
+        if (empty($subjectCode) || empty($marksData) || empty($trackType)) {
+            echo json_encode(["success" => false, "message" => "Subject code, assessment type, and marks data required."]);
             exit();
         }
 
@@ -314,9 +386,16 @@ try {
         $userRole = $_SESSION['role'] ?? '';
         if ($userRole === 'teacher' && !empty($streamName)) {
             $stmtAccess = $conn->prepare("
-                SELECT COUNT(*) FROM teacher_subject_assignments tsa
-                JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
-                WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                SELECT COUNT(*) FROM (
+                    SELECT tsa.teacher_id FROM teacher_subject_assignments tsa
+                    JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
+                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    UNION
+                    SELECT tca.teacher_id FROM teacher_classroom_assignments tca
+                    JOIN classrooms c ON tca.classroom_id = c.id
+                    JOIN subjects s ON tca.subject_id = s.id
+                    WHERE tca.teacher_id = :tid AND s.code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                ) as combined_access
             ");
             $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
             if ((int)$stmtAccess->fetchColumn() === 0) {
@@ -343,26 +422,38 @@ try {
             }
         }
 
+        // Fetch max score for validation
+        $stmtMax = $conn->prepare("SELECT weight_percent FROM assessment_types WHERE id = ? AND school_id = ? LIMIT 1");
+        $stmtMax->execute([$trackType, $schoolId]);
+        $maxScoreLimit = $stmtMax->fetchColumn();
+        
+        // Fallback for legacy static configurations if not found
+        if ($maxScoreLimit === false) {
+            $maxScoreLimit = ($trackType === 'ca') ? 40 : (($trackType === 'terminal') ? 60 : 100);
+        } else {
+            $maxScoreLimit = floatval($maxScoreLimit);
+        }
+
         $conn->beginTransaction();
+        
+        $stmt = $conn->prepare("
+            INSERT INTO marks_entry_dynamic (school_id, academic_year, term, student_id, subject_code, assessment_type_id, score)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE score = VALUES(score), updated_at = NOW()
+        ");
+        
         foreach ($marksData as $m) {
             $studentId = $m['student_id'];
             $score     = floatval($m['score']);
 
-            if ($trackType === 'ca') {
-                $stmt = $conn->prepare("
-                    INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, continuous_assessment_mark)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE continuous_assessment_mark = VALUES(continuous_assessment_mark), updated_at = NOW()
-                ");
-                $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
-            } else {
-                $stmt = $conn->prepare("
-                    INSERT INTO marks_entry (school_id, academic_year, term, student_id, subject_code, terminal_mark)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE terminal_mark = VALUES(terminal_mark), updated_at = NOW()
-                ");
-                $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $score]);
+            if ($score > $maxScoreLimit || $score < 0) {
+                $conn->rollBack();
+                http_response_code(400);
+                echo json_encode(["success" => false, "message" => "Validation Error: Score $score for student $studentId exceeds maximum allowed ($maxScoreLimit) or is invalid."]);
+                exit();
             }
+
+            $stmt->execute([$schoolId, $academicYearId, $term, $studentId, $subjectCode, $trackType, $score]);
         }
         $conn->commit();
         echo json_encode(["success" => true, "message" => "Assessment scores batch saved successfully for $term."]);
@@ -640,9 +731,9 @@ try {
 
         $stmtParent = $conn->prepare("
             SELECT u.full_name AS student_name, u.user_code,
-                   COALESCE(p.guardian_name, 'Juma Mlimani Kassim') AS parent_name,
-                   COALESCE(p.relation, 'Father') AS relation,
-                   COALESCE(p.guardian_phone, '+255712000000') AS phone
+                   COALESCE(p.guardian_name, 'Not Registered') AS parent_name,
+                   COALESCE(p.relation, '-') AS relation,
+                   COALESCE(p.guardian_phone, '-') AS phone
             FROM student_classroom_allocations sca
             JOIN users u ON sca.student_id = u.id
             JOIN classrooms c ON sca.classroom_id = c.id

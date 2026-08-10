@@ -27,3 +27,11 @@ import '../components/table/table-pagination.js';
 import '../components/table/table-states.js';
 import '../components/table/table-wrapper.js';
 import '../components/table/table-import-modal.js?v=20260809';
+
+// Automatically populate current year for elements with class 'current-year'
+document.addEventListener('DOMContentLoaded', () => {
+    const currentYear = new Date().getFullYear();
+    document.querySelectorAll('.current-year').forEach(el => {
+        if (!el.textContent) el.textContent = currentYear;
+    });
+});

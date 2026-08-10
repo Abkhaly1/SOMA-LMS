@@ -152,7 +152,7 @@
                             <div class="fallback-card">
                                 <div style="font-size: 48px; margin-bottom: 14px;">⚠️</div>
                                 <h3 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 800; color: #0f172a;">
-                                    No Active Timetable Found for Academic Year 2026
+                                    No Active Timetable Found for Academic Year <span class="current-year"></span>
                                 </h3>
                                 <p style="margin: 0 0 24px 0; color: #64748b; font-size: 14px; max-width: 540px; display: inline-block;">
                                     Initialize your school's master timetable boundaries, operational days, daily period limits, and subject frequencies before scheduling classrooms.
@@ -436,7 +436,7 @@
                                             </span>
                                         </div>
                                         <div style="font-size:12px; color:#64748b; margin-top:4px;">
-                                            Weekly schedule layout for Academic Year 2026. 💡 <strong>Drag & Drop</strong> any period card to refine slots. Live engine validates teacher collisions.
+                                            Weekly schedule layout for Academic Year <span class="current-year"></span>. 💡 <strong>Drag & Drop</strong> any period card to refine slots. Live engine validates teacher collisions.
                                         </div>
                                     </div>
                                     <div style="display:flex; gap:10px; align-items:center;">
@@ -507,7 +507,7 @@
     </div>
 
     <script>
-        const ACADEMIC_YEAR = '2026';
+        const ACADEMIC_YEAR = new Date().getFullYear().toString();
         let currentConfig = null;
         let wizardData = null;
         let selectedLevelCode = 'O-LEVEL';

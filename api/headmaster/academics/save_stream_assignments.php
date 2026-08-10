@@ -35,19 +35,19 @@ try {
     if (!empty($formMasterId)) {
         $stmtFm = $conn->prepare("
             INSERT INTO class_teachers (school_id, academic_year_id, class_stream_id, teacher_id) 
-            VALUES (?, '2026', ?, ?) 
+            VALUES (?, '" . date('Y') . "', ?, ?) 
             ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)
         ");
         $stmtFm->execute([$schoolId, $classStreamId, $formMasterId]);
     } else {
-        $stmtDelFm = $conn->prepare("DELETE FROM class_teachers WHERE school_id = ? AND academic_year_id = '2026' AND class_stream_id = ?");
+        $stmtDelFm = $conn->prepare("DELETE FROM class_teachers WHERE school_id = ? AND academic_year_id = '" . date('Y') . "' AND class_stream_id = ?");
         $stmtDelFm->execute([$schoolId, $classStreamId]);
     }
 
     // 2. Process Subject Teacher Assignments
     if (!empty($subjectTeacherMappings) && is_array($subjectTeacherMappings)) {
-        $clearStmt = $conn->prepare("DELETE FROM teacher_subject_assignments WHERE school_id = ? AND academic_year_id = '2026' AND class_stream_id = ? AND subject_code = ?");
-        $insertStmt = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year_id, class_stream_id, subject_code, teacher_id) VALUES (?, '2026', ?, ?, ?)");
+        $clearStmt = $conn->prepare("DELETE FROM teacher_subject_assignments WHERE school_id = ? AND academic_year_id = '" . date('Y') . "' AND class_stream_id = ? AND subject_code = ?");
+        $insertStmt = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year_id, class_stream_id, subject_code, teacher_id) VALUES (?, '" . date('Y') . "', ?, ?, ?)");
 
         foreach ($subjectTeacherMappings as $subCode => $tIds) {
             // Clear existing for this subject in stream

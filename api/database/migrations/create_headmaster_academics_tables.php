@@ -30,7 +30,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS teacher_subject_assignments (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year VARCHAR(20) DEFAULT '2026',
+        academic_year VARCHAR(20),
         class_stream_id VARCHAR(50) NOT NULL,
         class_name VARCHAR(50) NOT NULL,
         subject_code VARCHAR(50) NOT NULL,
@@ -88,7 +88,7 @@ try {
         $teachers = $stmtTeachers->fetchAll(PDO::FETCH_ASSOC);
 
         $conn->exec("DELETE FROM teacher_subject_assignments WHERE school_id = '$sid'");
-        $stmtAssign = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year, class_stream_id, class_name, subject_code, subject_name, teacher_id, teacher_name, status) VALUES (?, '2026', ?, ?, ?, ?, ?, ?, ?)");
+        $stmtAssign = $conn->prepare("INSERT INTO teacher_subject_assignments (school_id, academic_year, class_stream_id, class_name, subject_code, subject_name, teacher_id, teacher_name, status) VALUES (?, '" . date('Y') . "', ?, ?, ?, ?, ?, ?, ?)");
 
         foreach ($streams as $idx => $st) {
             $sb = $allocSubjects[$idx % count($allocSubjects)];

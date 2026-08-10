@@ -322,7 +322,7 @@
     // ─── STEP 4: Stream Workspace ─────────────────────────────────
     function renderStreamWorkspace(data, streamName, streamType) {
         document.getElementById('step4Title').textContent = `Stream Workspace — ${streamName}`;
-        document.getElementById('step4Sub').textContent   = `${capitalize(streamType)} stream · ${state.gradeName} · ${state.levelName} · Academic Year 2026`;
+        document.getElementById('step4Sub').textContent   = `${capitalize(streamType)} stream · ${state.gradeName} · ${state.levelName} · Academic Current Year`;
 
         const subjects  = data.stream_subjects || [];
         const teachers  = data.teachers        || [];

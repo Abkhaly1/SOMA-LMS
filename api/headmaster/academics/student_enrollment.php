@@ -16,7 +16,7 @@ $action     = $input['action']          ?? 'get';         // get | enroll | unen
 $studentId  = $input['student_id']      ?? '';
 $streamId   = intval($input['stream_id']  ?? 0);
 $subjectCode = trim($input['subject_code'] ?? '');
-$year       = $input['academic_year']   ?? '2026';
+$year       = $input['academic_year']   ?? date('Y');
 
 try {
     if ($action === 'get') {

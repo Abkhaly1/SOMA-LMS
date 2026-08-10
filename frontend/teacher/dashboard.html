@@ -30,8 +30,8 @@
                                 <p style="margin: 0; color: var(--c-text-muted); font-size: 14px; max-width: 780px;">Your teacher dashboard provides scheduled lessons, class metrics, and quick access to grading, attendance, and parent communication.</p>
                             </div>
                             <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-                                <div style="background: #78350f; color: white; border-radius: 16px; padding: 14px 18px; font-weight: 800;">Teacher ID: <span id="tchCode">TCH/2026</span></div>
-                                <div style="background: #f8fafc; color: #1f2937; border-radius: 16px; padding: 14px 18px;">Year: <strong id="tchYr">2026</strong></div>
+                                <div style="background: #78350f; color: white; border-radius: 16px; padding: 14px 18px; font-weight: 800;">Teacher ID: <span id="tchCode">TCH/202X</span></div>
+                                <div style="background: #f8fafc; color: #1f2937; border-radius: 16px; padding: 14px 18px;">Year: <strong id="tchYr">202X</strong></div>
                             </div>
                         </div>
                     </div>
@@ -143,8 +143,8 @@
                 const metrics = data.metrics || {};
                 const schedule = data.schedule || [];
 
-                document.getElementById('tchCode').textContent = teacher.user_code || 'TCH/2026';
-                document.getElementById('tchYr').textContent = data.academic_year || '2026';
+                document.getElementById('tchCode').textContent = teacher.user_code || `TCH/${new Date().getFullYear()}`;
+                document.getElementById('tchYr').textContent = data.academic_year || new Date().getFullYear().toString();
                 document.getElementById('metricSubjects').textContent = `${metrics.my_subjects_count || 0} Active`;
                 document.getElementById('metricStudents').textContent = `${metrics.total_students || 0} Enrolled`;
                 document.getElementById('metricPeriods').textContent = `${metrics.today_periods_count || 0} Remaining`;

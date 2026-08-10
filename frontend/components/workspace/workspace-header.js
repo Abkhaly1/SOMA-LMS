@@ -47,9 +47,9 @@ class AppWorkspaceHeader extends HTMLElement {
         const metaContent = this._metaContent || '';
 
         this.innerHTML = `
-            <div class="workspace-header" style="display: flex; align-items: flex-start; justify-content: space-between; padding: var(--sp-6); background: var(--c-bg-surface); border: 1px solid var(--c-border-light); border-radius: var(--radius-lg); margin-bottom: var(--sp-4);">
+            <div class="workspace-header" style="display: flex; align-items: flex-start; justify-content: space-between; padding: var(--sp-4); background: var(--c-bg-surface); border: 1px solid var(--c-border-light); border-radius: var(--radius-lg); margin-bottom: var(--sp-3);">
                 <div style="display: flex; align-items: center; gap: var(--sp-4);">
-                    <div class="workspace-avatar" id="headerAvatar" style="width: 64px; height: 64px; border-radius: 50%; background: var(--c-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold;">
+                    <div class="workspace-avatar" id="headerAvatar" style="width: 48px; height: 48px; border-radius: 50%; background: var(--c-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
                         ${this.avatarText}
                     </div>
                     <div>

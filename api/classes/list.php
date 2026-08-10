@@ -18,10 +18,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     $stmt = $conn->prepare("
-        SELECT id, name, created_at 
-        FROM classes 
-        WHERE school_id = ?
-        ORDER BY created_at DESC
+        SELECT c.id, CONCAT(g.name, ' - ', c.classroom_name) AS name, c.created_at 
+        FROM classrooms c
+        JOIN grades g ON c.grade_id = g.id
+        WHERE c.school_id = ? AND c.is_active = 1
+        ORDER BY g.id ASC, c.classroom_name ASC
     ");
     $stmt->execute([$_SESSION['school_id']]);
     

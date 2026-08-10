@@ -71,7 +71,7 @@ try {
             OR (sel.level_code = 'PRIM' AND (el.code = 'PRIMARY' OR el.code = 'PRIM'))
             OR (sel.level_code = 'NURSERY' AND el.code = 'NURSERY')
         ))
-        WHERE c.school_id = ? AND c.academic_year = '2026'
+        WHERE c.school_id = ? AND c.academic_year = '" . date('Y') . "'
         ORDER BY el.id, g.order_seq, c.classroom_name ASC
     ");
     $stmtStreams->execute([$schoolId]);
@@ -82,7 +82,7 @@ try {
         SELECT ct.*, u.full_name as teacher_name, u.user_code
         FROM class_teachers ct
         JOIN users u ON ct.teacher_id = u.id
-        WHERE ct.school_id = ? AND ct.academic_year_id = '2026'
+        WHERE ct.school_id = ? AND ct.academic_year_id = '" . date('Y') . "'
     ");
     $stmtClassTeachers->execute([$schoolId]);
     $classTeachers = $stmtClassTeachers->fetchAll(PDO::FETCH_ASSOC);
@@ -103,7 +103,7 @@ try {
         FROM teacher_subject_assignments tsa
         LEFT JOIN users u ON tsa.teacher_id = u.id
         LEFT JOIN school_approved_subjects sas ON (tsa.school_id = sas.school_id AND tsa.subject_code = sas.subject_code)
-        WHERE tsa.school_id = ? AND tsa.academic_year_id = '2026'
+        WHERE tsa.school_id = ? AND tsa.academic_year_id = '" . date('Y') . "'
         GROUP BY tsa.class_stream_id, tsa.subject_code
         ORDER BY tsa.class_stream_id ASC, sas.subject_name ASC
     ");
@@ -133,7 +133,7 @@ try {
             OR (sel.level_code = 'PRIM' AND (el.code = 'PRIMARY' OR el.code = 'PRIM'))
             OR (sel.level_code = 'NURSERY' AND el.code = 'NURSERY')
         ))
-        WHERE gs.school_id = ? AND gs.academic_year = '2026'
+        WHERE gs.school_id = ? AND gs.academic_year = '" . date('Y') . "'
         ORDER BY g.id, gs.is_core DESC, gs.subject_name ASC
     ");
     $stmtGS->execute([$schoolId]);

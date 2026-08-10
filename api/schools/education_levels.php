@@ -196,7 +196,7 @@ try {
 
             $insGS = $conn->prepare("
                 INSERT INTO grade_subjects (school_id, academic_year, grade_id, subject_code, subject_name, is_core)
-                VALUES (?, '2026', ?, ?, ?, ?)
+                VALUES (?, '" . date('Y') . "', ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE subject_name = VALUES(subject_name), is_core = VALUES(is_core)
             ");
 

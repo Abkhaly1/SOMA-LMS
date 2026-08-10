@@ -114,13 +114,27 @@
                     </div>
                 </div>
 
-                <!-- NAV TABS -->
-                <div class="nav-tabs-bar">
-                    <button class="tab-btn active" id="tabbtn-overview" onclick="switchTab('overview')">📁 Profile & Overview</button>
-                    <button class="tab-btn" id="tabbtn-assignments" onclick="switchTab('assignments')">📚 Teaching Assignments</button>
-                    <button class="tab-btn" id="tabbtn-schedule" onclick="switchTab('schedule')">📅 Weekly Schedule (Live)</button>
-                    <button class="tab-btn" id="tabbtn-security" onclick="switchTab('security')">🔒 Account & Security</button>
-                </div>
+                <!-- ── WORKSPACE WITH SECONDARY SIDEBAR ────────────────────────────────── -->
+                <div class="workspace-with-sidebar">
+                    <div class="secondary-sidebar">
+                        <div class="secondary-sidebar-nav">
+                            <button class="active" id="tabbtn-overview" onclick="switchTab('overview')">
+                                <span class="icon" style="color: #3b82f6;">📁</span> Profile & Overview
+                            </button>
+                            <button id="tabbtn-assignments" onclick="switchTab('assignments')">
+                                <span class="icon" style="color: #10b981;">📚</span> Teaching Assignments
+                            </button>
+                            <button id="tabbtn-schedule" onclick="switchTab('schedule')">
+                                <span class="icon" style="color: #f59e0b;">📅</span> Weekly Schedule (Live)
+                            </button>
+                            <button id="tabbtn-security" onclick="switchTab('security')">
+                                <span class="icon" style="color: #64748b;">🔒</span> Account & Security
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ── MAIN CONTENT CONTAINER ──────────────────────────── -->
+                    <div class="workspace-main-content">
 
                 <!-- TAB 1: OVERVIEW -->
                 <div id="panel-overview">
@@ -229,6 +243,8 @@
                         </div>
                     </div>
                 </div>
+                </div>
+                </div>
 
             </div>
         </main>
@@ -239,10 +255,10 @@
     let teacherId = new URLSearchParams(window.location.search).get('id');
 
     function switchTab(tabId) {
-        $('.tab-btn').removeClass('active');
-        $('#tabbtn-' + tabId).addClass('active');
-        $('#panel-overview, #panel-assignments, #panel-schedule, #panel-security').hide();
-        $('#panel-' + tabId).show();
+        ['overview','assignments','schedule','security'].forEach(id => {
+            document.getElementById(`panel-${id}`).style.display = id === tabId ? 'block' : 'none';
+            document.getElementById(`tabbtn-${id}`).className = (id === tabId ? 'active' : '');
+        });
 
         if (tabId === 'schedule') {
             loadTeacherSchedule(teacherId, 0);
@@ -264,12 +280,12 @@
             if (res.ok && data.success) {
                 const t = data.teacher;
 
-                const formattedGender = (t.gender === 'F' || t.gender === 'Female') ? 'Female' : ((t.gender === 'M' || t.gender === 'Male') ? 'Male' : (t.gender || 'Female'));
+                const formattedGender = (t.gender && t.gender.toString().match(/^m/i)) ? 'Male' : ((t.gender && t.gender.toString().match(/^f/i)) ? 'Female' : (t.gender || 'Unknown'));
 
                 // Header & Avatar
                 $('#tchAvatar').text(t.full_name ? t.full_name.charAt(0).toUpperCase() : 'T');
                 $('#tchName').text(t.full_name);
-                $('#tchCode').text(t.user_code || 'TCH/2026/001');
+                $('#tchCode').text(t.user_code || `TCH/${new Date().getFullYear()}/001`);
                 $('#tchGender').text(formattedGender);
                 $('#tchStatus').text(t.status === 'active' ? 'Active' : 'Suspended');
                 $('#tchFormMasterOf').text(data.class_teacher_of);
@@ -281,7 +297,7 @@
 
                 // Bio
                 $('#bioName').text(t.full_name);
-                $('#bioCode').text(t.user_code || 'TCH/2026/001');
+                $('#bioCode').text(t.user_code || `TCH/${new Date().getFullYear()}/001`);
                 $('#bioGender').text(formattedGender);
                 $('#bioDept').text(t.department || 'Academics');
                 $('#bioPhone').text(t.phone || 'N/A');

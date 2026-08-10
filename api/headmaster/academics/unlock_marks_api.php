@@ -24,7 +24,7 @@ if (!$schoolId && $role === 'super_admin') {
 
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? '';
-$year = $input['year'] ?? '2026';
+$year = $input['year'] ?? date('Y');
 $term = $input['term'] ?? 'Term 1';
 $classroomId = intval($input['classroom_id'] ?? 0);
 $subjectCode = $input['subject_code'] ?? '';

@@ -53,17 +53,37 @@ try {
         $sameClassrooms->execute([$schoolId, $toYear, $currGrade]);
         $repeatClassrooms = $sameClassrooms->fetchAll(PDO::FETCH_ASSOC);
 
-        // Calculate GPA / Score for each student to generate auto recommendation
+        // Calculate GPA / Score for each student in the classroom to generate auto recommendation
         $stmtMarks = $conn->prepare("
-            SELECT AVG(continuous_assessment_mark + terminal_mark) AS avg_score
-            FROM marks_entry
-            WHERE school_id = ? AND student_id = ? AND academic_year = ?
+            WITH unified_marks AS (
+                SELECT student_id, subject_code, SUM(score) AS total_score
+                FROM marks_entry_dynamic
+                WHERE school_id = ? AND academic_year = ?
+                GROUP BY student_id, subject_code
+                UNION ALL
+                SELECT student_id, subject_code, (COALESCE(continuous_assessment_mark, 0) + COALESCE(terminal_mark, 0)) AS total_score
+                FROM marks_entry m
+                WHERE m.school_id = ? AND m.academic_year = ?
+                  AND NOT EXISTS (
+                    SELECT 1 FROM marks_entry_dynamic d
+                    WHERE d.student_id = m.student_id AND d.subject_code = m.subject_code AND d.academic_year = m.academic_year
+                  )
+            )
+            SELECT me.student_id, AVG(me.total_score) AS avg_score
+            FROM unified_marks me
+            JOIN student_classroom_allocations sca ON me.student_id = sca.student_id
+            WHERE sca.classroom_id = ? AND sca.school_id = ? AND sca.academic_year = ?
+            GROUP BY me.student_id
         ");
+        
+        $stmtMarks->execute([$schoolId, $fromYear, $schoolId, $fromYear, $classroomId, $schoolId, $fromYear]);
+        $averages = [];
+        while ($row = $stmtMarks->fetch(PDO::FETCH_ASSOC)) {
+            $averages[$row['student_id']] = $row['avg_score'];
+        }
 
         foreach ($students as &$s) {
-            $stmtMarks->execute([$schoolId, $s['student_id'], $fromYear]);
-            $rowMarks = $stmtMarks->fetch(PDO::FETCH_ASSOC);
-            $avg = $rowMarks && $rowMarks['avg_score'] !== null ? round(floatval($rowMarks['avg_score']), 1) : null;
+            $avg = isset($averages[$s['student_id']]) && $averages[$s['student_id']] !== null ? round(floatval($averages[$s['student_id']]), 1) : null;
             
             if ($avg !== null) {
                 $s['final_gpa'] = $avg . '%';
@@ -91,7 +111,7 @@ try {
     // POST: Execute promotion batch
     if ($method === 'POST' && $action === 'process') {
         $fromYear = $input['from_year'] ?? '2025';
-        $toYear   = $input['to_year']   ?? '2026';
+        $toYear   = $input['to_year']   ?? date('Y');
         $fromClassroomId = intval($input['from_classroom_id'] ?? 0);
         $promotions = $input['promotions'] ?? [];
 

@@ -140,7 +140,7 @@
                                     Grade Curriculum Subjects Roster
                                 </h3>
                                 <p style="margin:0;font-size:13px;color:var(--c-text-muted);">
-                                    Active subjects assigned to this Grade for Academic Year 2026. Set Core Mandatory vs Optional Elective status.
+                                    Active subjects assigned to this Grade for Academic Current Year. Set Core Mandatory vs Optional Elective status.
                                 </p>
                             </div>
                             <div style="display:flex; gap:10px;">
@@ -264,7 +264,7 @@
 
                 // Render Header Banner
                 $('#gradeTitle').text(`${gradeInfo.grade_name} Curriculum Workspace`);
-                $('#gradeSubtitle').text(`Master subject curriculum template for ${gradeInfo.grade_name} (${gradeInfo.level_name}) - Academic Year 2026.`);
+                $('#gradeSubtitle').text(`Master subject curriculum template for ${gradeInfo.grade_name} (${gradeInfo.level_name}) - Academic Current Year.`);
                 $('#gradeAvatar').text(gradeInfo.grade_name || 'GRD');
                 $('#gradeLevelBadge').text(gradeInfo.level_code);
 
@@ -472,7 +472,7 @@
                     body: JSON.stringify({
                         action: 'save_grade_subjects',
                         grade_id: currentGradeId,
-                        academic_year: '2026',
+                        academic_year: new Date().getFullYear().toString(),
                         assigned_subjects: payloadSubjects
                     })
                 });

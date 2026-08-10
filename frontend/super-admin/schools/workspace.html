@@ -499,7 +499,7 @@
                         ];
                         const tData = tResult.data.map(item => ({
                             id: item.id,
-                            code: item.user_code || 'TCH/2026/001',
+                            code: item.user_code || `TCH/${new Date().getFullYear()}/001`,
                             raw_name: item.full_name,
                             department: item.department || 'Mathematics',
                             name: { initials: item.full_name ? item.full_name.charAt(0).toUpperCase() : 'T', name: item.full_name },
@@ -537,7 +537,7 @@
                         ];
                         const sData = sResult.data.map(item => ({
                             id: item.id,
-                            code: item.user_code || 'STD/2026/001',
+                            code: item.user_code || 'STD/${new Date().getFullYear()}/001',
                             raw_name: item.full_name,
                             name: { initials: item.full_name ? item.full_name.charAt(0).toUpperCase() : 'S', name: item.full_name },
                             phone: item.phone || 'N/A',
@@ -603,8 +603,8 @@
                         const pwdDisplay = isPwdChanged 
                             ? `<div style="background:#f8fafc; padding:12px; border-radius:6px; border:1px solid #e2e8f0; font-family:monospace; color:#64748b;">•••••••• (Secured by Headmaster)</div>` 
                             : `<div style="display:flex; align-items:center; gap:12px; background:#fffbeb; padding:12px; border-radius:6px; border:1px solid #fde68a;">
-                                <code style="font-size:16px; font-weight:bold; color:#b45309;">${data.headmaster_temp_password || 'Soma#2026@Hk8'}</code>
-                                <button type="button" class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText('${data.headmaster_temp_password || 'Soma#2026@Hk8'}'); alert('Credentials copied to clipboard!');">📋 Copy Password</button>
+                                <code style="font-size:16px; font-weight:bold; color:#b45309;">${data.headmaster_temp_password || 'Soma#202X@Hk8'}</code>
+                                <button type="button" class="btn btn-outline btn-sm" onclick="navigator.clipboard.writeText('${data.headmaster_temp_password || 'Soma#202X@Hk8'}'); alert('Credentials copied to clipboard!');">📋 Copy Password</button>
                                </div>`;
 
                         document.getElementById('hmDetails').innerHTML = `

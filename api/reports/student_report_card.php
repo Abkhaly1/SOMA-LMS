@@ -17,7 +17,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 
 $action    = $_GET['action']    ?? 'get_timeline';
 $studentId = $_GET['student_id'] ?? '';
-$year      = $_GET['year']       ?? '2026';
+$year      = $_GET['year']       ?? date('Y');
 
 if (empty($studentId)) {
     echo json_encode(['success' => false, 'message' => 'Student ID is required.']);
@@ -93,43 +93,82 @@ try {
             ];
         }
 
-        // Fetch marks for target academic year
+        // Fetch Marks from new dynamic table
         $stmtMarks = $conn->prepare("
             SELECT
                 m.subject_code,
                 COALESCE(s.name, m.subject_code) AS subject_name,
-                m.continuous_assessment_mark AS ca_mark,
-                m.terminal_mark,
-                (m.continuous_assessment_mark + m.terminal_mark) AS total_score
-            FROM marks_entry m
+                m.assessment_type_id,
+                m.score
+            FROM marks_entry_dynamic m
             LEFT JOIN subjects s ON m.subject_code = s.code
             WHERE m.student_id = ? AND m.school_id = ? AND m.academic_year = ?
-            ORDER BY subject_name ASC
         ");
         $stmtMarks->execute([$studentId, $schoolId, $year]);
-        $marks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
+        $dynamicMarks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
 
-        // If no marks exist yet for this student/year, seed sample data for demonstration
-        if (empty($marks)) {
-            $sampleSubjects = [
-                ['MATH-01', 'Mathematics', $year === '2025' ? 10.0 : 35.0, $year === '2025' ? 14.0 : 43.0],
-                ['KISW-02', 'Kiswahili',   $year === '2025' ? 20.0 : 38.0, $year === '2025' ? 26.0 : 44.0],
-                ['ENG-03',  'English',     $year === '2025' ? 15.0 : 36.0, $year === '2025' ? 25.0 : 42.0],
-                ['BIO-04',  'Biology',     $year === '2025' ? 8.0  : 30.0, $year === '2025' ? 10.0 : 38.0],
-                ['CIV-05',  'Civics',      $year === '2025' ? 18.0 : 34.0, $year === '2025' ? 22.0 : 36.0]
-            ];
-
-            $insM = $conn->prepare("INSERT INTO marks_entry (school_id, academic_year, student_id, subject_code, continuous_assessment_mark, terminal_mark) VALUES (?,?,?,?,?,?) ON DUPLICATE KEY UPDATE continuous_assessment_mark=VALUES(continuous_assessment_mark), terminal_mark=VALUES(terminal_mark)");
-            foreach ($sampleSubjects as $sub) {
-                $insM->execute([$schoolId, $year, $studentId, $sub[0], $sub[2], $sub[3]]);
+        $groupedMarks = [];
+        foreach ($dynamicMarks as $dm) {
+            $sc = $dm['subject_code'];
+            if (!isset($groupedMarks[$sc])) {
+                $groupedMarks[$sc] = [
+                    'subject_code' => $sc,
+                    'subject_name' => $dm['subject_name'],
+                    'ca_mark'      => 0,
+                    'terminal_mark'=> 0,
+                    'total_score'  => 0
+                ];
             }
-
-            // Re-fetch
-            $stmtMarks->execute([$studentId, $schoolId, $year]);
-            $marks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
+            if ($dm['assessment_type_id'] === 'terminal') {
+                $groupedMarks[$sc]['terminal_mark'] += floatval($dm['score']);
+            } else {
+                $groupedMarks[$sc]['ca_mark'] += floatval($dm['score']);
+            }
+            $groupedMarks[$sc]['total_score'] += floatval($dm['score']);
         }
 
-        // Process grades & remarks using NECTA grading rules
+        // Fallback to legacy marks_entry if no dynamic marks exist
+        if (empty($groupedMarks)) {
+            $stmtLegacy = $conn->prepare("SELECT m.subject_code, COALESCE(s.name, m.subject_code) AS subject_name, m.continuous_assessment_mark AS ca_mark, m.terminal_mark, (m.continuous_assessment_mark + m.terminal_mark) AS total_score FROM marks_entry m LEFT JOIN subjects s ON m.subject_code = s.code WHERE m.student_id = ? AND m.school_id = ? AND m.academic_year = ? ORDER BY subject_name ASC");
+            $stmtLegacy->execute([$studentId, $schoolId, $year]);
+            $legacyMarks = $stmtLegacy->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($legacyMarks as $lm) {
+                $groupedMarks[$lm['subject_code']] = [
+                    'subject_code'  => $lm['subject_code'],
+                    'subject_name'  => $lm['subject_name'],
+                    'ca_mark'       => floatval($lm['ca_mark']),
+                    'terminal_mark' => floatval($lm['terminal_mark']),
+                    'total_score'   => floatval($lm['total_score'])
+                ];
+            }
+        }
+
+        $marks = array_values($groupedMarks);
+        usort($marks, function($a, $b) { return strcmp($a['subject_name'], $b['subject_name']); });
+
+        // Fetch dynamic grading scale
+        $levelType = 'O-Level';
+        if ($alloc) {
+            $stmtLevel = $conn->prepare("
+                SELECT el.name AS level_type
+                FROM classrooms c
+                JOIN grades g ON c.grade_id = g.id
+                JOIN education_levels el ON g.level_id = el.id
+                WHERE c.id = ? LIMIT 1
+            ");
+            $stmtLevel->execute([$alloc['classroom_id']]);
+            if ($res = $stmtLevel->fetchColumn()) {
+                $levelType = $res;
+            }
+        }
+        $stmtScales = $conn->prepare("SELECT min_mark, max_mark, grade, remark FROM grading_scales WHERE level_type = :ltype ORDER BY min_mark DESC");
+        $stmtScales->execute([':ltype' => $levelType]);
+        $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
+        if (empty($scales)) {
+            $stmtScales->execute([':ltype' => 'O-Level']);
+            $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
+        }
+
         $totalSum = 0;
         $totalPoints = 0;
         $processedMarks = [];
@@ -138,11 +177,23 @@ try {
             $score = floatval($m['total_score']);
             $totalSum += $score;
 
-            if ($score >= 75)     { $grade = 'A'; $pts = 1; $remark = 'Excellent'; }
-            elseif ($score >= 65) { $grade = 'B'; $pts = 2; $remark = 'Very Good'; }
-            elseif ($score >= 45) { $grade = 'C'; $pts = 3; $remark = 'Good Pass'; }
-            elseif ($score >= 30) { $grade = 'D'; $pts = 4; $remark = 'Satisfactory'; }
-            else                  { $grade = 'F'; $pts = 5; $remark = 'Fail'; }
+            $grade = '-';
+            $remark = '-';
+            $pts = 5; // Default worst points
+            foreach ($scales as $idx => $sc) {
+                if ($score >= floatval($sc['min_mark']) && $score <= floatval($sc['max_mark'])) {
+                    $grade = $sc['grade'];
+                    $remark = $sc['remark'];
+                    $pts = $idx + 1; // Basic point assumption based on order
+                    break;
+                }
+            }
+            if ($grade === '-' && !empty($scales)) {
+                $lowest = end($scales);
+                $grade = $lowest['grade'];
+                $remark = $lowest['remark'];
+                $pts = count($scales);
+            }
 
             $totalPoints += $pts;
             $m['grade']  = $grade;
@@ -154,7 +205,7 @@ try {
         $subjectCount = count($processedMarks);
         $gpaAvg = $subjectCount > 0 ? round($totalSum / $subjectCount, 1) : 0;
 
-        // Calculate NECTA Division
+        // Calculate NECTA Division (retained basic logic but fed with dynamic points)
         if ($totalPoints <= 17 && $subjectCount >= 5)    $division = 'Division I';
         elseif ($totalPoints <= 21 && $subjectCount >= 5) $division = 'Division II';
         elseif ($totalPoints <= 25 && $subjectCount >= 5) $division = 'Division III';
@@ -162,7 +213,7 @@ try {
         else $division = 'Division 0';
 
         // Read-only safety lock rule: archived years cannot be modified
-        $isReadOnly = ($year !== '2026') || ($alloc['year_status'] !== 'Active');
+        $isReadOnly = ($year !== date('Y')) || ($alloc['year_status'] !== 'Active');
 
         echo json_encode([
             'success'      => true,

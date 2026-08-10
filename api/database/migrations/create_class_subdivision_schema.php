@@ -57,7 +57,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS stream_subjects (
         id               INT AUTO_INCREMENT PRIMARY KEY,
         school_id        VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         class_stream_id  INT NOT NULL,
         subject_code     VARCHAR(50) NOT NULL,
         subject_name     VARCHAR(150) NOT NULL,
@@ -73,7 +73,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS student_subject_enrollments (
         id               INT AUTO_INCREMENT PRIMARY KEY,
         school_id        VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         student_id       VARCHAR(36) NOT NULL,
         class_stream_id  INT NOT NULL,
         subject_code     VARCHAR(50) NOT NULL,
@@ -225,7 +225,7 @@ try {
                 $subjectRow = $conn->query("SELECT name FROM subjects WHERE school_id='$sid' AND code='$code'")->fetch(PDO::FETCH_ASSOC);
                 if (!$subjectRow) continue;
                 $isCore = in_array($code, $coreSubjects) ? 1 : 0;
-                $stmtSS->execute([$sid,'2026',$streamId,$code,$subjectRow['name'],$isCore]);
+                $stmtSS->execute([$sid, date('Y'), $streamId, $code, $subjectRow['name'], $isCore]);
             }
         }
     }

@@ -31,13 +31,13 @@ try {
     if ($teacherId) {
         $stmt = $conn->prepare("
             INSERT INTO class_teachers (school_id, academic_year_id, class_stream_id, teacher_id) 
-            VALUES (?, '2026', ?, ?) 
+            VALUES (?, '" . date('Y') . "', ?, ?) 
             ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)
         ");
         $stmt->execute([$schoolId, $classStreamId, $teacherId]);
         $msg = "Form Master assigned successfully.";
     } else {
-        $stmt = $conn->prepare("DELETE FROM class_teachers WHERE school_id = ? AND academic_year_id = '2026' AND class_stream_id = ?");
+        $stmt = $conn->prepare("DELETE FROM class_teachers WHERE school_id = ? AND academic_year_id = '" . date('Y') . "' AND class_stream_id = ?");
         $stmt->execute([$schoolId, $classStreamId]);
         $msg = "Form Master unassigned.";
     }

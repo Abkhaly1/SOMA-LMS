@@ -31,7 +31,7 @@ if (empty($classStreamId) || empty($subjectCode) || !$schoolId) {
 try {
     $stmt = $conn->prepare("
         INSERT INTO teacher_subject_assignments (school_id, academic_year_id, class_stream_id, subject_code, teacher_id) 
-        VALUES (?, '2026', ?, ?, ?) 
+        VALUES (?, '" . date('Y') . "', ?, ?, ?) 
         ON DUPLICATE KEY UPDATE teacher_id = VALUES(teacher_id)
     ");
     $stmt->execute([$schoolId, $classStreamId, $subjectCode, $teacherId]);

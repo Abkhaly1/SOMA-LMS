@@ -11,7 +11,8 @@ class TimetableEngine {
     /**
      * Constraint 1: Check if Teacher is already occupied during exact day/period slot
      */
-    public function checkTeacherConflict($teacherId, $dayOfWeek, $periodId, $academicYearId = '2026', $schoolId = null) {
+    public function checkTeacherConflict($teacherId, $dayOfWeek, $periodId, $academicYearId = null, $schoolId = null) {
+        if ($academicYearId === null) $academicYearId = date('Y');
         $stmt = $this->db->prepare("
             SELECT ct.id, ct.class_stream_id, sas.subject_name
             FROM class_timetables ct
@@ -36,7 +37,8 @@ class TimetableEngine {
     /**
      * Constraint 2: Check if Class Stream already has a subject scheduled during exact day/period slot
      */
-    public function checkClassConflict($classStreamId, $dayOfWeek, $periodId, $academicYearId = '2026', $schoolId = null) {
+    public function checkClassConflict($classStreamId, $dayOfWeek, $periodId, $academicYearId = null, $schoolId = null) {
+        if ($academicYearId === null) $academicYearId = date('Y');
         $stmt = $this->db->prepare("
             SELECT ct.id, ct.subject_code, u.full_name as teacher_name
             FROM class_timetables ct

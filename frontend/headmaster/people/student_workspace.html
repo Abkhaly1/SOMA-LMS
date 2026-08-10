@@ -17,18 +17,18 @@
         .workspace-header {
             background: linear-gradient(135deg, #059669 0%, #047857 100%);
             color: white;
-            padding: 24px 30px;
+            padding: 12px 20px;
             border-radius: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
         }
         .student-avatar-lg {
-            width: 72px; height: 72px; border-radius: 50%;
+            width: 50px; height: 50px; border-radius: 50%;
             background: #ffffff; color: #047857;
-            font-size: 32px; font-weight: 800;
+            font-size: 24px; font-weight: 800;
             display: flex; align-items: center; justify-content: center;
             border: 3px solid rgba(255,255,255,0.4);
         }
@@ -84,42 +84,69 @@
         <app-topbar username="Headmaster Portal"></app-topbar>
         <main class="app-content-wrapper">
             <div class="app-content">
-                <app-breadcrumb path="Headmaster, People Directory, Student 360° Workspace"></app-breadcrumb>
-
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;">
-                    <button class="btn btn-outline btn-sm" onclick="window.location.href='/soma-lms/frontend/headmaster/people/index.html'">⬅ Back to People Directory</button>
-                    <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print Full Student Dossier</button>
-                </div>
-
                 <!-- ── HEADER ANCHORED BANNER ────────────────────────── -->
-                <div class="workspace-header" style="margin-top:16px;">
-                    <div style="display:flex;align-items:center;gap:18px;">
-                        <div class="student-avatar-lg skeleton" id="stuAvatar"></div>
-                        <div>
-                            <h2 style="margin:0 0 4px;font-size:20px;font-weight:800;color:white;" id="stuName"><span class="skeleton skeleton-title" style="width:220px;display:block;"></span></h2>
-                            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                                <span id="stuCode"><span class="skeleton skeleton-sub" style="width:100px;display:block;"></span></span>
-                                <span id="stuGender"><span class="skeleton skeleton-sub" style="width:80px;display:block;"></span></span>
-                                <span id="stuStatus"><span class="skeleton skeleton-sub" style="width:70px;display:block;"></span></span>
-                            </div>
+                <style>
+                    /* Custom styles for breadcrumb inside the green header */
+                    .header-top-row app-breadcrumb .breadcrumb { margin-bottom: 0 !important; }
+                    .header-top-row app-breadcrumb .breadcrumb-item { color: rgba(255,255,255,0.9) !important; }
+                    .header-top-row app-breadcrumb .breadcrumb-link { color: white !important; font-weight: 600; text-decoration: none; }
+                    .header-top-row app-breadcrumb .breadcrumb-separator { color: rgba(255,255,255,0.5) !important; }
+                    
+                    /* Custom styles for buttons inside the green header */
+                    .header-top-row .btn-outline { border-color: white !important; color: white !important; background: rgba(0,0,0,0.1) !important; font-weight: 800 !important; }
+                    .header-top-row .btn-outline:hover { background: rgba(255,255,255,0.2) !important; border-color: white !important; }
+                    .header-top-row .btn-primary { background: white !important; color: #047857 !important; border: none !important; font-weight: 800 !important; }
+                    .header-top-row .btn-primary:hover { background: #f0fdf4 !important; }
+                </style>
+                <div class="workspace-header" style="margin-bottom: 12px; display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 20px;">
+                    
+                    <!-- Top Row: Breadcrumb & Actions -->
+                    <div class="header-top-row" style="display:flex;justify-content:space-between;align-items:center; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 12px;">
+                        <app-breadcrumb path="Headmaster, People Directory, Student 360° Workspace"></app-breadcrumb>
+                        <div style="display:flex;gap:10px;">
+                            <button class="btn btn-outline btn-sm" onclick="window.location.href='/soma-lms/frontend/headmaster/people/index.html'">⬅ Back</button>
+                            <button class="btn btn-primary btn-sm" onclick="window.print()">🖨️ Print</button>
                         </div>
                     </div>
+
+                    <!-- Bottom Row: Student Identity -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div style="display:flex;align-items:center;gap:18px;">
+                            <div class="student-avatar-lg skeleton" id="stuAvatar"></div>
+                            <div>
+                                <h2 style="margin:0 0 4px;font-size:20px;font-weight:800;color:white;" id="stuName"><span class="skeleton skeleton-title" style="width:220px;display:block;"></span></h2>
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <span id="stuCode"><span class="skeleton skeleton-sub" style="width:100px;display:block;"></span></span>
+                                    <span id="stuGender"><span class="skeleton skeleton-sub" style="width:80px;display:block;"></span></span>
+                                    <span id="stuStatus"><span class="skeleton skeleton-sub" style="width:70px;display:block;"></span></span>
+                                </div>
+                            </div>
+                        </div>
                     <div style="text-align:right;">
                         <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);text-transform:uppercase;">Current Allocation</div>
                         <div style="font-size:16px;font-weight:800;color:#fef08a;" id="stuCurrentRoom"><span class="skeleton skeleton-title" style="width:130px;display:block;"></span></div>
                     </div>
-                </div>
+                </div> <!-- End Bottom Row -->
+                </div> <!-- End Workspace Header -->
 
-                <!-- ── 4 CORE NAV-TABS ────────────────────────────────── -->
-                <div class="nav-tabs-bar">
-                    <button class="tab-btn active" id="tabbtn-profile"    onclick="switchWorkspaceTab('profile')">📁 Profile Info</button>
-                    <button class="tab-btn"        id="tabbtn-academics"  onclick="switchWorkspaceTab('academics')">📊 Academic Ledger</button>
-                    <button class="tab-btn"        id="tabbtn-attendance" onclick="switchWorkspaceTab('attendance')">📅 Attendance Tracker</button>
-                    <button class="tab-btn"        id="tabbtn-financials" onclick="switchWorkspaceTab('financials')">💳 Fees & Financial Ledger</button>
-                </div>
+                <!-- ── WORKSPACE WITH SECONDARY SIDEBAR ────────────────────────────────── -->
+                <div class="workspace-with-sidebar">
+                    <div class="secondary-sidebar">
+                        <div class="secondary-sidebar-nav">
+                            <button class="active" id="tabbtn-profile" onclick="switchWorkspaceTab('profile')">
+                                <span class="icon" style="color: #3b82f6;">📁</span> Profile Info
+                            </button>
+                            <button id="tabbtn-academics" onclick="switchWorkspaceTab('academics')">
+                                <span class="icon" style="color: #10b981;">📊</span> Academic Ledger
+                            </button>
+                            <button id="tabbtn-attendance" onclick="switchWorkspaceTab('attendance')">
+                                <span class="icon" style="color: #f59e0b;">📅</span> Attendance Tracker
+                            </button>
+                        </div>
+                    </div>
 
-                <!-- ── TAB PANELS CONTAINER ──────────────────────────── -->
-                <div class="tab-content-panel">
+                    <!-- ── MAIN CONTENT CONTAINER ──────────────────────────── -->
+                    <div class="workspace-main-content">
 
                     <!-- 📍 TAB 1: PROFILE INFO -->
                     <div id="panel-profile">
@@ -129,7 +156,6 @@
                                 <div class="info-row"><span>Full Name:</span><span id="bioName"><span class="skeleton skeleton-text" style="width:140px;"></span></span></div>
                                 <div class="info-row"><span>Registration ID:</span><span id="bioCode"><span class="skeleton skeleton-text" style="width:100px;"></span></span></div>
                                 <div class="info-row"><span>Gender:</span><span id="bioGender"><span class="skeleton skeleton-text" style="width:70px;"></span></span></div>
-                                <div class="info-row"><span>Denomination / Faith:</span><span>Christian (Protestant)</span></div>
                                 <div class="info-row"><span>Enrollment Date:</span><span id="bioEnrollDate"><span class="skeleton skeleton-text" style="width:90px;"></span></span></div>
                                 <div class="info-row"><span>Student Status:</span><span id="bioStatus"><span class="skeleton skeleton-text" style="width:60px;"></span></span></div>
                             </div>
@@ -155,7 +181,7 @@
                             <div style="display:flex;align-items:center;gap:10px;">
                                 <label style="font-size:13px;font-weight:700;">🕒 Academic Year Context:</label>
                                 <select id="workspaceYearSelect" class="form-control" style="width:220px;font-weight:700;" onchange="onYearContextChange(this.value)">
-                                    <option value="2026">2026</option>
+                                    <!-- Options populated dynamically via JS -->
                                 </select>
                             </div>
                         </div>
@@ -179,12 +205,10 @@
                         </div>
 
                         <table class="report-table">
-                            <thead>
+                            <thead id="acadMarksHead">
                                 <tr>
                                     <th>Subject Code</th>
                                     <th>Subject Name</th>
-                                    <th>CA Mark (40%)</th>
-                                    <th>Terminal (60%)</th>
                                     <th>Total (100%)</th>
                                     <th>Grade</th>
                                     <th>Points</th>
@@ -200,7 +224,7 @@
                             <div class="stat-card"><div class="num" id="acadTotalSum">0.0</div><div class="lbl">Total Marks</div></div>
                             <div class="stat-card"><div class="num" id="acadGpa">0.0%</div><div class="lbl">GPA Average</div></div>
                             <div class="stat-card"><div class="num" id="acadPts">0</div><div class="lbl">Total Points</div></div>
-                            <div class="stat-card" style="border-color:#059669;background:#ecfdf5;"><div class="num" id="acadDiv" style="color:#059669;">Division I</div><div class="lbl" style="color:#047857;">NECTA Division</div></div>
+                            <div class="stat-card" style="border-color:#059669;background:#ecfdf5;"><div class="num" id="acadDiv" style="color:#059669;">-</div><div class="lbl" style="color:#047857;">NECTA Division</div></div>
                         </div>
                     </div>
 
@@ -210,24 +234,13 @@
                         <p style="margin:0 0 18px;font-size:13px;color:var(--c-text-muted);">Quantitative attendance tracking metrics across the selected academic year context.</p>
 
                         <div class="stat-card-grid">
-                            <div class="stat-card" style="border-color:#059669;background:#ecfdf5;"><div class="num" id="attPresent" style="color:#059669;">184</div><div class="lbl" style="color:#047857;">Days Present</div></div>
-                            <div class="stat-card" style="border-color:#dc2626;background:#fef2f2;"><div class="num" id="attAbsent" style="color:#dc2626;">12</div><div class="lbl" style="color:#991b1b;">Unexcused Absences</div></div>
-                            <div class="stat-card" style="border-color:#d97706;background:#fffbebf8;"><div class="num" id="attExcused" style="color:#d97706;">4</div><div class="lbl" style="color:#92400e;">Excused Absences</div></div>
-                            <div class="stat-card"><div class="num" id="attPct">92.0%</div><div class="lbl">Attendance Rate</div></div>
+                            <div class="stat-card" style="border-color:#059669;background:#ecfdf5;"><div class="num" id="attPresent" style="color:#059669;">0</div><div class="lbl" style="color:#047857;">Days Present</div></div>
+                            <div class="stat-card" style="border-color:#dc2626;background:#fef2f2;"><div class="num" id="attAbsent" style="color:#dc2626;">0</div><div class="lbl" style="color:#991b1b;">Unexcused Absences</div></div>
+                            <div class="stat-card" style="border-color:#d97706;background:#fffbebf8;"><div class="num" id="attExcused" style="color:#d97706;">0</div><div class="lbl" style="color:#92400e;">Excused Absences</div></div>
+                            <div class="stat-card"><div class="num" id="attPct">0.0%</div><div class="lbl">Attendance Rate</div></div>
                         </div>
                     </div>
 
-                    <!-- 📍 TAB 4: FEES & FINANCIAL LEDGER -->
-                    <div id="panel-financials" style="display:none;">
-                        <h4 style="margin:0 0 6px;font-size:16px;font-weight:800;">💳 Financial & Fee Statement Ledger</h4>
-                        <p style="margin:0 0 18px;font-size:13px;color:var(--c-text-muted);">Real-time tuition statement, scholarship deductions, and transaction receipts history.</p>
-
-                        <div class="stat-card-grid">
-                            <div class="stat-card"><div class="num" id="feeTuition">TZS 1,200,000</div><div class="lbl">Annual Tuition Fee</div></div>
-                            <div class="stat-card"><div class="num" id="feeDisc" style="color:#0284c7;">TZS 200,000</div><div class="lbl">Scholarship Discount</div></div>
-                            <div class="stat-card" style="border-color:#059669;background:#ecfdf5;"><div class="num" id="feePaid" style="color:#059669;">TZS 750,000</div><div class="lbl" style="color:#047857;">Total Amount Paid</div></div>
-                            <div class="stat-card" style="border-color:#dc2626;background:#fef2f2;"><div class="num" id="feeBal" style="color:#dc2626;">TZS 250,000</div><div class="lbl" style="color:#991b1b;">Outstanding Balance</div></div>
-                        </div>
                     </div>
 
                 </div>
@@ -263,14 +276,25 @@
 
 <script>
 let currentStudentId = '';
-let currentContextYear = '2026';
+let currentContextYear = new Date().getFullYear().toString();
 let workspaceData = null;
 let studentSubjectData = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Dynamically populate year select
+    const selYear = document.getElementById('workspaceYearSelect');
+    if (selYear) {
+        const currentYear = new Date().getFullYear();
+        for (let y = currentYear; y >= currentYear - 5; y--) {
+            selYear.add(new Option(y, y, false, y === currentYear));
+        }
+    }
     const params = new URLSearchParams(window.location.search);
     currentStudentId = params.get('id') || 'fc5cc4e2-3e5a-4b8b-88e7-de517e4e6cc7';
-    currentContextYear = params.get('year') || '2026';
+    currentContextYear = params.get('year') || new Date().getFullYear().toString();
+
+    // Set the select to the correct year
+    if (selYear) selYear.value = currentContextYear;
 
     loadWorkspace(currentStudentId, currentContextYear);
     loadStudentSubjects(currentStudentId, currentContextYear);
@@ -296,7 +320,7 @@ async function loadWorkspace(studentId, year) {
         avatarEl.classList.remove('skeleton');
         avatarEl.textContent = p.full_name ? p.full_name.charAt(0).toUpperCase() : 'S';
 
-        const genderVal = (p.gender === 'F' || p.gender === 'Female') ? 'Female' : ((p.gender === 'M' || p.gender === 'Male') ? 'Male' : (p.gender || 'Female'));
+        const genderVal = (p.gender && p.gender.toString().match(/^m/i)) ? 'Male' : ((p.gender && p.gender.toString().match(/^f/i)) ? 'Female' : (p.gender || 'Unknown'));
         document.getElementById('stuCode').innerHTML   = `<span style="font-size:12px;font-weight:700;color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.2);padding:3px 10px;border-radius:4px;">REG #${p.user_code || p.id.substr(0,8)}</span>`;
         document.getElementById('stuGender').innerHTML = `<span style="font-size:12px;font-weight:700;color:#e0f2fe;">Gender: ${genderVal}</span>`;
         document.getElementById('stuStatus').innerHTML = `<span style="font-size:12px;font-weight:800;background:#d1fae5;color:#065f46;padding:3px 10px;border-radius:12px;">${p.status === 'active' ? 'Active' : 'Suspended'}</span>`;
@@ -307,14 +331,14 @@ async function loadWorkspace(studentId, year) {
         // Populate Timeline Dropdown
         const yrSelect = document.getElementById('workspaceYearSelect');
         if (data.timeline && data.timeline.length) {
-            yrSelect.innerHTML = data.timeline.map(t => `<option value="${t.academic_year}" ${t.academic_year === year ? 'selected' : ''}>📅 ${t.academic_year} — ${t.grade_name} ${t.classroom_name}</option>`).join('');
+            yrSelect.innerHTML = data.timeline.map(t => `<option value="${t.academic_year}" ${t.academic_year === year ? 'selected' : ''}>📅 ${t.academic_year} — ${t.classroom_name}</option>`).join('');
         }
 
         // TAB 1: Profile Info
         document.getElementById('bioName').textContent       = p.full_name;
         document.getElementById('bioCode').textContent       = p.user_code || '—';
         document.getElementById('bioGender').textContent     = genderVal;
-        document.getElementById('bioEnrollDate').textContent = p.created_at ? p.created_at.substr(0,10) : '2026-01-10';
+        document.getElementById('bioEnrollDate').textContent = p.created_at ? p.created_at.substr(0,10) : new Date().getFullYear() + '-01-10';
         document.getElementById('bioStatus').textContent     = p.status === 'active' ? 'Active' : 'Suspended';
 
         document.getElementById('parName').textContent    = p.guardian_name || '—';
@@ -341,28 +365,42 @@ async function loadWorkspace(studentId, year) {
         document.getElementById('acadTotalSum').textContent = acad.total_score;
         document.getElementById('acadGpa').textContent      = `${acad.gpa_avg}%`;
         document.getElementById('acadPts').textContent      = acad.total_points;
-        document.getElementById('acadDiv').textContent      = acad.division;
+        document.getElementById('acadDiv').textContent      = acad.division || '-';
+
+        // Build dynamic table headers
+        const headTr = document.querySelector('#acadMarksHead tr');
+        headTr.innerHTML = `<th>Subject Code</th><th>Subject Name</th>` + 
+                           data.assessment_types.map(t => `<th>${t.name} (${t.weight_percent}%)</th>`).join('') +
+                           `<th>Total (100%)</th><th>Grade</th><th>Points</th><th>Remarks</th>`;
 
         const tbody = document.getElementById('acadMarksBody');
-        tbody.innerHTML = acad.marks.map(m => `
-            <tr>
-                <td style="font-weight:700;color:var(--c-text-muted);">${m.subject_code}</td>
-                <td style="font-weight:700;">${m.subject_name}</td>
-                <td>${m.ca_mark}%</td>
-                <td>${m.terminal_mark}%</td>
-                <td style="font-weight:800;">${m.total_score}%</td>
-                <td><span style="padding:2px 8px;border-radius:10px;font-weight:800;font-size:11px;background:${m.grade==='A'?'#d1fae5':m.grade==='B'?'#e0f2fe':m.grade==='C'?'#fef9c3':'#fee2e2'};">${m.grade}</span></td>
-                <td>${m.points}</td>
-                <td style="font-size:12px;color:var(--c-text-muted);">${m.remark}</td>
-            </tr>
-        `).join('');
+        if (!acad.marks || acad.marks.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${4 + data.assessment_types.length}" style="text-align:center;padding:24px;color:var(--c-text-muted);font-weight:600;">No academic records have been entered for this year.</td></tr>`;
+        } else {
+            tbody.innerHTML = acad.marks.map(m => {
+                let dynamicCells = data.assessment_types.map(t => {
+                    let score = m.scores && m.scores[t.id] !== undefined ? m.scores[t.id] : 0;
+                    return `<td>${score}%</td>`;
+                }).join('');
+                return `
+                <tr>
+                    <td style="font-weight:700;color:var(--c-text-muted);">${m.subject_code}</td>
+                    <td style="font-weight:700;">${m.subject_name}</td>
+                    ${dynamicCells}
+                    <td style="font-weight:800;">${m.total_score}%</td>
+                    <td><span style="padding:2px 8px;border-radius:10px;font-weight:800;font-size:11px;background:${m.grade==='A'?'#d1fae5':m.grade==='B'?'#e0f2fe':m.grade==='C'?'#fef9c3':'#fee2e2'};">${m.grade}</span></td>
+                    <td>${m.points}</td>
+                    <td style="font-size:12px;color:var(--c-text-muted);">${m.remark}</td>
+                </tr>
+            `}).join('');
+        }
 
         // TAB 3: Attendance
         const att = data.attendance;
-        document.getElementById('attPresent').textContent = att.days_present || 184;
-        document.getElementById('attAbsent').textContent  = att.days_absent  || 12;
-        document.getElementById('attExcused').textContent = att.days_excused || 4;
-        document.getElementById('attPct').textContent     = `${att.attendance_pct || 92.0}%`;
+        document.getElementById('attPresent').textContent = att.days_present || 0;
+        document.getElementById('attAbsent').textContent  = att.days_absent  || 0;
+        document.getElementById('attExcused').textContent = att.days_excused || 0;
+        document.getElementById('attPct').textContent     = `${att.attendance_pct || 0}%`;
 
     } catch (e) {
         console.error('Error loading student workspace:', e);
@@ -471,9 +509,9 @@ document.getElementById('manageElectivesForm').addEventListener('submit', async 
 });
 
 function switchWorkspaceTab(tabId) {
-    ['profile','academics','attendance','financials'].forEach(id => {
+    ['profile','academics','attendance'].forEach(id => {
         document.getElementById(`panel-${id}`).style.display = id === tabId ? 'block' : 'none';
-        document.getElementById(`tabbtn-${id}`).className    = 'tab-btn' + (id === tabId ? ' active' : '');
+        document.getElementById(`tabbtn-${id}`).className    = (id === tabId ? 'active' : '');
     });
 }
 

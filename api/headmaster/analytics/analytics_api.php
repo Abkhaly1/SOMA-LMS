@@ -18,7 +18,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? '';
-$year = $_GET['year'] ?? $input['year'] ?? '2026';
+$year = $_GET['year'] ?? $input['year'] ?? date('Y');
 $term = $_GET['term'] ?? $input['term'] ?? 'Term 1';
 
 try {
@@ -56,25 +56,83 @@ try {
         $stmtScales->execute([$levelType]);
         $scales = $stmtScales->fetchAll(PDO::FETCH_ASSOC);
 
-        // Fetch all subject marks for student
+        // Fetch assessment types for dynamic table headers
+        $stmtTypes = $conn->prepare("SELECT id, name, weight_percent, is_terminal, term, academic_year FROM assessment_types WHERE school_id = ? AND academic_year = ? ORDER BY id ASC");
+        $stmtTypes->execute([$schoolId, $year]);
+        $allTypes = $stmtTypes->fetchAll(PDO::FETCH_ASSOC);
+        $assessmentTypes = [];
+        if (!empty($allTypes)) {
+            foreach ($allTypes as $t) {
+                if (!empty($t['term'])) {
+                    $t['name'] = $t['name'] . ' (' . $t['term'] . ')';
+                }
+                $assessmentTypes[] = $t;
+            }
+        }
+
+        // Fetch dynamic marks
         $stmtMarks = $conn->prepare("
-            SELECT me.subject_code, s.subject_name,
-                   COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
-                   COALESCE(me.terminal_mark, 0) AS terminal_mark
-            FROM marks_entry me
-            LEFT JOIN subjects s ON me.subject_code = s.subject_code
+            SELECT me.subject_code, COALESCE(s.name, me.subject_code) AS subject_name,
+                   me.assessment_type_id, me.score
+            FROM marks_entry_dynamic me
+            LEFT JOIN subjects s ON me.subject_code = s.code
             WHERE me.school_id = ? AND me.student_id = ? AND me.academic_year = ? AND me.term = ?
-            ORDER BY me.subject_code ASC
         ");
         $stmtMarks->execute([$schoolId, $studentId, $year, $term]);
-        $subjectMarks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
+        $dynamicMarks = $stmtMarks->fetchAll(PDO::FETCH_ASSOC);
+
+        $groupedMarks = [];
+        foreach ($dynamicMarks as $dm) {
+            $sc = $dm['subject_code'];
+            if (!isset($groupedMarks[$sc])) {
+                $groupedMarks[$sc] = [
+                    'subject_code' => $sc,
+                    'subject_name' => $dm['subject_name'],
+                    'scores' => [],
+                    'total_score' => 0
+                ];
+            }
+            $groupedMarks[$sc]['scores'][$dm['assessment_type_id']] = floatval($dm['score']);
+            $groupedMarks[$sc]['total_score'] += floatval($dm['score']);
+        }
+
+        // Fallback to legacy marks_entry if no dynamic marks found
+        if (empty($groupedMarks)) {
+            $stmtLegacy = $conn->prepare("
+                SELECT me.subject_code, COALESCE(s.name, me.subject_code) AS subject_name,
+                       COALESCE(me.continuous_assessment_mark, 0) AS ca_mark,
+                       COALESCE(me.terminal_mark, 0) AS terminal_mark
+                FROM marks_entry me
+                LEFT JOIN subjects s ON me.subject_code = s.code
+                WHERE me.school_id = ? AND me.student_id = ? AND me.academic_year = ? AND me.term = ?
+            ");
+            $stmtLegacy->execute([$schoolId, $studentId, $year, $term]);
+            $legacyMarks = $stmtLegacy->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($legacyMarks as $lm) {
+                $groupedMarks[$lm['subject_code']] = [
+                    'subject_code' => $lm['subject_code'],
+                    'subject_name' => $lm['subject_name'],
+                    'scores' => ['ca' => floatval($lm['ca_mark']), 'terminal' => floatval($lm['terminal_mark'])],
+                    'total_score' => floatval($lm['ca_mark']) + floatval($lm['terminal_mark'])
+                ];
+            }
+            if (!empty($groupedMarks)) {
+                $assessmentTypes = [
+                    ['id' => 'ca', 'name' => 'CA Mark', 'weight_percent' => 40],
+                    ['id' => 'terminal', 'name' => 'Terminal Exam', 'weight_percent' => 60]
+                ];
+            }
+        }
+
+        $subjectMarks = array_values($groupedMarks);
+        usort($subjectMarks, function($a, $b) { return strcmp($a['subject_name'], $b['subject_name']); });
 
         $totalPoints = 0;
         $totalScores = 0;
         $subjectCount = count($subjectMarks);
 
         foreach ($subjectMarks as &$m) {
-            $total = floatval($m['ca_mark']) + floatval($m['terminal_mark']);
+            $total = floatval($m['total_score']);
             $m['total_score'] = round($total, 2);
             $totalScores += $total;
 
@@ -115,6 +173,7 @@ try {
             'student' => $student,
             'year' => $year,
             'term' => $term,
+            'assessment_types' => $assessmentTypes,
             'subject_marks' => $subjectMarks,
             'summary' => [
                 'total_points' => $totalPoints,
@@ -151,8 +210,16 @@ try {
     // 2. CLASSROOM STREAM PERFORMANCE LEDGER (TASK 4.2)
     if ($action === 'classroom_ledger') {
         $classroomId = intval($_GET['classroom_id'] ?? $input['classroom_id'] ?? 0);
+        $streamName = $_GET['stream'] ?? $input['stream'] ?? '';
+
+        if (!$classroomId && !empty($streamName)) {
+            $stmtC = $conn->prepare("SELECT id FROM classrooms WHERE (classroom_name = :cname OR CAST(id AS CHAR) = :cname) AND school_id = :sch LIMIT 1");
+            $stmtC->execute([':cname' => $streamName, ':sch' => $schoolId]);
+            $classroomId = intval($stmtC->fetchColumn());
+        }
+
         if (!$classroomId) {
-            echo json_encode(['success' => false, 'message' => 'classroom_id required.']);
+            echo json_encode(['success' => false, 'message' => 'classroom_id or valid stream required.']);
             exit();
         }
 
@@ -174,10 +241,22 @@ try {
 
         // Fetch distinct subjects evaluated in room
         $stmtSubj = $conn->prepare("
-            SELECT DISTINCT me.subject_code, COALESCE(s.subject_name, me.subject_code) AS subject_name
-            FROM marks_entry me
+            WITH unified_marks AS (
+                SELECT student_id, subject_code, school_id, academic_year, term
+                FROM marks_entry_dynamic
+                GROUP BY student_id, subject_code, school_id, academic_year, term
+                UNION ALL
+                SELECT student_id, subject_code, school_id, academic_year, term
+                FROM marks_entry m
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM marks_entry_dynamic d
+                    WHERE d.student_id = m.student_id AND d.subject_code = m.subject_code AND d.academic_year = m.academic_year AND d.term = m.term
+                )
+            )
+            SELECT DISTINCT me.subject_code, COALESCE(s.name, me.subject_code) AS subject_name
+            FROM unified_marks me
             JOIN student_classroom_allocations sca ON me.student_id = sca.student_id
-            LEFT JOIN subjects s ON me.subject_code = s.subject_code
+            LEFT JOIN subjects s ON me.subject_code = s.code
             WHERE sca.classroom_id = ? AND me.school_id = ? AND me.academic_year = ? AND me.term = ?
             ORDER BY me.subject_code ASC
         ");
@@ -187,9 +266,20 @@ try {
         // Matrix map: student_id => [ subject_code => total_score ]
         $matrixMap = [];
         $stmtAllMarks = $conn->prepare("
-            SELECT me.student_id, me.subject_code,
-                   (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS total_score
-            FROM marks_entry me
+            WITH unified_marks AS (
+                SELECT student_id, subject_code, school_id, academic_year, term, SUM(score) AS total_score
+                FROM marks_entry_dynamic
+                GROUP BY student_id, subject_code, school_id, academic_year, term
+                UNION ALL
+                SELECT student_id, subject_code, school_id, academic_year, term, (COALESCE(continuous_assessment_mark, 0) + COALESCE(terminal_mark, 0)) AS total_score
+                FROM marks_entry m
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM marks_entry_dynamic d
+                    WHERE d.student_id = m.student_id AND d.subject_code = m.subject_code AND d.academic_year = m.academic_year AND d.term = m.term
+                )
+            )
+            SELECT me.student_id, me.subject_code, me.total_score
+            FROM unified_marks me
             JOIN student_classroom_allocations sca ON me.student_id = sca.student_id
             WHERE sca.classroom_id = ? AND me.school_id = ? AND me.academic_year = ? AND me.term = ?
         ");
@@ -244,10 +334,22 @@ try {
         foreach ($streams as $st) {
             $cid = $st['classroom_id'];
             $stmtStats = $conn->prepare("
+                WITH unified_marks AS (
+                    SELECT student_id, subject_code, school_id, academic_year, term, SUM(score) AS total_score
+                    FROM marks_entry_dynamic
+                    GROUP BY student_id, subject_code, school_id, academic_year, term
+                    UNION ALL
+                    SELECT student_id, subject_code, school_id, academic_year, term, (COALESCE(continuous_assessment_mark, 0) + COALESCE(terminal_mark, 0)) AS total_score
+                    FROM marks_entry m
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM marks_entry_dynamic d
+                        WHERE d.student_id = m.student_id AND d.subject_code = m.subject_code AND d.academic_year = m.academic_year AND d.term = m.term
+                    )
+                )
                 SELECT COUNT(*) AS total_entries,
-                       SUM(CASE WHEN (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) >= 45 THEN 1 ELSE 0 END) AS pass_entries,
-                       AVG(COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS avg_score
-                FROM marks_entry me
+                       SUM(CASE WHEN me.total_score >= 45 THEN 1 ELSE 0 END) AS pass_entries,
+                       AVG(me.total_score) AS avg_score
+                FROM unified_marks me
                 JOIN student_classroom_allocations sca ON me.student_id = sca.student_id
                 WHERE sca.classroom_id = ? AND me.school_id = ? AND me.academic_year = ? AND me.term = ?
             ");
@@ -272,23 +374,35 @@ try {
 
         // Gender Comparison: Male vs Female pass rates and averages across the school / grade
         $stmtGender = $conn->prepare("
-            SELECT u.gender,
-                   COUNT(me.id) AS total_entries,
-                   SUM(CASE WHEN (COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) >= 45 THEN 1 ELSE 0 END) AS pass_entries,
-                   AVG(COALESCE(me.continuous_assessment_mark, 0) + COALESCE(me.terminal_mark, 0)) AS avg_score
-            FROM marks_entry me
+            WITH unified_marks AS (
+                SELECT student_id, subject_code, school_id, academic_year, term, SUM(score) AS total_score
+                FROM marks_entry_dynamic
+                GROUP BY student_id, subject_code, school_id, academic_year, term
+                UNION ALL
+                SELECT student_id, subject_code, school_id, academic_year, term, (COALESCE(continuous_assessment_mark, 0) + COALESCE(terminal_mark, 0)) AS total_score
+                FROM marks_entry m
+                WHERE NOT EXISTS (
+                    SELECT 1 FROM marks_entry_dynamic d
+                    WHERE d.student_id = m.student_id AND d.subject_code = m.subject_code AND d.academic_year = m.academic_year AND d.term = m.term
+                )
+            )
+            SELECT CASE WHEN LOWER(u.gender) IN ('m', 'male') THEN 'Male' ELSE 'Female' END AS normalized_gender,
+                   COUNT(me.subject_code) AS total_entries,
+                   SUM(CASE WHEN me.total_score >= 45 THEN 1 ELSE 0 END) AS pass_entries,
+                   AVG(me.total_score) AS avg_score
+            FROM unified_marks me
             JOIN users u ON me.student_id = u.id
             JOIN student_classroom_allocations sca ON me.student_id = sca.student_id
             JOIN classrooms c ON sca.classroom_id = c.id
             WHERE me.school_id = ? AND me.academic_year = ? AND me.term = ? AND (? = 0 OR c.grade_id = ?)
-            GROUP BY u.gender
+            GROUP BY CASE WHEN LOWER(u.gender) IN ('m', 'male') THEN 'Male' ELSE 'Female' END
         ");
         $stmtGender->execute([$schoolId, $year, $term, $gradeId, $gradeId]);
         $genderRows = $stmtGender->fetchAll(PDO::FETCH_ASSOC);
 
         $genderAnalytics = [];
         foreach ($genderRows as $gr) {
-            $gLabel = (strtolower($gr['gender']) === 'm' || strtolower($gr['gender']) === 'male') ? 'Male (Boys)' : 'Female (Girls)';
+            $gLabel = ($gr['normalized_gender'] === 'Male') ? 'Male (Boys)' : 'Female (Girls)';
             $tot = intval($gr['total_entries']);
             $pass = intval($gr['pass_entries']);
             $passRate = $tot > 0 ? round(($pass / $tot) * 100, 1) : 0;

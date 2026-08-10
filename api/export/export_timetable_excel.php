@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $schoolId = $_SESSION['school_id'] ?? 'SCH-001';
-$year = $_GET['year'] ?? '2026';
+$year = $_GET['year'] ?? date('Y');
 
 require_once 'xlsxwriter.class.php';
 

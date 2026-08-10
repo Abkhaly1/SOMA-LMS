@@ -229,8 +229,12 @@
                             <div style="display: flex; flex-direction: column; gap: 4px;">
                                 <label style="font-size: 12px; font-weight: 700; color: #475569;">Academic Year:</label>
                                 <select id="selYear" class="form-control" style="width: 130px; font-weight: 700;">
-                                    <option value="2026">2026</option>
-                                    <option value="2025">2025</option>
+                                    <script>
+                                        const _rYr = new Date().getFullYear();
+                                        document.write(`<option value="${_rYr}">${_rYr}</option>`);
+                                        document.write(`<option value="${_rYr-1}">${_rYr-1}</option>`);
+                                        document.write(`<option value="${_rYr-2}">${_rYr-2}</option>`);
+                                    </script>
                                 </select>
                             </div>
 
@@ -403,7 +407,7 @@
     <script>
         let rosterState = {
             classroomId: 0,
-            year: '2026',
+            year: new Date().getFullYear().toString(),
             page: 1,
             limit: 25,
             search: '',
@@ -426,7 +430,7 @@
                     if (targetContent) targetContent.style.display = 'block';
 
                     if (targetId === 'tabRoster') {
-                        const yr = document.getElementById('selYear')?.value || '2026';
+                        const yr = document.getElementById('selYear')?.value || new Date().getFullYear().toString();
                         loadClassrooms(yr);
                     }
                 });
@@ -494,7 +498,7 @@
         });
 
         // 1. Fetch Overview Analytics
-        async function loadOverviewAnalytics(year = '2026') {
+        async function loadOverviewAnalytics(year = new Date().getFullYear().toString()) {
             try {
                 const res = await fetch(`/soma-lms/api/headmaster/reports/attendance_analytics_api.php?action=overview&year=${year}`, { credentials: 'include' });
                 const data = await res.json();
@@ -604,7 +608,7 @@
         }
 
         // 3. Fetch Classrooms Dropdown
-        async function loadClassrooms(year = '2026') {
+        async function loadClassrooms(year = new Date().getFullYear().toString()) {
             try {
                 const res = await fetch(`/soma-lms/api/headmaster/reports/attendance_analytics_api.php?action=classrooms&year=${year}`, { credentials: 'include' });
                 const data = await res.json();
@@ -692,7 +696,7 @@
             const modal = document.getElementById('studentTimelineModal');
             modal.style.display = 'flex';
 
-            const yr = rosterState.year || '2026';
+            const yr = rosterState.year || new Date().getFullYear().toString();
 
             document.getElementById('modalStudentName').textContent = 'Loading Profile...';
             document.getElementById('modalStudentMeta').textContent = 'Reg Code: --';

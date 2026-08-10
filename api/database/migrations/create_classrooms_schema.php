@@ -15,7 +15,7 @@ try {
     $conn->exec("CREATE TABLE IF NOT EXISTS classrooms (
         id               INT AUTO_INCREMENT PRIMARY KEY,
         school_id        VARCHAR(36) NOT NULL,
-        academic_year    VARCHAR(20) NOT NULL DEFAULT '2026',
+        academic_year    VARCHAR(20) NOT NULL,
         grade_id         INT NOT NULL,
         classroom_name   VARCHAR(100) NOT NULL,
         capacity         INT DEFAULT 45,

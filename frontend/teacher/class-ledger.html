@@ -94,17 +94,7 @@
             container.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--c-text-muted); font-weight: 700;">🔄 Loading classroom performance matrix...</div>';
 
             try {
-                // First lookup classroom_id
-                const resRoom = await fetch(`/soma-lms/api/teacher/teacher_portal_api.php?action=get_scoresheet&stream=${encodeURIComponent(stream)}&subject=CIV&term=${encodeURIComponent(term)}`, { credentials: 'include' });
-                const dataRoom = await resRoom.json();
-                const cid = dataRoom.classroom_id || 0;
-
-                if (!cid) {
-                    container.innerHTML = '<div style="padding: 30px; text-align: center; color: crimson;">Classroom ID not found.</div>';
-                    return;
-                }
-
-                const res = await fetch(`/soma-lms/api/headmaster/analytics/analytics_api.php?action=classroom_ledger&classroom_id=${cid}&term=${encodeURIComponent(term)}`, { credentials: 'include' });
+                const res = await fetch(`/soma-lms/api/headmaster/analytics/analytics_api.php?action=classroom_ledger&stream=${encodeURIComponent(stream)}&term=${encodeURIComponent(term)}`, { credentials: 'include' });
                 const data = await res.json();
                 if (res.ok && data.success) {
                     const subjects = data.subjects || [];

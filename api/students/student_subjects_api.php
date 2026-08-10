@@ -20,7 +20,7 @@ $method    = $_SERVER['REQUEST_METHOD'];
 $input     = json_decode(file_get_contents('php://input'), true) ?? [];
 $action    = $_GET['action']    ?? $input['action']    ?? 'get_student_subjects';
 $studentId = $_GET['student_id'] ?? $input['student_id'] ?? '';
-$year      = $_GET['year']       ?? $input['year']       ?? '2026';
+$year      = $_GET['year']       ?? $input['year']       ?? date('Y');
 
 if (!$studentId) {
     echo json_encode(["success" => false, "message" => "student_id parameter is required."]);

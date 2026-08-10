@@ -94,10 +94,10 @@
                                 <tr>
                                     <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
                                     <th>Full Name</th>
-                                    <th>Class</th>
-                                    <th>Phone Number</th>
+                                    <th class="hide-mobile">Class</th>
+                                    <th class="hide-mobile">Phone Number</th>
                                     <th>Status</th>
-                                    <th style="text-align: right;">Actions</th>
+                                    <th class="hide-mobile" style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="studentsTableBody">
@@ -180,7 +180,7 @@
                 const searchQ = encodeURIComponent(state.search);
                 const res = await fetch(`/soma-lms/api/students/list.php?page=${state.page}&limit=${state.limit}&search=${searchQ}`, { credentials: 'include' });
                 
-                if (res.status === 403) {
+                if (res.status === 401 || res.status === 403) {
                     window.location.href = '../login.html';
                     return;
                 }
@@ -214,13 +214,13 @@
                             tr.innerHTML = `
                                 <td><input type="checkbox" class="form-check-input row-select"></td>
                                 <td>
-                                    <a href="#" style="font-weight: 500; color: var(--c-primary-600); text-decoration: none;">${student.full_name}</a>
+                                    <a href="people/student_workspace.html?id=${student.id}" class="table-view-action" style="font-weight: 500; color: var(--c-primary-600); text-decoration: none;">${student.full_name}</a>
                                     <div style="font-size: var(--text-xs); color: var(--c-text-muted); margin-top: 2px;">ID: ${student.id.substring(0,8)}...</div>
                                 </td>
-                                <td>${student.class_name || '<span class="text-muted">Unassigned</span>'}</td>
-                                <td>${student.phone}</td>
+                                <td class="hide-mobile">${student.class_name || '<span class="text-muted">Unassigned</span>'}</td>
+                                <td class="hide-mobile">${student.phone}</td>
                                 <td><span class="badge ${badgeClass}">${student.status.charAt(0).toUpperCase() + student.status.slice(1)}</span></td>
-                                <td style="text-align: right;">
+                                <td class="hide-mobile" style="text-align: right;">
                                     <a href="#" class="table-view-action">Manage</a>
                                 </td>
                             `;

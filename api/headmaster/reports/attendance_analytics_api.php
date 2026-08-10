@@ -23,7 +23,7 @@ if (!$schoolId) {
 }
 
 $action = $_GET['action'] ?? 'overview';
-$year   = $_GET['year']   ?? '2026';
+$year   = $_GET['year']   ?? date('Y');
 
 try {
     // 1. OVERVIEW ANALYTICS (Whole School, Levels, Grades, & Chronic Absentees)
@@ -193,7 +193,7 @@ try {
                 UNION
                 SELECT sca.academic_year FROM student_classroom_allocations sca WHERE sca.school_id = ?
                 UNION
-                SELECT '2026' AS academic_year
+                SELECT '" . date('Y') . "' AS academic_year
             ) AS combined ORDER BY academic_year DESC
         ");
         $stmtYears->execute([$schoolId, $schoolId]);

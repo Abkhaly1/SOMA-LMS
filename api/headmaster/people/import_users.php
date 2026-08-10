@@ -230,7 +230,7 @@ try {
 
         $stmtAlloc = $conn->prepare("
             INSERT INTO student_classroom_allocations (school_id, academic_year, student_id, classroom_id, status)
-            VALUES (?, '2026', ?, ?, 'Active')
+            VALUES (?, '" . date('Y') . "', ?, ?, 'Active')
             ON DUPLICATE KEY UPDATE classroom_id = VALUES(classroom_id), status = 'Active', updated_at = NOW()
         ");
 

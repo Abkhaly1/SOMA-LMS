@@ -65,6 +65,7 @@
 
     <script>
         let allocs = [];
+        let assessmentTypes = [];
         document.addEventListener('DOMContentLoaded', async () => {
             const mStream = document.getElementById('mStream');
             const mSubj   = document.getElementById('mSubj');
@@ -76,9 +77,13 @@
                 const data = await res.json();
                 if (res.ok && data.success) {
                     allocs = data.allocations || [];
+                    assessmentTypes = data.assessment_types || [];
                     const streams = [...new Set(allocs.map(a => a.classroom_name))];
 
                     mStream.innerHTML = '<option value="">Select Stream...</option>' + streams.map(s => `<option value="${s}">${s}</option>`).join('');
+
+                    // Populate track dynamically
+                    mTrack.innerHTML = assessmentTypes.map(t => `<option value="${t.id}">${t.name} (Max: ${t.weight_percent})</option>`).join('');
 
                     mStream.addEventListener('change', (e) => {
                         const sel = e.target.value;
@@ -106,7 +111,7 @@
                     }
 
                     if (initialStream && initialSubject && Array.from(mSubj.options).some(opt => opt.value === initialSubject)) {
-                        if (initialTrack && ['ca', 'terminal'].includes(initialTrack)) {
+                        if (initialTrack && assessmentTypes.some(t => String(t.id) === String(initialTrack))) {
                             mTrack.value = initialTrack;
                         }
                         if (initialTerm && ['Term 1', 'Term 2'].includes(initialTerm)) {
@@ -148,7 +153,11 @@
                 if (res.ok && data.success) {
                     const roster = data.roster || [];
                     const isLocked = data.is_locked || false;
-                    const maxScore = track === 'ca' ? 40 : 60;
+                    const aTypes = data.assessment_types || [];
+                    
+                    const activeTrackObj = aTypes.find(t => String(t.id) === String(track)) || aTypes[0];
+                    const maxScore = activeTrackObj ? activeTrackObj.weight_percent : 100;
+                    
                     if (roster.length === 0) {
                         board.innerHTML = '<div style="padding: 30px; text-align: center; color: var(--c-text-muted); font-weight: 700;">⚠️ No active students registered for this subject in this classroom stream.</div>';
                         return;
@@ -156,7 +165,7 @@
 
                     let gradedCount = 0;
                     roster.forEach(s => {
-                        const val = track === 'ca' ? s.ca_mark : s.terminal_mark;
+                        const val = s.marks && s.marks[track];
                         if (val !== null && val !== undefined && val !== '' && parseFloat(val) > 0) gradedCount++;
                     });
 
@@ -169,12 +178,18 @@
                             </div>
                         `;
                     }
+                    
+                    let thHtml = '';
+                    aTypes.forEach(t => {
+                        const isActive = String(t.id) === String(track);
+                        thHtml += `<th style="padding: 10px 12px; text-align: center; background:${isActive ? '#047857' : '#1e293b'};">${t.name} (${t.weight_percent})</th>`;
+                    });
 
                     let html = `
                         ${lockBanner}
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; color: #065f46; flex-wrap: wrap; gap: 8px;">
                             <div>
-                                📌 Context: <strong>${stream}</strong> • Subject: <strong>${subject}</strong> • Term: <strong>${term}</strong> • Active Track: <strong>${track === 'ca' ? 'Continuous Assessment (CA)' : 'Terminal Exam'} (Max: ${maxScore})</strong>
+                                📌 Context: <strong>${stream}</strong> • Subject: <strong>${subject}</strong> • Term: <strong>${term}</strong> • Active Track: <strong>${activeTrackObj ? activeTrackObj.name : track} (Max: ${maxScore})</strong>
                             </div>
                             <div style="font-weight: 700;">
                                 👥 Enrolled: <strong>${roster.length}</strong> | Graded: <span class="badge badge-success" style="font-size: 11px;">${gradedCount} / ${roster.length}</span>
@@ -186,8 +201,7 @@
                                     <tr style="background: #0f172a; color: white;">
                                         <th style="padding: 10px 12px; width: 45px;">#</th>
                                         <th style="padding: 10px 12px;">Student Name & ID</th>
-                                        <th style="padding: 10px 12px; text-align: center; background:${track==='ca'?'#047857':'#1e293b'};">CA (40)</th>
-                                        <th style="padding: 10px 12px; text-align: center; background:${track==='terminal'?'#047857':'#1e293b'};">Terminal (60)</th>
+                                        ${thHtml}
                                         <th style="padding: 10px 12px; text-align: center;">Total (100)</th>
                                         <th style="padding: 10px 12px; text-align: center;">Grade & Remark</th>
                                         <th style="padding: 10px 12px; text-align: center;">Cohort Rankings (Stream / Grade / School)</th>
@@ -197,8 +211,6 @@
                     `;
 
                     roster.forEach((s, idx) => {
-                        const caVal = s.ca_mark !== null && s.ca_mark !== undefined ? s.ca_mark : '';
-                        const termVal = s.terminal_mark !== null && s.terminal_mark !== undefined ? s.terminal_mark : '';
                         const total = s.total_score || 0;
 
                         const streamRank = s.stream_rank || (idx + 1);
@@ -218,23 +230,21 @@
                             ? `<span class="badge badge-success" style="font-weight:800; font-size:11px;">${s.grade_letter} - ${s.grade_remark}</span>`
                             : `<span class="badge" style="background:#f1f5f9; color:#64748b; font-weight:700; font-size:11px;">-</span>`;
 
-                        let caInput = '';
-                        if (isLocked) {
-                            caInput = `<strong style="color: #0f172a;">${caVal || '0'}</strong>`;
-                        } else {
-                            caInput = track === 'ca'
-                                ? `<input type="number" class="form-control mark-input" data-sid="${s.student_id}" value="${caVal}" min="0" max="40" placeholder="0" style="width: 75px; font-weight: 800; text-align: center; height: 34px; border-color: #047857;">`
-                                : `<span style="font-weight: 700; color: #475569;">${caVal || '0'}</span>`;
-                        }
-
-                        let termInput = '';
-                        if (isLocked) {
-                            termInput = `<strong style="color: #0f172a;">${termVal || '0'}</strong>`;
-                        } else {
-                            termInput = track === 'terminal'
-                                ? `<input type="number" class="form-control mark-input" data-sid="${s.student_id}" value="${termVal}" min="0" max="60" placeholder="0" style="width: 75px; font-weight: 800; text-align: center; height: 34px; border-color: #047857;">`
-                                : `<span style="font-weight: 700; color: #475569;">${termVal || '0'}</span>`;
-                        }
+                        let tdHtml = '';
+                        aTypes.forEach(t => {
+                            const val = s.marks && s.marks[t.id] !== undefined ? s.marks[t.id] : '';
+                            const isActive = String(t.id) === String(track);
+                            
+                            let inputHtml = '';
+                            if (isLocked) {
+                                inputHtml = `<strong style="color: #0f172a;">${val || '0'}</strong>`;
+                            } else {
+                                inputHtml = isActive
+                                    ? `<input type="number" class="form-control mark-input" data-sid="${s.student_id}" value="${val}" min="0" max="${t.weight_percent}" placeholder="0" style="width: 75px; font-weight: 800; text-align: center; height: 34px; border-color: #047857;">`
+                                    : `<span style="font-weight: 700; color: #475569;">${val || '0'}</span>`;
+                            }
+                            tdHtml += `<td style="padding: 10px 12px; text-align: center; background:${isActive ? '#f0fdf4' : 'transparent'};">${inputHtml}</td>`;
+                        });
 
                         html += `
                             <tr style="border-bottom: 1px solid #f1f5f9;">
@@ -243,8 +253,7 @@
                                     <strong style="color: #0f172a; font-size: 14px;">${s.full_name}</strong> 
                                     <span class="badge" style="background:#f1f5f9; color:#475569; font-weight:700; font-size:11px; margin-left: 6px;">${s.user_code || 'STD'}</span>
                                 </td>
-                                <td style="padding: 10px 12px; text-align: center; background:${track==='ca'?'#f0fdf4':'transparent'};">${caInput}</td>
-                                <td style="padding: 10px 12px; text-align: center; background:${track==='terminal'?'#f0fdf4':'transparent'};">${termInput}</td>
+                                ${tdHtml}
                                 <td style="padding: 10px 12px; text-align: center; font-weight: 800; color: #0f172a; font-size: 14px;">${total} / 100</td>
                                 <td style="padding: 10px 12px; text-align: center;">${gradeBadge}</td>
                                 <td style="padding: 10px 12px; text-align: center;">
@@ -289,7 +298,8 @@
         window.saveMarks = async function(streamName, subjectCode, trackType, termName) {
             const btn = document.getElementById('btnSaveMarksBatch');
             const inputs = document.querySelectorAll('.mark-input');
-            const maxScore = trackType === 'ca' ? 40 : 60;
+            const activeTrackObj = assessmentTypes.find(t => String(t.id) === String(trackType));
+            const maxScore = activeTrackObj ? parseFloat(activeTrackObj.weight_percent) : 100;
             const marksData = [];
             let hasError = false;
 

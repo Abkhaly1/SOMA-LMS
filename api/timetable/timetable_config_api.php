@@ -26,13 +26,13 @@ if (!$schoolId) {
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? 'status';
-$year = $_GET['year'] ?? $input['year'] ?? '2026';
+$year = $_GET['year'] ?? $input['year'] ?? date('Y');
 
 function ensureTimetableTablesExist($conn) {
     $q1 = "CREATE TABLE IF NOT EXISTS timetable_configs (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) NOT NULL DEFAULT '2026',
+        academic_year_id VARCHAR(20) NOT NULL,
         level_code VARCHAR(50) NOT NULL,
         selected_grades TEXT NOT NULL,
         operational_days TEXT NOT NULL,
@@ -53,7 +53,7 @@ function ensureTimetableTablesExist($conn) {
         id INT AUTO_INCREMENT PRIMARY KEY,
         config_id INT NOT NULL,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) NOT NULL DEFAULT '2026',
+        academic_year_id VARCHAR(20) NOT NULL,
         grade_id INT NOT NULL,
         subject_code VARCHAR(50) NOT NULL,
         weekly_frequency INT NOT NULL DEFAULT 4,
@@ -78,7 +78,7 @@ function ensureTimetableTablesExist($conn) {
     $q4 = "CREATE TABLE IF NOT EXISTS class_timetables (
         id INT AUTO_INCREMENT PRIMARY KEY,
         school_id VARCHAR(36) NOT NULL,
-        academic_year_id VARCHAR(20) DEFAULT '2026',
+        academic_year_id VARCHAR(20),
         day_of_week ENUM('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday') NOT NULL,
         period_id INT NOT NULL,
         class_stream_id VARCHAR(50) NOT NULL,

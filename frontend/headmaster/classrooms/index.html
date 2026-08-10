@@ -339,7 +339,7 @@
                         <h3 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: var(--c-text-primary);">🏫 Grade Cohorts & Classroom Workspaces</h3>
                         <p style="margin: 0; font-size: 13px; color: var(--c-text-secondary);">Select any grade below to open its dedicated full-page workspace for streams setup, student allocation, and annual promotion.</p>
                     </div>
-                    <span class="badge badge-success" style="font-weight: 700; padding: 6px 14px; font-size: 12px;">Active Year: 2026</span>
+                    <span class="badge badge-success" style="font-weight: 700; padding: 6px 14px; font-size: 12px;">Active Year: <span class="current-year"></span></span>
                 </div>
 
                 <!-- ══════════════════════════════════════════════════
@@ -584,7 +584,7 @@
 ══════════════════════════════════════════════════════ -->
 <script>
 // ── STATE ──────────────────────────────────────────────────
-let currentYear    = '2026';
+let currentYear    = new Date().getFullYear().toString();
 let allGrades      = [];   // [{id, grade_name, level_name, classrooms:[]}]
 let modalGradeId   = 0;
 let modalGradeName = '';
@@ -596,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function onYearChange() {
-    currentYear = document.getElementById('yearInput').value.trim() || '2026';
+    currentYear = document.getElementById('yearInput').value.trim() || new Date().getFullYear().toString();
     document.getElementById('yearBadge').textContent = `Academic Year: ${currentYear}`;
     document.getElementById('yearQuick').value = currentYear;
     loadSetup();

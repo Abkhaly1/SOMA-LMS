@@ -34,7 +34,14 @@ try {
         exit();
     }
 
-    $class_id = empty($data->class_id) ? null : $data->class_id;
+    $classroomId = empty($data->class_id) ? null : intval($data->class_id);
+    $gradeId = null;
+
+    if ($classroomId) {
+        $stmtG = $conn->prepare("SELECT grade_id FROM classrooms WHERE id = ?");
+        $stmtG->execute([$classroomId]);
+        $gradeId = $stmtG->fetchColumn() ?: null;
+    }
 
     $user_id = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
         mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff),
@@ -43,19 +50,32 @@ try {
     );
     $hash = password_hash($data->password, PASSWORD_BCRYPT);
     
-    $stmt = $conn->prepare("INSERT INTO users (id, school_id, class_id, full_name, phone, password_hash, role) VALUES (?, ?, ?, ?, ?, ?, 'student')");
+    $conn->beginTransaction();
+
+    $stmt = $conn->prepare("INSERT INTO users (id, school_id, grade_id, full_name, phone, password_hash, role) VALUES (?, ?, ?, ?, ?, ?, 'student')");
     $stmt->execute([
         $user_id,
         $_SESSION['school_id'],
-        $class_id,
+        $gradeId,
         trim($data->full_name),
         $phone,
         $hash
     ]);
 
-    echo json_encode(["success" => true, "message" => "Student registered successfully."]);
+    if ($classroomId) {
+        $year = date('Y');
+        $stmtAlloc = $conn->prepare("INSERT INTO student_classroom_allocations (school_id, academic_year, classroom_id, student_id, status) VALUES (?, ?, ?, ?, 'Active')");
+        $stmtAlloc->execute([$_SESSION['school_id'], $year, $classroomId, $user_id]);
+    }
+
+    $conn->commit();
+
+    echo json_encode(["success" => true, "message" => "Student registered and allocated to classroom successfully."]);
 
 } catch (PDOException $e) {
+    if (isset($conn) && $conn->inTransaction()) {
+        $conn->rollBack();
+    }
     http_response_code(500);
     echo json_encode(["success" => false, "message" => "System error: " . $e->getMessage()]);
 }

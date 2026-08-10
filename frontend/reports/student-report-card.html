@@ -106,13 +106,13 @@
 
     <script>
         let currentStudentId = '';
-        let currentYear = '2026';
+        let currentYear = new Date().getFullYear().toString();
         let currentTerm = 'Term 1';
 
         document.addEventListener('DOMContentLoaded', () => {
             const params = new URLSearchParams(window.location.search);
             currentStudentId = params.get('student_id') || '';
-            currentYear = params.get('year') || '2026';
+            currentYear = params.get('year') || new Date().getFullYear().toString();
             currentTerm = params.get('term') || 'Term 1';
 
             if (currentStudentId) {
@@ -136,13 +136,25 @@
                     const tbody = document.getElementById('reportSubjectRows');
                     tbody.innerHTML = '';
 
+                    // Build table headers dynamically
+                    const headTr = document.querySelector('#reportSubjectHead tr');
+                    headTr.innerHTML = `<th style="padding: 10px 14px; font-weight:700;">Subject</th>` +
+                        data.assessment_types.map(t => `<th style="padding: 10px 14px; text-align:center; font-weight:700;">${t.name} (${t.weight_percent}%)</th>`).join('') +
+                        `<th style="padding: 10px 14px; text-align:center; font-weight:700;">Total (100%)</th>
+                         <th style="padding: 10px 14px; text-align:center; font-weight:700;">Grade & Remarks</th>`;
+
                     data.subject_marks.forEach(m => {
                         const tr = document.createElement('tr');
                         tr.style.borderBottom = '1px solid #f1f5f9';
+                        
+                        let dynamicCells = data.assessment_types.map(t => {
+                            let score = m.scores && m.scores[t.id] !== undefined ? m.scores[t.id] : 0;
+                            return `<td style="padding: 10px 14px; text-align:center; font-weight:700;">${score}%</td>`;
+                        }).join('');
+
                         tr.innerHTML = `
                             <td style="padding: 10px 14px; font-weight:700;">${m.subject_name || m.subject_code} (${m.subject_code})</td>
-                            <td style="padding: 10px 14px; text-align:center; font-weight:700;">${m.ca_mark}</td>
-                            <td style="padding: 10px 14px; text-align:center; font-weight:700;">${m.terminal_mark}</td>
+                            ${dynamicCells}
                             <td style="padding: 10px 14px; text-align:center; font-weight:800; color:#0f172a;">${m.total_score}</td>
                             <td style="padding: 10px 14px; text-align:center;">
                                 <span class="badge badge-success" style="font-weight:800; font-size:11px;">${m.grade} - ${m.remark}</span>

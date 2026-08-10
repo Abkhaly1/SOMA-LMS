@@ -7,7 +7,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $schoolId = $_SESSION['school_id'] ?? 'SCH-001';
-$year = $_GET['year'] ?? '2026';
+$year = $_GET['year'] ?? date('Y');
 
 // Fetch Timetable Config
 $stmtC = $conn->prepare("SELECT operational_days FROM timetable_configs WHERE school_id = ? AND academic_year_id = ? LIMIT 1");

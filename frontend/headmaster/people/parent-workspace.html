@@ -36,14 +36,29 @@
                             <app-workspace-summary-card label="Portal Status" value="Never Logged In"></app-workspace-summary-card>
                         </app-workspace-summary>
                         
-                        <app-workspace-tabs active-tab="overview">
-                            <button class="workspace-tab" data-target="overview">Overview</button>
-                            <button class="workspace-tab" data-target="children">Children</button>
-                            <button class="workspace-tab" data-target="communications">Communications</button>
-                            <button class="workspace-tab" data-target="settings">Settings</button>
-                        </app-workspace-tabs>
+                        <!-- ── WORKSPACE WITH SECONDARY SIDEBAR ────────────────────────────────── -->
+                        <div class="workspace-with-sidebar">
+                            <div class="secondary-sidebar">
+                                <div class="secondary-sidebar-nav">
+                                    <button class="active" id="tabbtn-overview" onclick="switchTab('overview')">
+                                        <span class="icon" style="color: #3b82f6;">📁</span> Overview
+                                    </button>
+                                    <button id="tabbtn-children" onclick="switchTab('children')">
+                                        <span class="icon" style="color: #10b981;">👨‍👧‍👦</span> Children
+                                    </button>
+                                    <button id="tabbtn-communications" onclick="switchTab('communications')">
+                                        <span class="icon" style="color: #f59e0b;">💬</span> Communications
+                                    </button>
+                                    <button id="tabbtn-settings" onclick="switchTab('settings')">
+                                        <span class="icon" style="color: #64748b;">⚙️</span> Settings
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- ── MAIN CONTENT CONTAINER ──────────────────────────── -->
+                            <div class="workspace-main-content">
                         
-                        <app-workspace-content tab-id="overview" active="true">
+                        <div id="panel-overview" style="display:block;">
                             <div class="card" style="padding: var(--sp-6);">
                                 <h3>Parent Overview</h3>
                                 <p style="color: var(--c-text-secondary); margin-bottom: var(--sp-4);">General contact information and linked students.</p>
@@ -64,30 +79,33 @@
                                     </div>
                                 </div>
                             </div>
-                        </app-workspace-content>
+                        </div>
                         
-                        <app-workspace-content tab-id="children">
+                        <div id="panel-children" style="display:none;">
                             <app-workspace-toolbar search-placeholder="Search enrolled children..."></app-workspace-toolbar>
                             <div class="card" style="margin: var(--sp-6);">
                                 <div id="childrenTableContainer"></div>
                             </div>
-                        </app-workspace-content>
+                        </div>
                         
-                        <app-workspace-content tab-id="communications">
+                        <div id="panel-communications" style="display:none;">
                             <div class="card" style="padding: var(--sp-6);">
                                 <h3>Communication History</h3>
                                 <app-table-empty title="No Messages" message="SMS and Email logs sent to this parent."></app-table-empty>
                             </div>
-                        </app-workspace-content>
+                        </div>
 
-                        <app-workspace-content tab-id="settings">
+                        <div id="panel-settings" style="display:none;">
                             <div class="card" style="padding: var(--sp-6);">
                                 <h3>Parent Settings</h3>
                                 <div style="display: flex; flex-direction: column; gap: var(--sp-2);">
                                     <button class="btn btn-outline" style="justify-content: flex-start; color: var(--c-warning); border-color: var(--c-warning);">Revoke Portal Access</button>
                                 </div>
                             </div>
-                        </app-workspace-content>
+                        </div>
+
+                            </div>
+                        </div>
                         
                     </app-workspace-layout>
                     
@@ -97,6 +115,13 @@
     </div>
 
     <script>
+        function switchTab(tabId) {
+            ['overview','children','communications','settings'].forEach(id => {
+                document.getElementById(`panel-${id}`).style.display = id === tabId ? 'block' : 'none';
+                document.getElementById(`tabbtn-${id}`).className = (id === tabId ? 'active' : '');
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const childrenContainer = document.getElementById('childrenTableContainer');
             const childrenCols = [
@@ -114,7 +139,7 @@
                 const sTable = document.createElement('app-table');
                 sTable.setAttribute('columns', JSON.stringify(childrenCols));
                 sTable.setAttribute('data', JSON.stringify(childrenData));
-                sTable.setAttribute('entity-url', 'student-workspace.html');
+                sTable.setAttribute('entity-url', 'student_workspace.html');
                 childrenContainer.innerHTML = '';
                 childrenContainer.appendChild(sTable);
             }, 500);

@@ -45,7 +45,7 @@ try {
     // 3. Classrooms (Streams) for selected grade created by Headmaster
     $streams = [];
     if ($gradeId) {
-        $s = $conn->prepare("SELECT id, classroom_name AS name, 'standard' AS stream_type, capacity FROM classrooms WHERE school_id=? AND grade_id=? AND academic_year='2026' ORDER BY classroom_name");
+        $s = $conn->prepare("SELECT id, classroom_name AS name, 'standard' AS stream_type, capacity FROM classrooms WHERE school_id=? AND grade_id=? AND academic_year='" . date('Y') . "' ORDER BY classroom_name");
         $s->execute([$schoolId, $gradeId]);
         $streams = $s->fetchAll(PDO::FETCH_ASSOC);
 
@@ -63,7 +63,7 @@ try {
         $s = $conn->prepare("
             SELECT ss.subject_code, ss.subject_name, ss.is_core
             FROM stream_subjects ss
-            WHERE ss.school_id=? AND ss.class_stream_id=? AND ss.academic_year_id='2026'
+            WHERE ss.school_id=? AND ss.class_stream_id=? AND ss.academic_year_id='" . date('Y') . "'
             ORDER BY ss.is_core DESC, ss.subject_name ASC
         ");
         $s->execute([$schoolId, $streamId]);
@@ -85,7 +85,7 @@ try {
                    GROUP_CONCAT(u.full_name SEPARATOR ', ')   as teacher_names
             FROM teacher_subject_assignments tsa
             LEFT JOIN users u ON tsa.teacher_id=u.id
-            WHERE tsa.school_id=? AND tsa.class_stream_id=? AND tsa.academic_year_id='2026'
+            WHERE tsa.school_id=? AND tsa.class_stream_id=? AND tsa.academic_year_id='" . date('Y') . "'
             GROUP BY tsa.subject_code
         ");
         $s->execute([$schoolId, $streamId]);

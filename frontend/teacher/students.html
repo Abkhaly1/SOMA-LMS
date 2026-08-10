@@ -123,7 +123,7 @@
 
                 document.getElementById('tchViewAvatar').textContent = row.name && row.name.name ? row.name.name.charAt(0).toUpperCase() : 'S';
                 document.getElementById('tchViewFullName').textContent = row.name && row.name.name ? row.name.name : 'Student';
-                document.getElementById('tchViewCode').textContent = row.code || 'STD/2026/001';
+                document.getElementById('tchViewCode').textContent = row.code || 'STD/${new Date().getFullYear()}/001';
                 document.getElementById('tchViewClass').textContent = row.class || 'Standard 7 A';
                 document.getElementById('tchViewStatus').textContent = row.status || 'Active';
 
@@ -196,7 +196,7 @@
                         ];
                         const data = students.map(item => ({
                             id: item.id,
-                            code: item.user_code || 'STD/2026/001',
+                            code: item.user_code || 'STD/${new Date().getFullYear()}/001',
                             class: item.class_name || 'Unassigned',
                             name: { initials: item.full_name ? item.full_name.charAt(0).toUpperCase() : 'S', name: item.full_name },
                             status: item.status === 'active' ? 'Active' : 'Suspended'

@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $gradeId = intval($_POST['grade_id'] ?? 0);
-$year    = trim($_POST['academic_year'] ?? '2026');
+$year    = trim($_POST['academic_year'] ?? date('Y'));
 
 if (!$gradeId) {
     echo json_encode(['success' => false, 'message' => 'Target Grade ID is required for import.']);

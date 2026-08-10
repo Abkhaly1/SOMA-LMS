@@ -18,7 +18,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? '';
-$year = $_GET['year'] ?? $input['year'] ?? '2026';
+$year = $_GET['year'] ?? $input['year'] ?? date('Y');
 $term = $_GET['term'] ?? $input['term'] ?? 'Term 1';
 
 try {
@@ -93,13 +93,31 @@ try {
         }
 
         $conn->beginTransaction();
-        // Clear existing for this year and term
-        $stmtDel = $conn->prepare("DELETE FROM assessment_types WHERE school_id = ? AND academic_year = ? AND term = ?");
-        $stmtDel->execute([$schoolId, $year, $term]);
+        
+        // Check if there are existing marks for this term and year
+        $stmtCheckMarks = $conn->prepare("
+            SELECT COUNT(*) FROM marks_entry_dynamic 
+            WHERE school_id = ? AND academic_year = ? AND term = ?
+        ");
+        $stmtCheckMarks->execute([$schoolId, $year, $term]);
+        $hasExistingMarks = (int)$stmtCheckMarks->fetchColumn() > 0;
+        
+        $warningMessage = "";
+
+        if ($hasExistingMarks) {
+            // Soft delete (archive) existing types to preserve historical scores
+            $stmtArchive = $conn->prepare("UPDATE assessment_types SET is_archived = 1 WHERE school_id = ? AND academic_year = ? AND term = ?");
+            $stmtArchive->execute([$schoolId, $year, $term]);
+            $warningMessage = " However, because marks were already entered for this term, the old configuration was archived to preserve existing student scores.";
+        } else {
+            // Clear existing for this year and term (no marks entered yet, safe to hard delete)
+            $stmtDel = $conn->prepare("DELETE FROM assessment_types WHERE school_id = ? AND academic_year = ? AND term = ?");
+            $stmtDel->execute([$schoolId, $year, $term]);
+        }
 
         $stmtIns = $conn->prepare("
-            INSERT INTO assessment_types (school_id, academic_year, term, name, weight_percent, is_terminal)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO assessment_types (school_id, academic_year, term, name, weight_percent, is_terminal, is_archived)
+            VALUES (?, ?, ?, ?, ?, ?, 0)
         ");
 
         $saved = 0;
@@ -117,7 +135,7 @@ try {
         echo json_encode([
             'success' => true,
             'saved_count' => $saved,
-            'message' => "Assessment weight policy saved successfully for $term ($year) totaling 100% load."
+            'message' => "Assessment weight policy saved successfully for $term ($year) totaling 100% load." . $warningMessage
         ]);
         exit();
     }

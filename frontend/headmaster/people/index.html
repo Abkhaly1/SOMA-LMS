@@ -123,7 +123,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: var(--sp-3);">
                     <div class="form-group">
                         <label class="form-label">Student ID (Reg No)</label>
-                        <input type="text" id="stu_code" class="form-control" placeholder="Auto-generated (e.g. STD/2026/001)">
+                        <input type="text" id="stu_code" class="form-control" placeholder="Auto-generated (e.g. STD/202X/001)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Class Level</label>
@@ -161,7 +161,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: var(--sp-3);">
                     <div class="form-group">
                         <label class="form-label">Teacher Staff ID</label>
-                        <input type="text" id="tch_code" class="form-control" placeholder="Auto-generated (e.g. TCH/2026/001)">
+                        <input type="text" id="tch_code" class="form-control" placeholder="Auto-generated (e.g. TCH/202X/001)">
                     </div>
                     <div class="form-group">
                         <label class="form-label">Department / Subject Area</label>
@@ -750,9 +750,9 @@
                 ];
                 const data = pageSlice.map(item => ({
                     id: item.id,
-                    code: item.user_code || 'STD/2026/001',
+                    code: item.user_code || 'STD/${new Date().getFullYear()}/001',
                     raw_name: item.full_name,
-                    gender: (item.gender === 'F' || item.gender === 'Female') ? 'Female' : ((item.gender === 'M' || item.gender === 'Male') ? 'Male' : (item.gender || 'Female')),
+                    gender: (item.gender && item.gender.toString().match(/^m/i)) ? 'Male' : ((item.gender && item.gender.toString().match(/^f/i)) ? 'Female' : (item.gender || 'Unknown')),
                     class: item.class_name || 'Unassigned',
                     phone: item.phone || 'N/A',
                     email: item.email || 'N/A',
@@ -830,9 +830,9 @@
                 ];
                 const data = pageSlice.map(item => ({
                     id: item.id,
-                    code: item.user_code || 'TCH/2026/001',
+                    code: item.user_code || `TCH/${new Date().getFullYear()}/001`,
                     raw_name: item.full_name,
-                    gender: (item.gender === 'F' || item.gender === 'Female') ? 'Female' : ((item.gender === 'M' || item.gender === 'Male') ? 'Male' : (item.gender || 'Female')),
+                    gender: (item.gender && item.gender.toString().match(/^m/i)) ? 'Male' : ((item.gender && item.gender.toString().match(/^f/i)) ? 'Female' : (item.gender || 'Unknown')),
                     department: item.department || 'Mathematics',
                     phone: item.phone || 'N/A',
                     email: item.email || 'N/A',

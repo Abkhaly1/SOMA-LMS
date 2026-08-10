@@ -24,7 +24,7 @@ $dayOfWeek     = trim($input['day_of_week'] ?? '');
 $periodId      = intval($input['period_id'] ?? 0);
 $subjectCode   = trim($input['subject_code'] ?? '');
 $teacherId     = trim($input['teacher_id'] ?? '');
-$academicYear  = trim($input['academic_year'] ?? '2026');
+$academicYear  = trim($input['academic_year'] ?? date('Y'));
 $action        = trim($input['action'] ?? 'save'); // 'save' or 'clear'
 
 if (!$schoolId || !$classStreamId || !$dayOfWeek || !$periodId) {

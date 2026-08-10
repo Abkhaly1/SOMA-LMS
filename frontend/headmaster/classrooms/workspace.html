@@ -190,14 +190,14 @@
 
     <script>
         let currentGradeId = '';
-        let currentYear = '2026';
+        let currentYear = new Date().getFullYear().toString();
         let gradeInfo = {};
         let classroomsList = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
             const urlParams = new URLSearchParams(window.location.search);
             currentGradeId = urlParams.get('grade_id') || '1';
-            currentYear = urlParams.get('year') || '2026';
+            currentYear = urlParams.get('year') || new Date().getFullYear().toString();
 
             const roomModal = document.getElementById('roomModal');
             const closeRoomBtn = document.getElementById('closeRoomModalBtn');
@@ -370,7 +370,7 @@
                                         <input type="checkbox" class="pool-checkbox" value="${s.id}">
                                         <span>${s.full_name}</span>
                                     </label>
-                                    <span style="font-family: monospace; color: var(--c-text-muted); font-size: 12px;">${s.user_code || 'STD/2026'}</span>
+                                    <span style="font-family: monospace; color: var(--c-text-muted); font-size: 12px;">${s.user_code || `STD/${new Date().getFullYear()}`}</span>
                                 </div>
                             `;
                         });
@@ -567,7 +567,7 @@
                             html += `
                                 <tr id="wsPromoRow-${s.student_id}" style="border-bottom: 1px solid var(--c-border-light);">
                                     <td style="padding: 10px 12px; font-weight: 700;">${s.full_name}</td>
-                                    <td style="padding: 10px 12px; font-family: monospace; color: var(--c-text-muted);">${s.user_code || 'STD/2026'}</td>
+                                    <td style="padding: 10px 12px; font-family: monospace; color: var(--c-text-muted);">${s.user_code || `STD/${new Date().getFullYear()}`}</td>
                                     <td style="padding: 10px 12px;">${gpaTag}</td>
                                     <td style="padding: 10px 12px;">${recTag}</td>
                                     <td style="padding: 10px 12px;">

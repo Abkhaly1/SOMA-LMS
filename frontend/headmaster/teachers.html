@@ -89,10 +89,10 @@
                                 <tr>
                                     <th style="width: 40px;"><input type="checkbox" class="form-check-input" id="selectAll"></th>
                                     <th>Full Name</th>
-                                    <th>Phone Number</th>
+                                    <th class="hide-mobile">Phone Number</th>
                                     <th>Status</th>
-                                    <th>Created Date</th>
-                                    <th style="text-align: right;">Actions</th>
+                                    <th class="hide-mobile">Created Date</th>
+                                    <th class="hide-mobile" style="text-align: right;">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="teachersTableBody">
@@ -175,7 +175,7 @@
                 const searchQ = encodeURIComponent(state.search);
                 const res = await fetch(`/soma-lms/api/teachers/list.php?page=${state.page}&limit=${state.limit}&search=${searchQ}`, { credentials: 'include' });
                 
-                if (res.status === 403) {
+                if (res.status === 401 || res.status === 403) {
                     window.location.href = '../login.html';
                     return;
                 }
@@ -209,13 +209,13 @@
                             tr.innerHTML = `
                                 <td><input type="checkbox" class="form-check-input row-select"></td>
                                 <td>
-                                    <a href="#" style="font-weight: 500; color: var(--c-primary-600); text-decoration: none;">${teacher.full_name}</a>
+                                    <a href="people/teacher-workspace.html?id=${teacher.id}" class="table-view-action" style="font-weight: 500; color: var(--c-primary-600); text-decoration: none;">${teacher.full_name}</a>
                                     <div style="font-size: var(--text-xs); color: var(--c-text-muted); margin-top: 2px;">ID: ${teacher.id.substring(0,8)}...</div>
                                 </td>
-                                <td>${teacher.phone}</td>
+                                <td class="hide-mobile">${teacher.phone}</td>
                                 <td><span class="badge ${badgeClass}">${teacher.status.charAt(0).toUpperCase() + teacher.status.slice(1)}</span></td>
-                                <td>${new Date(teacher.created_at).toLocaleDateString()}</td>
-                                <td style="text-align: right;">
+                                <td class="hide-mobile">${new Date(teacher.created_at).toLocaleDateString()}</td>
+                                <td class="hide-mobile" style="text-align: right;">
                                     <a href="#" class="table-view-action">Manage</a>
                                 </td>
                             `;

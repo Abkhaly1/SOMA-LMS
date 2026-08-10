@@ -14,7 +14,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 $levelId   = intval($_GET['level_id']   ?? 0);
 $gradeId   = intval($_GET['grade_id']   ?? 0);
 $streamId  = intval($_GET['stream_id']  ?? 0);
-$year      = $_GET['academic_year']     ?? '2026';
+$year      = $_GET['academic_year']     ?? date('Y');
 
 try {
     // 1. Education Levels (only registered active levels for this school)

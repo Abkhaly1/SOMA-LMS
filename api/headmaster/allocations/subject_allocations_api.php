@@ -18,7 +18,7 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? 'analytics';
-$year = $_GET['year'] ?? $input['year'] ?? '2026';
+$year = $_GET['year'] ?? $input['year'] ?? date('Y');
 
 try {
     // 1. GET: School-wide Subject Allocation Analytics & Per-Subject Summary Table

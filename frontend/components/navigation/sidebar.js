@@ -59,7 +59,7 @@ class AppSidebar extends HTMLElement {
             navHtml += `
                 <li>
                     <a href="${formattedLink}" class="${isActive}">
-                        <svg class="nav-icon" style="color: ${iconColor}; fill: currentColor;" viewBox="0 0 24 24"><path d="${item.icon}"/></svg>
+                        <svg class="nav-icon" style="fill: currentColor;" viewBox="0 0 24 24"><path d="${item.icon}"/></svg>
                         <span>${item.label}</span>
                     </a>
                 </li>

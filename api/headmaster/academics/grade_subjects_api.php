@@ -25,7 +25,7 @@ if (!$schoolId) {
 $method = $_SERVER['REQUEST_METHOD'];
 $input  = json_decode(file_get_contents('php://input'), true) ?? [];
 $action = $_GET['action'] ?? $input['action'] ?? 'get_grade_subjects';
-$year   = $_GET['year']   ?? $input['year']   ?? '2026';
+$year   = $_GET['year']   ?? $input['year']   ?? date('Y');
 
 try {
     // GET: Fetch subjects for a specific grade_id strictly based on Super Admin Grade Template
