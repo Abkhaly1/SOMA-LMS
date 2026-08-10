@@ -152,11 +152,11 @@ try {
     $_SESSION['phone'] = $phone;
 
     // Determine Dashboard Redirect URL
-    $redirectUrl = '/student/dashboard.html';
+    $redirectUrl = '/soma-lms/frontend/student/dashboard.html';
     if ($user['role'] === 'teacher') {
-        $redirectUrl = '/teacher/dashboard.html';
+        $redirectUrl = '/soma-lms/frontend/teacher/dashboard.html';
     } else if ($user['role'] === 'tenant_admin') {
-        $redirectUrl = '/headmaster/dashboard.html';
+        $redirectUrl = '/soma-lms/frontend/headmaster/dashboard.html';
     }
 
     echo json_encode([

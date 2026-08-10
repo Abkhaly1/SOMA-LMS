@@ -126,7 +126,18 @@ export const AuthService = {
     redirectBasedOnRole(role) {
         const currentPath = window.location.pathname;
         const frontendIndex = currentPath.indexOf('/frontend/');
-        const basePath = (frontendIndex !== -1) ? currentPath.substring(0, frontendIndex + '/frontend/'.length) : '/';
+        // If we're already inside /frontend/, extract the base up to and including /frontend/
+        // Otherwise fall back to the known app root
+        let basePath;
+        if (frontendIndex !== -1) {
+            basePath = currentPath.substring(0, frontendIndex + '/frontend/'.length);
+        } else {
+            // Detect the app subfolder from pathname (e.g. /soma-lms/)
+            const parts = currentPath.split('/');
+            // parts[0]='' parts[1]='soma-lms' or similar app folder
+            const appFolder = parts[1] ? '/' + parts[1] + '/' : '/';
+            basePath = appFolder + 'frontend/';
+        }
 
         switch (role) {
             case 'super_admin':
