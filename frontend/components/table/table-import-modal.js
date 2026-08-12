@@ -252,8 +252,10 @@ class AppCsvImportModal extends HTMLElement {
 
                     <div id="classroomSelectWrapper" style="display: none; padding-left: 24px; margin-top: 8px;">
                         <select id="importClassroomSelect" class="form-control" style="font-weight: 700; height: 38px;">
+                            <option value="">— Select a classroom —</option>
                             ${optionsHtml}
                         </select>
+                        <div style="font-size:11px;color:#b91c1c;margin-top:4px;display:none;" id="classroomSelectError">⚠️ Please select a classroom before importing.</div>
                     </div>
                 </div>
             `;
@@ -426,9 +428,17 @@ class AppCsvImportModal extends HTMLElement {
                     const allocRadio = this.querySelector('input[name="assign_classroom_choice"]:checked');
                     if (allocRadio && allocRadio.value === 'select') {
                         const selectEl = this.querySelector('#importClassroomSelect');
+                        const errEl    = this.querySelector('#classroomSelectError');
                         if (selectEl) {
                             selectedClassroomId = parseInt(selectEl.value, 10) || 0;
                         }
+                        // Block import if radio says 'select' but no classroom chosen
+                        if (!selectedClassroomId) {
+                            if (errEl) errEl.style.display = 'block';
+                            startBtn.disabled = false;
+                            return;
+                        }
+                        if (errEl) errEl.style.display = 'none';
                     }
                 }
 
@@ -465,9 +475,9 @@ class AppCsvImportModal extends HTMLElement {
                 const summary = result.summary || {};
                 let allocMsg = '';
                 if (summary.allocated > 0) {
-                    allocMsg = `• Wanafunzi Walioingizwa Darasani Moja kwa Moja: ${summary.allocated}\n`;
+                    allocMsg = `• Students Allocated to Classroom: ${summary.allocated}\n`;
                 } else if (targetRole === 'student') {
-                    allocMsg = `• Wanafunzi Wameingizwa bila darasa (Unallocated Pool). Utawapangia baadae kwenye Classrooms Workspace.\n`;
+                    allocMsg = `• Students imported without a classroom. Assign them later in the Classrooms Workspace.\n`;
                 }
 
                 alert(`🎉 User import completed successfully!\n\n` +
