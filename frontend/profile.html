@@ -259,11 +259,12 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadUserProfile();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadUserProfile();
 
-            const t = window.__i18n.profile || {};
-            const c = window.__i18n.common || {};
+            const i18n = window.__i18n || {};
+            const t = i18n.profile || {};
+            const c = i18n.common || {};
 
             // Apply translations to dynamic text
             document.getElementById('profileBreadcrumb').setAttribute('path', t.breadcrumb || 'SOMA LMS, My Profile');
@@ -338,7 +339,7 @@
                 const btn = document.getElementById('btnSaveProfile');
                 const alertBox = document.getElementById('profileAlert');
                 btn.disabled = true;
-                btn.textContent = window.__i18n.profile?.saving || 'Saving...';
+                btn.textContent = window.__i18n?.profile?.saving || 'Saving...';
                 alertBox.style.display = 'none';
 
                 const phone = document.getElementById('inpPhone').value.trim();
@@ -356,21 +357,21 @@
 
                     if (res.ok && result.success) {
                         alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || (window.__i18n.profile?.profileSaved || 'Profile updated successfully!');
+                        alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaved || 'Profile updated successfully!');
                         alertBox.style.display = 'block';
                         await loadUserProfile();
                     } else {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || (window.__i18n.profile?.profileSaveErr || 'Error saving profile.');
+                        alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaveErr || 'Error saving profile.');
                         alertBox.style.display = 'block';
                     }
                 } catch(err) {
                     alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = window.__i18n.common?.networkError || 'Network error.';
+                    alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
                     alertBox.style.display = 'block';
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = `💾 ${window.__i18n.profile?.btnSaveProfile || 'Save Profile Changes'}`;
+                    btn.textContent = `💾 ${window.__i18n?.profile?.btnSaveProfile || 'Save Profile Changes'}`;
                 }
             });
 
@@ -380,7 +381,7 @@
                 const btn = document.getElementById('btnSavePassword');
                 const alertBox = document.getElementById('profileAlert');
                 btn.disabled = true;
-                btn.textContent = window.__i18n.profile?.changing || 'Changing...';
+                btn.textContent = window.__i18n?.profile?.changing || 'Changing...';
                 alertBox.style.display = 'none';
 
                 const current_password = document.getElementById('inpCurrPass').value;
@@ -398,21 +399,21 @@
 
                     if (res.ok && result.success) {
                         alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || (window.__i18n.profile?.pwdSaved || 'Password changed successfully!');
+                        alertBox.textContent = result.message || (window.__i18n?.profile?.pwdSaved || 'Password changed successfully!');
                         alertBox.style.display = 'block';
                         document.getElementById('formChangePassword').reset();
                     } else {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || (window.__i18n.profile?.pwdErr || 'Error changing password.');
+                        alertBox.textContent = result.message || (window.__i18n?.profile?.pwdErr || 'Error changing password.');
                         alertBox.style.display = 'block';
                     }
                 } catch(err) {
                     alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = window.__i18n.common?.networkError || 'Network error.';
+                    alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
                     alertBox.style.display = 'block';
                 } finally {
                     btn.disabled = false;
-                    btn.textContent = `🔑 ${window.__i18n.profile?.btnSavePassword || 'Change Password Now'}`;
+                    btn.textContent = `🔑 ${window.__i18n?.profile?.btnSavePassword || 'Change Password Now'}`;
                 }
             });
         });
