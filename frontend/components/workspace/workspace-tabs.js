@@ -40,17 +40,17 @@ class AppWorkspaceTabs extends HTMLElement {
                 <button type="button" class="workspace-tab-btn ${isActive ? 'active' : ''}" data-tab="${tab.id}" 
                     style="background: ${isActive ? '#ffffff' : 'transparent'}; 
                     border: 1px solid ${isActive ? 'var(--c-border-light)' : 'transparent'}; 
-                    border-radius: 8px; padding: 8px 16px; font-weight: 700; font-size: 13px;
+                    border-radius: 6px; padding: 5px 12px; font-weight: 700; font-size: 12px;
                     color: ${isActive ? 'var(--c-primary)' : 'var(--c-text-muted)'}; 
-                    box-shadow: ${isActive ? '0 2px 6px rgba(0,0,0,0.06)' : 'none'};
-                    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;">
+                    box-shadow: ${isActive ? '0 2px 4px rgba(0,0,0,0.05)' : 'none'};
+                    cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px;">
                     ${tab.label}
                 </button>
             `;
         });
 
         this.innerHTML = `
-            <div class="workspace-tabs" style="display: inline-flex; gap: 6px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 10px; padding: 4px; margin-top: 0; margin-bottom: 12px; overflow-x: auto; scrollbar-width: none;">
+            <div class="workspace-tabs" style="display: inline-flex; gap: 4px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px; padding: 3px; margin-top: 0; margin-bottom: 8px; overflow-x: auto; scrollbar-width: none;">
                 ${tabsHtml}
             </div>
         `;
@@ -59,13 +59,13 @@ class AppWorkspaceTabs extends HTMLElement {
     setupInnerButtons() {
         this.classList.add('workspace-tabs-wrapper');
         this.style.display = 'inline-flex';
-        this.style.gap = '6px';
+        this.style.gap = '4px';
         this.style.background = '#f1f5f9';
         this.style.border = '1px solid #e2e8f0';
-        this.style.borderRadius = '10px';
-        this.style.padding = '4px';
+        this.style.borderRadius = '8px';
+        this.style.padding = '3px';
         this.style.marginTop = '0';
-        this.style.marginBottom = '12px';
+        this.style.marginBottom = '8px';
         this.style.overflowX = 'auto';
         
         const activeTabId = this.activeTab;
@@ -80,17 +80,17 @@ class AppWorkspaceTabs extends HTMLElement {
 
             btn.style.background = isActive ? '#ffffff' : 'transparent';
             btn.style.border = `1px solid ${isActive ? '#cbd5e1' : 'transparent'}`;
-            btn.style.borderRadius = '8px';
-            btn.style.padding = '8px 16px';
+            btn.style.borderRadius = '6px';
+            btn.style.padding = '5px 12px';
             btn.style.fontWeight = '700';
-            btn.style.fontSize = '13px';
+            btn.style.fontSize = '12px';
             btn.style.color = isActive ? 'var(--c-primary)' : '#64748b';
-            btn.style.boxShadow = isActive ? '0 2px 6px rgba(0,0,0,0.06)' : 'none';
+            btn.style.boxShadow = isActive ? '0 2px 4px rgba(0,0,0,0.05)' : 'none';
             btn.style.cursor = 'pointer';
             btn.style.transition = 'all 0.2s';
             btn.style.display = 'inline-flex';
             btn.style.alignItems = 'center';
-            btn.style.gap = '6px';
+            btn.style.gap = '4px';
         });
     }
 

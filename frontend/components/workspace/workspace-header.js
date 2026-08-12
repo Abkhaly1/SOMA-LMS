@@ -42,25 +42,25 @@ class AppWorkspaceHeader extends HTMLElement {
     }
 
     render() {
-        let badgeHtml = this.status ? `<span class="badge badge-${this.statusColor}" id="headerStatusBadge" style="margin-left: 12px;">${this.status}</span>` : '';
-        let subtitleHtml = this.subtitle ? `<div id="headerSubtitle" style="color: var(--c-text-muted); font-size: var(--text-sm); margin-top: 4px;">${this.subtitle}</div>` : '';
+        let badgeHtml = this.status ? `<span class="badge badge-${this.statusColor}" id="headerStatusBadge" style="margin-left: 8px; font-size: 10px; padding: 2px 6px; font-weight: 700;">${this.status}</span>` : '';
+        let subtitleHtml = this.subtitle ? `<div id="headerSubtitle" style="color: var(--c-text-muted); font-size: 12px; margin-top: 2px; font-weight: 600;">${this.subtitle}</div>` : '';
         const metaContent = this._metaContent || '';
 
         this.innerHTML = `
-            <div class="workspace-header" style="display: flex; align-items: flex-start; justify-content: space-between; padding: var(--sp-4); background: var(--c-bg-surface); border: 1px solid var(--c-border-light); border-radius: var(--radius-lg); margin-bottom: var(--sp-3);">
-                <div style="display: flex; align-items: center; gap: var(--sp-4);">
-                    <div class="workspace-avatar" id="headerAvatar" style="width: 48px; height: 48px; border-radius: 50%; background: var(--c-primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold;">
+            <div class="workspace-header" style="display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; background: var(--c-bg-surface); border: 1px solid var(--c-border-light); border-radius: 12px; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div class="workspace-avatar" id="headerAvatar" style="width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: bold; flex-shrink: 0; box-shadow: 0 2px 6px rgba(2,132,199,0.25);">
                         ${this.avatarText}
                     </div>
                     <div>
-                        <h2 style="margin: 0; font-size: 24px; font-weight: 600; display: flex; align-items: center;" id="headerTitleContainer">
+                        <h2 style="margin: 0; font-size: 17px; font-weight: 800; display: flex; align-items: center; color: var(--c-text-primary);" id="headerTitleContainer">
                             <span id="headerTitleText">${this.title}</span>
                             ${badgeHtml}
                         </h2>
                         ${subtitleHtml}
                     </div>
                 </div>
-                ${metaContent ? `<div class="workspace-meta" style="display: flex; gap: var(--sp-4); text-align: right;">${metaContent}</div>` : ''}
+                ${metaContent ? `<div class="workspace-meta" style="display: flex; gap: 12px; text-align: right;">${metaContent}</div>` : ''}
             </div>
         `;
     }
