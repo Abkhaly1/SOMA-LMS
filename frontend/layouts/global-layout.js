@@ -31,6 +31,9 @@ import '../components/table/table-import-modal.js?v=20260809';
 // Import Instant SPA Router for zero-blink page navigation
 import '../js/app-router.js';
 
+// Import Global Toast Notification System
+import '../js/toast.js';
+
 // Automatically populate current year for elements with class 'current-year'
 document.addEventListener('DOMContentLoaded', () => {
     const currentYear = new Date().getFullYear();

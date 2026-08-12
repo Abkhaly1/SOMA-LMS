@@ -48,27 +48,27 @@ try {
 
         // Validation: Gender must be Male or Female
         if (!in_array($gender, ['Male', 'Female'])) {
-            echo json_encode(['success' => false, 'message' => 'Tafadhali chagua Jinsia halali (Male / Female).']);
+            echo json_encode(['success' => false, 'message' => 'Please select a valid gender (Male / Female).']);
             exit();
         }
 
         // Phone validation
         if (empty($phone)) {
-            echo json_encode(['success' => false, 'message' => 'Namba ya simu inahitajika.']);
+            echo json_encode(['success' => false, 'message' => 'Phone number is required.']);
             exit();
         }
 
         // Check email uniqueness if email provided
         if (!empty($email)) {
             if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                echo json_encode(['success' => false, 'message' => 'Barua pepe (Email) haina muundo halali.']);
+                echo json_encode(['success' => false, 'message' => 'Invalid email address format.']);
                 exit();
             }
 
             $stmtCheckEmail = $conn->prepare("SELECT id FROM users WHERE email = ? AND id != ? LIMIT 1");
             $stmtCheckEmail->execute([$email, $userId]);
             if ($stmtCheckEmail->fetch()) {
-                echo json_encode(['success' => false, 'message' => 'Barua pepe hii (Email) tayari inatumiwa na akaunti nyingine.']);
+                echo json_encode(['success' => false, 'message' => 'This email address is already registered to another account.']);
                 exit();
             }
         } else {
@@ -79,7 +79,7 @@ try {
         $stmtCheckPhone = $conn->prepare("SELECT id FROM users WHERE phone = ? AND id != ? LIMIT 1");
         $stmtCheckPhone->execute([$phone, $userId]);
         if ($stmtCheckPhone->fetch()) {
-            echo json_encode(['success' => false, 'message' => 'Namba hii ya simu tayari inatumiwa na akaunti nyingine.']);
+            echo json_encode(['success' => false, 'message' => 'This phone number is already registered to another account.']);
             exit();
         }
 
@@ -100,7 +100,7 @@ try {
 
         echo json_encode([
             'success' => true,
-            'message' => 'Taarifa zako za Wasifu (Email, Simu, Jinsia) zimehifadhiwa kikamilifu!'
+            'message' => 'Profile details updated successfully!'
         ]);
         exit();
     }
@@ -112,12 +112,12 @@ try {
         $confirmPassword = $input['confirm_password'] ?? '';
 
         if (empty($currentPassword) || empty($newPassword)) {
-            echo json_encode(['success' => false, 'message' => 'Tafadhali jaza nenosiri la sasa na nenosiri jipya.']);
+            echo json_encode(['success' => false, 'message' => 'Please fill in both current password and new password.']);
             exit();
         }
 
         if ($newPassword !== $confirmPassword) {
-            echo json_encode(['success' => false, 'message' => 'Nenosiri jipya na kurudia kwake havifanani.']);
+            echo json_encode(['success' => false, 'message' => 'New password and confirmation password do not match.']);
             exit();
         }
 
@@ -127,23 +127,23 @@ try {
         $userObj = $stmtPass->fetch(PDO::FETCH_ASSOC);
 
         if (!$userObj || !password_verify($currentPassword, $userObj['password_hash'])) {
-            echo json_encode(['success' => false, 'message' => 'Nenosiri la sasa uliloingiza siyo sahihi.']);
+            echo json_encode(['success' => false, 'message' => 'Current password entered is incorrect.']);
             exit();
         }
 
         // Enforce strong password rules
         if (strlen($newPassword) < 8) {
-            echo json_encode(['success' => false, 'message' => 'Nenosiri jipya linapaswa kuwa na kamalau herufi/namba 8.']);
+            echo json_encode(['success' => false, 'message' => 'New password must be at least 8 characters long.']);
             exit();
         }
 
         if ($newPassword === $userObj['user_code']) {
-            echo json_encode(['success' => false, 'message' => 'Nenosiri jipya halipaswi kuwa sawa na Namba yako ya Usajili.']);
+            echo json_encode(['success' => false, 'message' => 'New password cannot be identical to your Registration Code.']);
             exit();
         }
 
         if (!preg_match('/[A-Z]/', $newPassword) || !preg_match('/[a-z]/', $newPassword) || !preg_match('/[0-9]/', $newPassword) || !preg_match('/[^a-zA-Z0-9]/', $newPassword)) {
-            echo json_encode(['success' => false, 'message' => 'Nenosiri jipya linapaswa kuwa na Herufi Kubwa, Ndogo, Namba, na Alama Maalum.']);
+            echo json_encode(['success' => false, 'message' => 'New password must contain uppercase, lowercase, numbers, and special characters.']);
             exit();
         }
 
@@ -154,7 +154,7 @@ try {
 
         echo json_encode([
             'success' => true,
-            'message' => 'Nenosiri lako jipya limebadilishwa kikamilifu!'
+            'message' => 'Your password has been changed successfully!'
         ]);
         exit();
     }

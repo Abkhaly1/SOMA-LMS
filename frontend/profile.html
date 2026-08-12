@@ -396,19 +396,31 @@
                         const result = await res.json();
 
                         if (res.ok && result.success) {
-                            alertBox.className = 'alert alert-success';
-                            alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaved || 'Profile updated successfully!');
-                            alertBox.style.display = 'block';
+                            if (window.showToast) {
+                                window.showToast(result.message || 'Profile details updated successfully!', 'success');
+                            } else {
+                                alertBox.className = 'alert alert-success';
+                                alertBox.textContent = result.message || 'Profile updated successfully!';
+                                alertBox.style.display = 'block';
+                            }
                             await loadUserProfile();
                         } else {
-                            alertBox.className = 'alert alert-danger';
-                            alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaveErr || 'Error saving profile.');
-                            alertBox.style.display = 'block';
+                            if (window.showToast) {
+                                window.showToast(result.message || 'Error saving profile.', 'error');
+                            } else {
+                                alertBox.className = 'alert alert-danger';
+                                alertBox.textContent = result.message || 'Error saving profile.';
+                                alertBox.style.display = 'block';
+                            }
                         }
                     } catch(err) {
-                        alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
-                        alertBox.style.display = 'block';
+                        if (window.showToast) {
+                            window.showToast('Network error.', 'error');
+                        } else {
+                            alertBox.className = 'alert alert-danger';
+                            alertBox.textContent = 'Network error.';
+                            alertBox.style.display = 'block';
+                        }
                     } finally {
                         btn.disabled = false;
                         btn.textContent = `💾 ${window.__i18n?.profile?.btnSaveProfile || 'Save Profile Changes'}`;
@@ -441,19 +453,31 @@
                         const result = await res.json();
 
                         if (res.ok && result.success) {
-                            alertBox.className = 'alert alert-success';
-                            alertBox.textContent = result.message || (window.__i18n?.profile?.pwdSaved || 'Password changed successfully!');
-                            alertBox.style.display = 'block';
+                            if (window.showToast) {
+                                window.showToast(result.message || 'Your password has been changed successfully!', 'success');
+                            } else {
+                                alertBox.className = 'alert alert-success';
+                                alertBox.textContent = result.message || 'Password changed successfully!';
+                                alertBox.style.display = 'block';
+                            }
                             document.getElementById('formChangePassword').reset();
                         } else {
-                            alertBox.className = 'alert alert-danger';
-                            alertBox.textContent = result.message || (window.__i18n?.profile?.pwdErr || 'Error changing password.');
-                            alertBox.style.display = 'block';
+                            if (window.showToast) {
+                                window.showToast(result.message || 'Error changing password.', 'error');
+                            } else {
+                                alertBox.className = 'alert alert-danger';
+                                alertBox.textContent = result.message || 'Error changing password.';
+                                alertBox.style.display = 'block';
+                            }
                         }
                     } catch(err) {
-                        alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
-                        alertBox.style.display = 'block';
+                        if (window.showToast) {
+                            window.showToast('Network error.', 'error');
+                        } else {
+                            alertBox.className = 'alert alert-danger';
+                            alertBox.textContent = 'Network error.';
+                            alertBox.style.display = 'block';
+                        }
                     } finally {
                         btn.disabled = false;
                         btn.textContent = `🔑 ${window.__i18n?.profile?.btnSavePassword || 'Change Password Now'}`;
