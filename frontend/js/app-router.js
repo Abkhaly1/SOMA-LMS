@@ -88,6 +88,14 @@ class AppRouter {
                 // Update page title
                 document.title = doc.title || document.title;
 
+                // Transfer page-specific <style> blocks from target head to current head
+                const targetStyles = doc.querySelectorAll('head style');
+                targetStyles.forEach(style => {
+                    const styleTag = document.createElement('style');
+                    styleTag.textContent = style.textContent;
+                    document.head.appendChild(styleTag);
+                });
+
                 // Replace content
                 currentContent.innerHTML = newContent.innerHTML;
 

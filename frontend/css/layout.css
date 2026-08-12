@@ -344,3 +344,60 @@ app-topbar {
     padding: 24px 30px;
     overflow-y: auto;
 }
+
+/* ─── GLOBAL DASHBOARD STAT CARDS GRID ──────────────────────────── */
+.stat-card-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)) !important;
+    gap: 12px !important;
+    margin-bottom: 20px !important;
+    margin-top: 12px !important;
+}
+
+.stat-card, .stat-card-grid .stat-card {
+    background: #ffffff !important;
+    border: 1px solid var(--c-border-light) !important;
+    border-radius: 10px !important;
+    padding: 10px 14px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02) !important;
+    transition: all 0.2s ease !important;
+}
+
+.stat-card:hover, .stat-card-grid .stat-card:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05) !important;
+    border-color: var(--c-primary) !important;
+}
+
+.stat-icon, .stat-card-grid .stat-icon {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    border-radius: 8px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    flex-shrink: 0 !important;
+}
+
+.stat-val, .stat-card-grid .stat-val {
+    font-size: 18px !important;
+    font-weight: 800 !important;
+    color: var(--c-text-primary) !important;
+    line-height: 1.1 !important;
+}
+
+.stat-lbl, .stat-card-grid .stat-lbl {
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    color: var(--c-text-muted) !important;
+    text-transform: uppercase !important;
+    margin-top: 2px !important;
+    letter-spacing: 0.3px !important;
+}
