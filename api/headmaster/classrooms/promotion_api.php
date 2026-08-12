@@ -22,7 +22,7 @@ $action = $_GET['action'] ?? $input['action'] ?? '';
 try {
     // GET: Fetch students in a source classroom for a given year
     if ($method === 'GET' && $action === 'get_source') {
-        $fromYear  = $_GET['from_year'] ?? '2025';
+        $fromYear  = $_GET['from_year'] ?? strval(intval(date('Y')) - 1);
         $classroomId = intval($_GET['classroom_id'] ?? 0);
 
         $stmt = $conn->prepare("
