@@ -85,6 +85,11 @@ class AppRouter {
             currentContent.style.opacity = '0.3';
 
             setTimeout(() => {
+                // Update URL in browser location bar BEFORE executing page scripts so window.location is correct
+                if (pushState) {
+                    history.pushState({ url: targetUrl.href }, '', targetUrl.href);
+                }
+
                 // Update page title
                 document.title = doc.title || document.title;
 
@@ -130,10 +135,6 @@ class AppRouter {
                 const sidebar = document.querySelector('app-sidebar');
                 if (sidebar) {
                     sidebar.setAttribute('active-path', targetUrl.pathname);
-                }
-
-                if (pushState) {
-                    history.pushState({ url: targetUrl.href }, '', targetUrl.href);
                 }
 
                 // Scroll to top of workspace
