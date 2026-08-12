@@ -61,6 +61,14 @@ try {
         ];
     }
 
+    $subAllocStmt = $conn->prepare("SELECT COUNT(*) FROM teacher_subject_assignments WHERE school_id = ?");
+    $subAllocStmt->execute([$school_id]);
+    $totalSubAllocations = (int)$subAllocStmt->fetchColumn();
+
+    $ttStmt = $conn->prepare("SELECT COUNT(*) FROM class_timetables WHERE school_id = ? AND academic_year = ?");
+    $ttStmt->execute([$school_id, $year]);
+    $totalTimetables = (int)$ttStmt->fetchColumn();
+
     echo json_encode([
         "success" => true,
         "school" => $school,
@@ -68,7 +76,9 @@ try {
             "total_students" => $totalStudents,
             "total_teachers" => $totalTeachers,
             "total_classes" => $totalClasses,
-            "total_parents" => $totalParents
+            "total_parents" => $totalParents,
+            "total_sub_allocations" => $totalSubAllocations,
+            "total_timetables" => $totalTimetables
         ],
         "activities" => $activities
     ]);
