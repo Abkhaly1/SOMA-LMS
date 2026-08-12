@@ -264,8 +264,10 @@ class AppCsvImportModal extends HTMLElement {
         if (this._availableClassrooms && this._availableClassrooms.length > 0) {
             let optionsHtml = '';
             this._availableClassrooms.forEach(c => {
-                const availableSeats = Math.max(0, c.capacity - c.filled_count);
-                optionsHtml += `<option value="${c.id}">${c.grade_name} - ${c.classroom_name} (Open Seats: ${availableSeats} / ${c.capacity})</option>`;
+                const label = c.classroom_name.toLowerCase().startsWith(c.grade_name.toLowerCase()) 
+                    ? c.classroom_name 
+                    : `${c.grade_name} — ${c.classroom_name}`;
+                optionsHtml += `<option value="${c.id}">${label}</option>`;
             });
 
             container.innerHTML = `
