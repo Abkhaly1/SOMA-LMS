@@ -28,10 +28,28 @@ try {
         $tStmt->execute([$teacherId]);
         $teacher = $tStmt->fetch(PDO::FETCH_ASSOC);
 
-        // Fetch Allocations (combining legacy & new allocation engines)
+        // Fetch Allocations — timetable is the primary source; legacy tables kept as UNION fallback
         $stmtAlloc = $conn->prepare("
             SELECT classroom_name, subject_code, subject_name, student_count
             FROM (
+                -- PRIMARY: class_timetables defines which teacher teaches which class+subject
+                SELECT DISTINCT
+                    COALESCE(c.classroom_name, ct.class_stream_id) AS classroom_name,
+                    ct.subject_code,
+                    COALESCE(s.name, ct.subject_code) AS subject_name,
+                    (SELECT COUNT(DISTINCT sca.student_id)
+                     FROM student_classroom_allocations sca
+                     JOIN classrooms c2 ON sca.classroom_id = c2.id
+                     WHERE (c2.classroom_name = ct.class_stream_id OR CAST(c2.id AS CHAR) = ct.class_stream_id)
+                       AND sca.status = 'Active') AS student_count
+                FROM class_timetables ct
+                LEFT JOIN classrooms c ON (ct.class_stream_id = c.classroom_name OR ct.class_stream_id = CAST(c.id AS CHAR))
+                LEFT JOIN subjects s ON (ct.subject_code = s.code AND s.school_id = ct.school_id)
+                WHERE ct.teacher_id = :teacher_id AND ct.academic_year_id = :year_id
+
+                UNION DISTINCT
+
+                -- LEGACY FALLBACK: teacher_subject_assignments
                 SELECT DISTINCT COALESCE(c.classroom_name, tsa.class_stream_id) AS classroom_name, tsa.subject_code, COALESCE(sas.subject_name, tsa.subject_code) AS subject_name,
                        (SELECT COUNT(DISTINCT sca.student_id) FROM student_classroom_allocations sca JOIN classrooms c2 ON sca.classroom_id=c2.id WHERE (c2.classroom_name=tsa.class_stream_id OR CAST(c2.id AS CHAR)=tsa.class_stream_id) AND sca.status='Active') AS student_count
                 FROM teacher_subject_assignments tsa
@@ -41,6 +59,7 @@ try {
 
                 UNION DISTINCT
 
+                -- LEGACY FALLBACK: teacher_classroom_assignments
                 SELECT DISTINCT c.classroom_name AS classroom_name, s.code AS subject_code, s.name AS subject_name,
                        (SELECT COUNT(DISTINCT sca.student_id) FROM student_classroom_allocations sca WHERE sca.classroom_id=c.id AND sca.status='Active') AS student_count
                 FROM teacher_classroom_assignments tca
@@ -137,23 +156,33 @@ try {
             exit();
         }
 
-        // TASK 2.1: ROW-LEVEL ACCESS CONTROL (Who Enters Marks?)
-        // Teachers can ONLY select and open mark sheets for classrooms & subjects explicitly assigned to them
+        // ROW-LEVEL ACCESS CONTROL: teacher can only open marks for class+subject in their timetable
         $userRole = $_SESSION['role'] ?? '';
         if ($userRole === 'teacher') {
             $stmtAccess = $conn->prepare("
                 SELECT COUNT(*) FROM (
+                    -- PRIMARY: timetable defines teaching assignment
+                    SELECT ct.teacher_id FROM class_timetables ct
+                    WHERE ct.teacher_id = :tid
+                      AND ct.subject_code = :scode
+                      AND ct.class_stream_id = :cname
+                      AND ct.school_id = :school_id
+                    UNION
+                    -- LEGACY FALLBACK: teacher_subject_assignments
                     SELECT tsa.teacher_id FROM teacher_subject_assignments tsa
                     JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
-                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode
+                      AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
                     UNION
+                    -- LEGACY FALLBACK: teacher_classroom_assignments
                     SELECT tca.teacher_id FROM teacher_classroom_assignments tca
                     JOIN classrooms c ON tca.classroom_id = c.id
                     JOIN subjects s ON tca.subject_id = s.id
-                    WHERE tca.teacher_id = :tid AND s.code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    WHERE tca.teacher_id = :tid AND s.code = :scode
+                      AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
                 ) as combined_access
             ");
-            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
+            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName, ':school_id' => $schoolId]);
             if ((int)$stmtAccess->fetchColumn() === 0) {
                 http_response_code(403);
                 echo json_encode(["success" => false, "message" => "Access Restricted: You are not assigned to teach $subjectCode for classroom '$streamName'."]);
@@ -382,22 +411,33 @@ try {
             exit();
         }
 
-        // ROW-LEVEL ACCESS CHECK FOR TEACHER
+        // ROW-LEVEL ACCESS CHECK: timetable-driven (with legacy fallbacks)
         $userRole = $_SESSION['role'] ?? '';
         if ($userRole === 'teacher' && !empty($streamName)) {
             $stmtAccess = $conn->prepare("
                 SELECT COUNT(*) FROM (
+                    -- PRIMARY: timetable defines teaching assignment
+                    SELECT ct.teacher_id FROM class_timetables ct
+                    WHERE ct.teacher_id = :tid
+                      AND ct.subject_code = :scode
+                      AND ct.class_stream_id = :cname
+                      AND ct.school_id = :school_id
+                    UNION
+                    -- LEGACY FALLBACK: teacher_subject_assignments
                     SELECT tsa.teacher_id FROM teacher_subject_assignments tsa
                     JOIN classrooms c ON (tsa.class_stream_id = c.classroom_name OR tsa.class_stream_id = CAST(c.id AS CHAR))
-                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    WHERE tsa.teacher_id = :tid AND tsa.subject_code = :scode
+                      AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
                     UNION
+                    -- LEGACY FALLBACK: teacher_classroom_assignments
                     SELECT tca.teacher_id FROM teacher_classroom_assignments tca
                     JOIN classrooms c ON tca.classroom_id = c.id
                     JOIN subjects s ON tca.subject_id = s.id
-                    WHERE tca.teacher_id = :tid AND s.code = :scode AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
+                    WHERE tca.teacher_id = :tid AND s.code = :scode
+                      AND (c.classroom_name = :cname OR CAST(c.id AS CHAR) = :cname)
                 ) as combined_access
             ");
-            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName]);
+            $stmtAccess->execute([':tid' => $teacherId, ':scode' => $subjectCode, ':cname' => $streamName, ':school_id' => $schoolId]);
             if ((int)$stmtAccess->fetchColumn() === 0) {
                 http_response_code(403);
                 echo json_encode(["success" => false, "message" => "Access Restricted: You are not assigned to edit marks for $subjectCode in '$streamName'."]);

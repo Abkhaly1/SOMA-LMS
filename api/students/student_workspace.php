@@ -15,8 +15,68 @@ if (!$schoolId && ($_SESSION['role'] ?? '') === 'super_admin') {
     $schoolId = $row['id'] ?? null;
 }
 
-$studentId = $_GET['id'] ?? $_GET['student_id'] ?? $_SESSION['user_id'] ?? '';
-$year      = $_GET['year'] ?? date('Y');
+$studentId     = $_GET['id'] ?? $_GET['student_id'] ?? $_SESSION['user_id'] ?? '';
+$year          = $_GET['year'] ?? date('Y');
+$action        = $_GET['action'] ?? 'dashboard';
+
+// ── FAST ROUTE: my_subjects ──────────────────────────────────────────────────
+// Returns the student's subjects and teacher for each, driven by class_timetables.
+if ($action === 'my_subjects') {
+    $sid = $_SESSION['user_id'] ?? '';
+    if (empty($sid)) {
+        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+        exit();
+    }
+    try {
+        // 1. Find the student's active classroom for this year
+        $stmtCR = $conn->prepare("
+            SELECT c.classroom_name, c.id AS classroom_id
+            FROM student_classroom_allocations sca
+            JOIN classrooms c ON sca.classroom_id = c.id
+            WHERE sca.student_id = ? AND sca.academic_year = ? AND sca.status = 'Active'
+            LIMIT 1
+        ");
+        $stmtCR->execute([$sid, $year]);
+        $classroom = $stmtCR->fetch(PDO::FETCH_ASSOC);
+
+        if (!$classroom) {
+            echo json_encode(['success' => true, 'classroom' => null, 'subjects' => [], 'message' => 'Not yet allocated to a classroom for this academic year.']);
+            exit();
+        }
+
+        // 2. Get DISTINCT subjects taught in that classroom, with teacher info, from timetable
+        $stmtSubj = $conn->prepare("
+            SELECT DISTINCT
+                ct.subject_code,
+                COALESCE(s.name, ct.subject_code)      AS subject_name,
+                COALESCE(s.level_type, 'O-Level')      AS level_type,
+                COALESCE(s.is_core, 1)                  AS is_core,
+                u.full_name                             AS teacher_name,
+                u.id                                    AS teacher_id
+            FROM class_timetables ct
+            LEFT JOIN subjects s   ON (ct.subject_code = s.code AND s.school_id = ct.school_id)
+            LEFT JOIN users    u   ON ct.teacher_id = u.id
+            WHERE ct.school_id        = ?
+              AND ct.academic_year_id = ?
+              AND ct.class_stream_id  = ?
+            ORDER BY subject_name ASC
+        ");
+        $stmtSubj->execute([$schoolId, $year, $classroom['classroom_name']]);
+        $subjects = $stmtSubj->fetchAll(PDO::FETCH_ASSOC);
+
+        echo json_encode([
+            'success'   => true,
+            'classroom' => $classroom['classroom_name'],
+            'year'      => $year,
+            'subjects'  => $subjects
+        ]);
+    } catch (PDOException $e) {
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+    exit();
+}
+// ── END FAST ROUTE ───────────────────────────────────────────────────────────
 
 if (empty($studentId)) {
     echo json_encode(['success' => false, 'message' => 'Student ID is required.']);
