@@ -130,61 +130,81 @@ class AppCsvImportModal extends HTMLElement {
         this.style.position = 'fixed';
         this.style.top = '0';
         this.style.left = '0';
-        this.style.width = '100%';
-        this.style.height = '100%';
-        this.style.background = 'rgba(0,0,0,0.5)';
+        this.style.width = '100vw';
+        this.style.height = '100vh';
+        this.style.background = 'rgba(15, 23, 42, 0.8)';
+        this.style.backdropFilter = 'blur(6px)';
+        this.style.webkitBackdropFilter = 'blur(6px)';
         this.style.zIndex = '99999';
         this.style.alignItems = 'center';
         this.style.justifyContent = 'center';
+        this.style.padding = '20px';
+        this.style.boxSizing = 'border-box';
 
         this.innerHTML = `
-            <div class="card" style="width: 100%; max-width: 640px; background: white; border-radius: 12px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden;">
-                <!-- STICKY HEADER -->
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px 14px; border-bottom: 1px solid #e2e8f0; flex-shrink: 0;">
-                    <h3 id="importModalTitle" style="margin: 0; font-size: 18px; font-weight: 800; color: #047857;">Bulk CSV Data Import</h3>
-                    <button type="button" id="btnDownloadSample" class="btn btn-outline btn-sm" style="font-size: 12px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700;">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                        Download Sample CSV
-                    </button>
+            <div class="import-workspace-card" style="width: 100%; max-width: 1320px; height: 92vh; background: #ffffff; border-radius: 16px; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); border: 1px solid #e2e8f0;">
+                <!-- WORKSPACE HEADER -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px 32px; border-bottom: 1px solid #e2e8f0; background: #ffffff; flex-shrink: 0;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="width: 40px; height: 40px; border-radius: 10px; background: #ecfdf5; color: #047857; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                            📥
+                        </div>
+                        <div>
+                            <h2 id="importModalTitle" style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.3px;">Bulk Data Import Workspace</h2>
+                            <div style="font-size: 13px; color: #64748b; margin-top: 2px;">Upload CSV/Excel files, resolve conflicts, and assign target classrooms</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <button type="button" id="btnDownloadSample" class="btn btn-outline" style="font-size: 13px; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; padding: 8px 16px; border-radius: 8px;">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                            Download Sample CSV
+                        </button>
+                        <button type="button" id="btnCloseHeaderX" style="background: #f1f5f9; border: none; color: #64748b; font-size: 20px; font-weight: 700; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;" title="Close Workspace">&times;</button>
+                    </div>
                 </div>
 
-                <!-- SCROLLABLE BODY -->
-                <div id="importScrollBody" style="flex: 1; overflow-y: auto; padding: 20px 24px;">
+                <!-- WORKSPACE SCROLLABLE BODY -->
+                <div id="importScrollBody" style="flex: 1; overflow-y: auto; padding: 28px 32px; background: #f8fafc;">
 
                     <div id="importInstructions"></div>
 
-                    <div id="importAlert" class="alert alert-danger" style="display: none; margin-bottom: 16px;"></div>
+                    <div id="importAlert" class="alert alert-danger" style="display: none; margin-bottom: 20px; font-size: 14px; padding: 14px 18px; border-radius: 10px;"></div>
 
-                    <div class="form-group" style="margin-bottom: 16px;">
-                        <label class="form-label" style="font-weight: 700;">Select CSV / Excel File</label>
-                        <input type="file" id="csvFileInput" class="form-control" accept=".csv, .txt" style="height: 40px; padding: 4px 12px;">
+                    <!-- FILE SELECTION CARD -->
+                    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                        <label class="form-label" style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 8px; display: block;">Select CSV / Excel File</label>
+                        <input type="file" id="csvFileInput" class="form-control" accept=".csv, .txt" style="height: 44px; padding: 6px 14px; font-size: 14px;">
                     </div>
 
-                    <!-- Progress Bar Section -->
-                    <div id="importProgressContainer" style="display: none; margin-bottom: 16px;">
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 6px;">
-                            <span id="importStatusText">Validating file &amp; database...</span>
-                            <span id="importProgressText">0%</span>
+                    <!-- PROGRESS BAR SECTION -->
+                    <div id="importProgressContainer" style="display: none; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 18px 24px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                        <div style="display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; margin-bottom: 8px;">
+                            <span id="importStatusText" style="color: #0f172a;">Validating file &amp; database...</span>
+                            <span id="importProgressText" style="color: #047857;">0%</span>
                         </div>
-                        <div style="width: 100%; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden;">
-                            <div id="importProgressBar" style="width: 0%; height: 100%; background: #047857; transition: width 0.2s ease;"></div>
+                        <div style="width: 100%; height: 12px; background: #e2e8f0; border-radius: 6px; overflow: hidden;">
+                            <div id="importProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #047857, #10b981); transition: width 0.2s ease;"></div>
                         </div>
                     </div>
 
-                    <!-- Duplicate Conflict Preview Section -->
-                    <div id="conflictSection" style="display: none; margin-bottom: 20px;">
-                        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 12px; border-radius: 8px; font-size: 13px; color: #92400e; margin-bottom: 12px;">
-                            ⚠️ Detected <strong id="conflictCountNum">0</strong> account(s) that already exist in the system or are duplicated in the file. Choose action:
+                    <!-- DUPLICATE CONFLICT PREVIEW SECTION -->
+                    <div id="conflictSection" style="display: none; margin-bottom: 24px;">
+                        <div style="background: #fffbeb; border: 1px solid #fde68a; padding: 16px; border-radius: 12px; font-size: 14px; color: #92400e; margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">⚠️</span>
+                            <div>
+                                <strong>Duplicate &amp; Conflict Analysis:</strong> Detected <strong id="conflictCountNum" style="text-decoration: underline;">0</strong> record(s) that already exist in the system or are duplicated in the file. Choose action:
+                            </div>
                         </div>
 
-                        <div id="conflictTableWrapper" style="max-height: 160px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; margin-bottom: 12px; background: #ffffff;">
-                            <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
-                                <thead style="background: #f1f5f9; border-bottom: 1px solid #cbd5e1; text-align: left; position: sticky; top: 0;">
+                        <!-- CONFLICT TABLE WORKSPACE VIEW -->
+                        <div id="conflictTableWrapper" style="max-height: 360px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 10px; margin-bottom: 16px; background: #ffffff; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                                <thead style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; position: sticky; top: 0; z-index: 10;">
                                     <tr>
-                                        <th style="padding: 6px 10px;">Line #</th>
-                                        <th style="padding: 6px 10px;">Uploaded Name</th>
-                                        <th style="padding: 6px 10px;">Reg ID</th>
-                                        <th style="padding: 6px 10px;">Conflict Description</th>
+                                        <th style="padding: 10px 14px; width: 80px; color: #475569; font-weight: 800;">Line #</th>
+                                        <th style="padding: 10px 14px; width: 220px; color: #0f172a; font-weight: 800;">Uploaded Name</th>
+                                        <th style="padding: 10px 14px; width: 160px; color: #0f172a; font-weight: 800;">Reg ID / Code</th>
+                                        <th style="padding: 10px 14px; color: #0f172a; font-weight: 800;">Conflict Description</th>
                                     </tr>
                                 </thead>
                                 <tbody id="conflictTableBody">
@@ -192,29 +212,43 @@ class AppCsvImportModal extends HTMLElement {
                             </table>
                         </div>
 
-                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 12px; border-radius: 8px;">
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin-bottom: 6px;">
-                                <input type="radio" name="dup_handling" value="skip" checked>
-                                <span>⏭️ <strong>Skip Existing:</strong> Import new users only and leave existing records unchanged.</span>
-                            </label>
-                            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer;">
-                                <input type="radio" name="dup_handling" value="update">
-                                <span>🔄 <strong>Update Existing:</strong> Update information of existing users according to the file.</span>
-                            </label>
+                        <div style="background: #ffffff; border: 1px solid #e2e8f0; padding: 18px 20px; border-radius: 12px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                            <div style="font-weight: 800; font-size: 14px; color: #0f172a; margin-bottom: 10px;">Select Conflict Resolution Policy:</div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                                <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; background: #f8fafc; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                    <input type="radio" name="dup_handling" value="skip" checked style="margin-top: 2px;">
+                                    <div>
+                                        <strong style="color: #0f172a;">⏭️ Skip Existing:</strong>
+                                        <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Import new users only and leave existing records unchanged.</div>
+                                    </div>
+                                </label>
+                                <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; background: #f8fafc; padding: 12px 14px; border: 1px solid #e2e8f0; border-radius: 8px;">
+                                    <input type="radio" name="dup_handling" value="update" style="margin-top: 2px;">
+                                    <div>
+                                        <strong style="color: #0f172a;">🔄 Update Existing:</strong>
+                                        <div style="color: #64748b; font-size: 12px; margin-top: 2px;">Update information of existing users according to the file.</div>
+                                    </div>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Student Classroom Assignment Section -->
-                    <div id="classroomSection" style="display: none; margin-bottom: 20px;">
+                    <!-- STUDENT CLASSROOM ASSIGNMENT SECTION -->
+                    <div id="classroomSection" style="display: none; margin-bottom: 24px;">
                         <!-- Dynamically populated based on available classrooms -->
                     </div>
 
                 </div><!-- end scrollable body -->
 
-                <!-- STICKY FOOTER -->
-                <div style="display: flex; gap: 8px; justify-content: flex-end; padding: 14px 24px; border-top: 1px solid #e2e8f0; flex-shrink: 0; background: white; border-radius: 0 0 12px 12px;">
-                    <button type="button" id="btnCloseImportModal" class="btn btn-outline">Cancel</button>
-                    <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800;" disabled>Verify &amp; Start Import ➔</button>
+                <!-- STICKY FOOTER ACTION BAR -->
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 18px 32px; border-top: 1px solid #e2e8f0; flex-shrink: 0; background: #ffffff;">
+                    <div style="font-size: 13px; color: #64748b; font-weight: 600;">
+                        💡 Review your file formatting and options before completing import.
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button type="button" id="btnCloseImportModal" class="btn btn-outline" style="padding: 10px 20px; font-weight: 700; border-radius: 8px;">Cancel</button>
+                        <button type="button" id="btnStartImport" class="btn btn-primary" style="font-weight: 800; padding: 10px 24px; border-radius: 8px; font-size: 14px;" disabled>Verify &amp; Start Import ➔</button>
+                    </div>
                 </div>
             </div>
         `;
@@ -235,27 +269,34 @@ class AppCsvImportModal extends HTMLElement {
             });
 
             container.innerHTML = `
-                <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 14px; border-radius: 8px;">
-                    <div style="font-weight: 800; font-size: 13px; color: #166534; margin-bottom: 8px;">
-                        🏫 Allocate all new imported students to a classroom now?
+                <div style="background: #ffffff; border: 1px solid #bbf7d0; padding: 20px 22px; border-radius: 12px; box-shadow: 0 2px 8px rgba(15,23,42,0.03);">
+                    <div style="font-weight: 800; font-size: 15px; color: #166534; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+                        <span>🏫</span> Allocate all newly imported students to a classroom now?
                     </div>
-                    <div style="font-size: 13px; margin-bottom: 10px;">
-                        <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px; cursor: pointer;">
-                            <input type="radio" name="assign_classroom_choice" value="none" checked id="radioAllocNone">
-                            <span>🔘 <strong>No, keep unallocated (Unallocated Pool):</strong> You will assign classrooms later.</span>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px;">
+                        <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; background: #f0fdf4; padding: 12px 14px; border: 1px solid #dcfce7; border-radius: 8px;">
+                            <input type="radio" name="assign_classroom_choice" value="none" checked id="radioAllocNone" style="margin-top: 2px;">
+                            <div>
+                                <strong style="color: #166534;">🔘 Keep Unallocated (Unallocated Pool)</strong>
+                                <div style="color: #475569; font-size: 12px; margin-top: 2px;">Students will be added to system pool without classroom assignment. You can assign classrooms later.</div>
+                            </div>
                         </label>
-                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="radio" name="assign_classroom_choice" value="select" id="radioAllocSelect">
-                            <span>🏫 <strong>Yes, assign all imported students to this classroom:</strong></span>
+                        <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 13px; cursor: pointer; background: #f0fdf4; padding: 12px 14px; border: 1px solid #dcfce7; border-radius: 8px;">
+                            <input type="radio" name="assign_classroom_choice" value="select" id="radioAllocSelect" style="margin-top: 2px;">
+                            <div>
+                                <strong style="color: #166534;">🏫 Assign All Students to Selected Classroom</strong>
+                                <div style="color: #475569; font-size: 12px; margin-top: 2px;">Directly enroll all imported students into a designated classroom.</div>
+                            </div>
                         </label>
                     </div>
 
-                    <div id="classroomSelectWrapper" style="display: none; padding-left: 24px; margin-top: 8px;">
-                        <select id="importClassroomSelect" class="form-control" style="font-weight: 700; height: 38px;">
-                            <option value="">— Select a classroom —</option>
+                    <div id="classroomSelectWrapper" style="display: none; padding-top: 12px; border-top: 1px dashed #bbf7d0; margin-top: 12px;">
+                        <label style="font-weight: 700; font-size: 13px; color: #166534; margin-bottom: 6px; display: block;">Select Target Classroom Stream:</label>
+                        <select id="importClassroomSelect" class="form-control" style="font-weight: 700; height: 42px; font-size: 14px; border-color: #86efac;">
+                            <option value="">— Select a classroom stream —</option>
                             ${optionsHtml}
                         </select>
-                        <div style="font-size:11px;color:#b91c1c;margin-top:4px;display:none;" id="classroomSelectError">⚠️ Please select a classroom before importing.</div>
+                        <div style="font-size: 12px; color: #b91c1c; margin-top: 6px; display: none; font-weight: 700;" id="classroomSelectError">⚠️ Please select a classroom before importing.</div>
                     </div>
                 </div>
             `;
@@ -272,7 +313,7 @@ class AppCsvImportModal extends HTMLElement {
 
         } else {
             container.innerHTML = `
-                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px; border-radius: 8px; font-size: 13px; color: #1e40af;">
+                <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 14px; border-radius: 8px; font-size: 13px; color: #1e40af;">
                     💡 <strong>Classrooms Notice:</strong> No classrooms have been created in your school yet. These students will be imported without a classroom (Unallocated Pool). You will need to go to the <strong>Classrooms Workspace</strong> to create classrooms and assign them later.
                 </div>
             `;
@@ -313,11 +354,13 @@ class AppCsvImportModal extends HTMLElement {
 
     setupEventListeners() {
         const closeBtn = this.querySelector('#btnCloseImportModal');
+        const headerCloseBtn = this.querySelector('#btnCloseHeaderX');
         const sampleBtn = this.querySelector('#btnDownloadSample');
         const fileInput = this.querySelector('#csvFileInput');
         const startBtn = this.querySelector('#btnStartImport');
         const alertBox = this.querySelector('#importAlert');
 
+        if (headerCloseBtn) headerCloseBtn.addEventListener('click', () => this.close());
         closeBtn.addEventListener('click', () => this.close());
         sampleBtn.addEventListener('click', () => this.downloadSampleCsv());
 
@@ -385,11 +428,11 @@ class AppCsvImportModal extends HTMLElement {
                                 result.conflicts.forEach(c => {
                                     const msg = c.conflict ? c.conflict.message : 'Account already exists';
                                     tbody.innerHTML += `
-                                        <tr style="border-bottom: 1px solid #f1f5f9;">
-                                            <td style="padding: 6px 10px; font-weight: 700; color: #475569;">#${c.row_index}</td>
-                                            <td style="padding: 6px 10px; font-weight: 600; color: #0f172a;">${c.full_name}</td>
-                                            <td style="padding: 6px 10px; font-family: monospace; font-size: 11px; color: #047857;">${c.user_code}</td>
-                                            <td style="padding: 6px 10px; color: #92400e;">${msg}</td>
+                                        <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;">
+                                            <td style="padding: 10px 14px; font-weight: 800; color: #475569;">#${c.row_index}</td>
+                                            <td style="padding: 10px 14px; font-weight: 700; color: #0f172a;">${c.full_name}</td>
+                                            <td style="padding: 10px 14px; font-family: monospace; font-size: 12px; color: #047857; font-weight: 800;">${c.user_code}</td>
+                                            <td style="padding: 10px 14px; color: #92400e; font-weight: 600;">${msg}</td>
                                         </tr>
                                     `;
                                 });
