@@ -646,8 +646,7 @@ function renderAccordion(grades) {
             if (g.classrooms && g.classrooms.length > 0) {
                 streamChipsHtml = g.classrooms.map(c => `
                     <span class="stream-preview-chip">
-                        🏫 ${c.classroom_name} 
-                        <span style="opacity:0.75; font-size:11px;">(${c.capacity} seats)</span>
+                        🏫 ${c.classroom_name}
                     </span>
                 `).join('');
             } else {
@@ -691,7 +690,6 @@ function renderClassroomChips(g) {
     const chips = g.classrooms.map(c => `
         <div class="classroom-chip" id="chip-room-${c.id}">
             🏫 ${c.classroom_name}
-            <span style="font-size:10px;opacity:.7;">(${c.capacity} seats)</span>
             <button class="chip-delete" title="Delete ${c.classroom_name}" onclick="startDeleteProtection(${c.id},'${esc(c.classroom_name)}',this)">✕</button>
         </div>`).join('');
     return `<div class="classroom-chips">${chips}</div>`;
