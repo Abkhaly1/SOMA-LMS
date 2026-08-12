@@ -17,18 +17,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 try {
+    $year = $_GET['year'] ?? date('Y');
     $stmt = $conn->prepare("
         SELECT c.id, CONCAT(g.name, ' - ', c.classroom_name) AS name, c.created_at 
         FROM classrooms c
         JOIN grades g ON c.grade_id = g.id
-        WHERE c.school_id = ? AND c.is_active = 1
+        WHERE c.school_id = ? AND c.academic_year = ? AND c.is_active = 1
         ORDER BY g.id ASC, c.classroom_name ASC
     ");
-    $stmt->execute([$_SESSION['school_id']]);
+    $stmt->execute([$_SESSION['school_id'], $year]);
     
     $classes = $stmt->fetchAll();
     
-    echo json_encode(["success" => true, "data" => $classes]);
+    echo json_encode(["success" => true, "data" => $classes, "year" => $year]);
 
 } catch (PDOException $e) {
     http_response_code(500);

@@ -301,6 +301,22 @@ try {
         exit();
     }
 
+    // 4. GET: List Classrooms for active tenant school & academic year
+    if ($method === 'GET' && $action === 'list_classrooms') {
+        $year = $_GET['year'] ?? date('Y');
+        $stmtC = $conn->prepare("
+            SELECT c.id, CONCAT(g.name, ' - ', c.classroom_name) AS classroom_name, c.grade_id 
+            FROM classrooms c
+            JOIN grades g ON c.grade_id = g.id
+            WHERE c.school_id = ? AND c.academic_year = ? AND c.is_active = 1
+            ORDER BY g.id ASC, c.classroom_name ASC
+        ");
+        $stmtC->execute([$schoolId, $year]);
+        $classrooms = $stmtC->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'classrooms' => $classrooms, 'year' => $year]);
+        exit();
+    }
+
     echo json_encode(['success' => false, 'message' => 'Unknown import action.']);
 
 } catch (PDOException $e) {
