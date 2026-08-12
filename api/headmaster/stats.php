@@ -38,8 +38,9 @@ try {
     $tchStmt->execute([$school_id]);
     $totalTeachers = (int)$tchStmt->fetchColumn();
 
-    $clsStmt = $conn->prepare("SELECT (SELECT COUNT(*) FROM classrooms WHERE school_id = ?) + (SELECT COUNT(*) FROM classes WHERE school_id = ?)");
-    $clsStmt->execute([$school_id, $school_id]);
+    $year = date('Y');
+    $clsStmt = $conn->prepare("SELECT COUNT(*) FROM classrooms WHERE school_id = ? AND academic_year = ? AND is_active = 1");
+    $clsStmt->execute([$school_id, $year]);
     $totalClasses = (int)$clsStmt->fetchColumn();
 
     $parStmt = $conn->prepare("SELECT COUNT(*) FROM users WHERE school_id = ? AND role = 'parent'");
