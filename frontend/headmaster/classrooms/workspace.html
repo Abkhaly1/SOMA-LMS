@@ -85,10 +85,10 @@
                             <div class="card" style="padding: 18px 22px; margin: 12px 0 0 0; width: 100%;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--c-border-light); padding-bottom: 16px; gap: 16px; flex-wrap: wrap;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--c-text-primary);" id="tabRoomsTitle">Classroom Streams Configuration</h3>
-                                        <p style="color: var(--c-text-secondary); margin: 4px 0 0 0; font-size: 13px;">Create classroom streams (e.g. Stream A, Stream B) and view rosters.</p>
+                                        <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--c-text-primary);" id="tabRoomsTitle">Classroom Streams Configuration</h3>
+                                        <p style="color: var(--c-text-secondary); margin: 3px 0 0 0; font-size: 12px;">Create classroom streams (e.g. Stream A, Stream B) and view rosters.</p>
                                     </div>
-                                    <button class="btn btn-primary" id="btnOpenAddRoomModal" style="font-weight: 800; font-size: 13px; padding: 10px 18px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(4,120,87,0.25);">➕ Create New Stream / Room</button>
+                                    <button class="btn btn-primary" id="btnOpenAddRoomModal" style="font-weight: 800; font-size: 12px; padding: 6px 14px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; display: inline-flex; align-items: center; gap: 6px; box-shadow: 0 2px 6px rgba(4,120,87,0.25);">➕ Create New Stream / Room</button>
                                 </div>
 
                                 <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 300px)); gap: 16px;" id="roomsGridContainer">
@@ -100,68 +100,68 @@
                         <!-- TAB 2: STUDENT ALLOCATION POOL WORKSPACE -->
                         <app-workspace-content tab-id="allocation">
                             <div class="card" style="padding: 22px 24px; margin: 12px 0 0 0; width: 100%;">
-                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--c-border-light); padding-bottom: 14px; margin-bottom: 18px; flex-wrap: wrap; gap: 12px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--c-border-light); padding-bottom: 12px; margin-bottom: 14px; flex-wrap: wrap; gap: 12px;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 17px; font-weight: 800; color: var(--c-text-primary);">👥 Student Allocation & Roster Workspace</h3>
-                                        <p style="color: var(--c-text-secondary); margin: 3px 0 0 0; font-size: 13px;">Manage unassigned student pool, bulk allocate students into classroom streams, and view active stream rosters.</p>
+                                        <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--c-text-primary);">👥 Student Allocation & Roster Workspace</h3>
+                                        <p style="color: var(--c-text-secondary); margin: 2px 0 0 0; font-size: 12px;">Manage unassigned student pool, bulk allocate students into classroom streams, and view active stream rosters.</p>
                                     </div>
                                     <div style="display: flex; gap: 10px; align-items: center;">
-                                        <span class="badge badge-success" style="font-weight: 700; font-size: 11px; padding: 5px 12px; border-radius: 999px;">Academic Year: <span class="current-year">2026</span></span>
+                                        <span class="badge badge-success" style="font-weight: 700; font-size: 11px; padding: 4px 10px; border-radius: 999px;">Academic Year: <span class="current-year">2026</span></span>
                                     </div>
                                 </div>
 
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
                                     
                                     <!-- Column 1: Unassigned Student Pool -->
-                                    <div style="background: #ffffff; border: 1px solid var(--c-border-light); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                    <div style="background: #ffffff; border: 1px solid var(--c-border-light); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                             <div style="display: flex; align-items: center; gap: 8px;">
-                                                <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--c-text-primary);">Unassigned Student Pool</h4>
-                                                <span id="unassignedCountBadge" class="badge badge-warning" style="font-weight: 800; font-size: 11px;">0 Pending</span>
+                                                <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: var(--c-text-primary);">Unassigned Student Pool</h4>
+                                                <span id="unassignedCountBadge" class="badge badge-warning" style="font-weight: 800; font-size: 10px; padding: 2px 6px;">0 Pending</span>
                                             </div>
-                                            <label style="font-size: 12px; font-weight: 700; color: #047857; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                            <label style="font-size: 11px; font-weight: 700; color: #047857; cursor: pointer; display: flex; align-items: center; gap: 4px;">
                                                 <input type="checkbox" id="selectAllPoolCheckbox" style="cursor: pointer;"> Select All
                                             </label>
                                         </div>
 
                                         <!-- Assignment Action Bar -->
-                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
-                                            <div style="font-size: 12px; font-weight: 700; color: #475569; margin-bottom: 6px;">Select Target Stream &amp; Allocate:</div>
-                                            <div style="display: flex; gap: 8px; align-items: center;">
-                                                <select id="targetStreamSelect" class="form-control" style="flex: 1; font-weight: 700; height: 38px;">
+                                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                                            <div style="font-size: 11px; font-weight: 700; color: #475569; margin-bottom: 4px;">Select Target Stream &amp; Allocate:</div>
+                                            <div style="display: flex; gap: 6px; align-items: center;">
+                                                <select id="targetStreamSelect" class="form-control" style="flex: 1; font-weight: 700; height: 32px; font-size: 12px;">
                                                     <option value="">Select Target Stream Room...</option>
                                                 </select>
-                                                <button id="btnAssignSelectedStudents" class="btn btn-primary" style="font-weight: 800; white-space: nowrap; height: 38px; padding: 0 16px; display: inline-flex; align-items: center; gap: 6px;">
+                                                <button id="btnAssignSelectedStudents" class="btn btn-primary" style="font-weight: 800; white-space: nowrap; height: 32px; padding: 0 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
                                                     Assign Selected ➡️
                                                 </button>
                                             </div>
                                         </div>
 
                                         <!-- Filter Search Bar -->
-                                        <div style="margin-bottom: 10px;">
-                                            <input type="text" id="poolSearchInput" class="form-control" placeholder="🔍 Search unassigned students..." style="font-size: 13px; height: 36px;">
+                                        <div style="margin-bottom: 8px;">
+                                            <input type="text" id="poolSearchInput" class="form-control" placeholder="🔍 Search unassigned students..." style="font-size: 12px; height: 32px;">
                                         </div>
 
-                                        <div id="unassignedPoolContainer" style="flex: 1; max-height: 480px; min-height: 340px; overflow-y: auto; border: 1px solid var(--c-border-light); border-radius: 8px; background: #ffffff;">
-                                            <div style="padding: 20px; text-align: center; color: var(--c-text-muted);">Loading unassigned students...</div>
+                                        <div id="unassignedPoolContainer" style="flex: 1; max-height: 460px; min-height: 320px; overflow-y: auto; border: 1px solid var(--c-border-light); border-radius: 6px; background: #ffffff;">
+                                            <div style="padding: 16px; text-align: center; color: var(--c-text-muted); font-size: 12px;">Loading unassigned students...</div>
                                         </div>
                                     </div>
 
                                     <!-- Column 2: Stream Roster Viewer -->
-                                    <div style="background: #ffffff; border: 1px solid var(--c-border-light); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                                    <div style="background: #ffffff; border: 1px solid var(--c-border-light); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; box-shadow: 0 2px 8px rgba(0,0,0,0.02);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 8px;">
                                             <div style="display: flex; align-items: center; gap: 8px;">
-                                                <h4 style="margin: 0; font-size: 15px; font-weight: 800; color: var(--c-text-primary);">Classroom Roster Viewer</h4>
-                                                <span id="rosterCountBadge" class="badge badge-success" style="font-weight: 800; font-size: 11px; display: none;">0 Enrolled</span>
+                                                <h4 style="margin: 0; font-size: 13px; font-weight: 800; color: var(--c-text-primary);">Classroom Roster Viewer</h4>
+                                                <span id="rosterCountBadge" class="badge badge-success" style="font-weight: 800; font-size: 10px; padding: 2px 6px; display: none;">0 Enrolled</span>
                                             </div>
-                                            <select id="rosterStreamSelect" class="form-control" style="font-weight: 700; width: 220px; height: 36px;">
+                                            <select id="rosterStreamSelect" class="form-control" style="font-weight: 700; width: 200px; height: 32px; font-size: 12px;">
                                                 <option value="">Select Stream...</option>
                                             </select>
                                         </div>
 
                                         <!-- Roster Search Bar -->
-                                        <div style="margin-bottom: 10px;">
-                                            <input type="text" id="rosterSearchInput" class="form-control" placeholder="🔍 Search enrolled roster..." style="font-size: 13px; height: 36px;">
+                                        <div style="margin-bottom: 8px;">
+                                            <input type="text" id="rosterSearchInput" class="form-control" placeholder="🔍 Search enrolled roster..." style="font-size: 12px; height: 32px;">
                                         </div>
 
                                         <div id="rosterViewerContainer" style="flex: 1; max-height: 480px; min-height: 380px; overflow-y: auto; border: 1px solid var(--c-border-light); border-radius: 8px; background: #ffffff;">
@@ -182,14 +182,14 @@
                             <div class="card" style="padding: 22px; margin: 12px 0 0 0; width: 100%;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 1px solid var(--c-border-light); padding-bottom: 14px; gap: 16px; flex-wrap: wrap;">
                                     <div>
-                                        <h3 style="margin: 0; font-size: 18px; font-weight: 800; color: var(--c-text-primary);" id="wsPromoTitle">🎓 END-OF-YEAR PROGRESSION BOARD</h3>
-                                        <p style="color: var(--c-text-secondary); margin: 3px 0 0 0; font-size: 13px;">Review automated GPA calculations, override actions, and execute batch promotion to next year streams.</p>
+                                        <h3 style="margin: 0; font-size: 14px; font-weight: 800; color: var(--c-text-primary);" id="wsPromoTitle">🎓 END-OF-YEAR PROGRESSION BOARD</h3>
+                                        <p style="color: var(--c-text-secondary); margin: 2px 0 0 0; font-size: 12px;">Review automated GPA calculations, override actions, and execute batch promotion to next year streams.</p>
                                     </div>
-                                    <div style="display: flex; gap: 10px; align-items: center;">
-                                        <select id="wsPromoStreamSelect" class="form-control" style="font-weight: 700; width: 220px;">
+                                    <div style="display: flex; gap: 8px; align-items: center;">
+                                        <select id="wsPromoStreamSelect" class="form-control" style="font-weight: 700; width: 200px; height: 32px; font-size: 12px;">
                                             <option value="">Select Stream Room...</option>
                                         </select>
-                                        <button class="btn btn-outline" id="btnLoadWsPromo" style="font-weight: 700;">🔄 Load Stream Students</button>
+                                        <button class="btn btn-outline" id="btnLoadWsPromo" style="font-weight: 700; font-size: 12px; height: 32px; padding: 0 12px;">🔄 Load Stream Students</button>
                                     </div>
                                 </div>
 
