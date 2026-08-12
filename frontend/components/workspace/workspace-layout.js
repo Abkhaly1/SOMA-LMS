@@ -32,9 +32,9 @@ class AppWorkspaceLayout extends HTMLElement {
         `;
 
         this.innerHTML = `
-            <div class="workspace-wrapper" style="max-width: 1400px; margin: 0 auto; padding-top: 0;">
+            <div class="workspace-wrapper" style="width: 100%; max-width: 100%; margin: 0; padding: 0 24px 24px 24px; box-sizing: border-box;">
                 ${backHtml}
-                <div class="workspace-container">
+                <div class="workspace-container" style="width: 100%;">
                     ${originalContent}
                 </div>
             </div>
