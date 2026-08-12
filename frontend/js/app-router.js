@@ -91,16 +91,26 @@ class AppRouter {
                 // Replace content
                 currentContent.innerHTML = newContent.innerHTML;
 
-                // Execute scripts inside newContent
-                const scripts = doc.querySelectorAll('script');
-                scripts.forEach(oldScript => {
-                    if (oldScript.src && oldScript.src.includes('global-layout.js')) return; // skip layout
-                    const newScript = document.createElement('script');
-                    Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                    newScript.appendChild(document.createTextNode(oldScript.innerHTML));
-                    document.body.appendChild(newScript);
-                    document.body.removeChild(newScript); // Clean up tag after execution
-                });
+                // Execute scripts safely without allowing document.write to wipe the DOM
+                const originalWrite = document.write;
+                document.write = function() {}; // Prevent document.write from wiping the document
+
+                try {
+                    const scripts = doc.querySelectorAll('script');
+                    scripts.forEach(oldScript => {
+                        if (oldScript.src && oldScript.src.includes('global-layout.js')) return; // skip layout
+                        const newScript = document.createElement('script');
+                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                        let scriptCode = oldScript.innerHTML.replace(/document\.write\s*\([^)]*\);?/gi, '');
+                        newScript.appendChild(document.createTextNode(scriptCode));
+                        document.body.appendChild(newScript);
+                        document.body.removeChild(newScript); // Clean up tag after execution
+                    });
+                } catch(e) {
+                    console.error("Script re-execution error in router:", e);
+                } finally {
+                    document.write = originalWrite;
+                }
 
                 // Fire DOMContentLoaded substitute event for newly loaded page logic
                 document.dispatchEvent(new Event('DOMContentLoaded'));

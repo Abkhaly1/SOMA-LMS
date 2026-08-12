@@ -22,7 +22,14 @@
                 'parent': 'css/design-system.css'
             };
             const cssFile = themeMap[role] || 'css/headmaster-theme.css';
-            document.write('<link id="roleThemeStylesheet" rel="stylesheet" href="' + cssFile + '">');
+            let themeLink = document.getElementById('roleThemeStylesheet');
+            if (!themeLink) {
+                themeLink = document.createElement('link');
+                themeLink.id = 'roleThemeStylesheet';
+                themeLink.rel = 'stylesheet';
+                document.head.appendChild(themeLink);
+            }
+            themeLink.href = cssFile;
         })();
     </script>
 
