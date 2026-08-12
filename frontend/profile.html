@@ -7,175 +7,225 @@
 
     <link rel="stylesheet" href="css/design-system.css">
     <link rel="stylesheet" href="css/layout.css">
-    <link id="roleThemeStylesheet" rel="stylesheet" href="css/headmaster-theme.css">
+    
+    <!-- Synchronous Role Theme Locking Script -->
+    <script>
+        (function() {
+            const role = localStorage.getItem('soma_role') || sessionStorage.getItem('soma_role') || 'headmaster';
+            const themeMap = {
+                'super_admin': 'css/admin.css',
+                'regional_officer': 'css/regional-theme.css',
+                'headmaster': 'css/headmaster-theme.css',
+                'tenant_admin': 'css/headmaster-theme.css',
+                'teacher': 'css/teacher-theme.css',
+                'student': 'css/design-system.css',
+                'parent': 'css/design-system.css'
+            };
+            const cssFile = themeMap[role] || 'css/headmaster-theme.css';
+            document.write('<link id="roleThemeStylesheet" rel="stylesheet" href="' + cssFile + '">');
+        })();
+    </script>
 
     <script type="module" src="layouts/global-layout.js"></script>
     <script type="module" src="js/auth/auth-guard.js"></script>
     <script type="module">
-        // Pre-load i18n before DOM renders so labels are correct on first paint
         import { t as getTranslations, getLang } from './js/i18n.js';
-        window.__i18n  = getTranslations();
-        window.__lang  = getLang();
+        window.__i18n = getTranslations();
+        window.__lang = getLang();
     </script>
 
     <style>
         .profile-container {
-            max-width: 900px;
+            max-width: 850px;
             margin: 0 auto;
         }
 
         .profile-card-header {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            border-radius: 12px;
-            padding: 24px 30px;
+            border-radius: 10px;
+            padding: 14px 20px;
             color: white;
             display: flex;
             align-items: center;
-            gap: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+            gap: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
 
         .avatar-circle {
-            width: 72px;
-            height: 72px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             background: #047857;
             color: white;
-            font-size: 28px;
+            font-size: 18px;
             font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 3px solid #059669;
+            border: 2px solid #059669;
             flex-shrink: 0;
         }
 
         .locked-field-badge {
-            background: #f1f5f9;
+            background: #f8fafc;
             border: 1px solid #cbd5e1;
             color: #475569;
-            padding: 10px 14px;
-            border-radius: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
             font-weight: 700;
-            font-size: 13px;
+            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            height: 32px;
+            box-sizing: border-box;
         }
 
         .form-section-title {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 800;
             color: #0f172a;
-            margin: 0 0 16px 0;
+            margin: 0 0 10px 0;
             display: flex;
             align-items: center;
-            gap: 8px;
-            border-bottom: 2px solid #f1f5f9;
-            padding-bottom: 8px;
+            gap: 6px;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
         }
 
         .profile-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 20px;
-            margin-bottom: 24px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .compact-card {
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            border-radius: 10px;
+            border: 1px solid var(--c-border-light);
+            background: #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        }
+
+        .compact-input {
+            height: 32px !important;
+            font-size: 12px !important;
+            padding: 4px 10px !important;
+            border-radius: 6px !important;
+        }
+
+        .compact-label {
+            font-weight: 700;
+            font-size: 12px;
+            margin-bottom: 4px;
+            display: block;
+            color: #334155;
+        }
+
+        .compact-btn {
+            font-size: 12px !important;
+            font-weight: 800 !important;
+            padding: 4px 16px !important;
+            height: 32px !important;
+            border-radius: 6px !important;
         }
     </style>
 </head>
 <body>
-    <div class="app-layout">
+    <div class="app-layout" id="profile_app_layout">
         <app-sidebar id="appSidebar" active-path="/profile.html"></app-sidebar>
 
-        <div class="app-main">
-            <app-topbar username="User Portal"></app-topbar>
+        <div class="app-main" id="profile_app_main">
+            <app-topbar id="profile_app_topbar" username="User Portal"></app-topbar>
 
-            <main class="app-content-wrapper">
-                <div class="app-content">
+            <main class="app-content-wrapper" id="profile_content_wrapper">
+                <div class="app-content" id="profile_app_content">
                     <app-breadcrumb id="profileBreadcrumb" path="SOMA LMS, My Profile"></app-breadcrumb>
 
-                    <div class="profile-container" style="margin-top: 16px;">
+                    <div class="profile-container" id="profile_main_container" style="margin-top: 12px;">
                         
                         <!-- Profile Header Card -->
-                        <div class="profile-card-header">
+                        <div class="profile-card-header" id="profile_header_card">
                             <div class="avatar-circle" id="userAvatar">U</div>
                             <div>
-                                <h2 style="margin: 0 0 4px 0; font-size: 22px; font-weight: 800;" id="hdrFullName">Loading Profile...</h2>
-                                <div style="display: flex; align-items: center; gap: 12px; font-size: 13px; color: #94a3b8; flex-wrap: wrap;">
+                                <h2 style="margin: 0 0 2px 0; font-size: 16px; font-weight: 800; color: #ffffff;" id="hdrFullName">Loading Profile...</h2>
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #94a3b8; flex-wrap: wrap;">
                                     <span>ID / Reg Code: <strong style="color: #34d399;" id="hdrUserCode">-</strong></span>
                                     <span>•</span>
-                                    <span id="hdrRoleLabel">Role: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span></span>
+                                    <span id="hdrRoleLabel">Role: <span class="badge" style="background: #0284c7; color: white; font-weight: 800; font-size: 10px; padding: 2px 6px;" id="hdrRole">-</span></span>
                                     <span>•</span>
-                                    <span id="hdrSchoolLabel">School: <strong style="color: white;" id="hdrSchoolName">-</strong></span>
+                                    <span id="hdrSchoolLabel">School: <strong style="color: #ffffff;" id="hdrSchoolName">-</strong></span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Alert Box for Notifications -->
-                        <div id="profileAlert" class="alert" style="display: none; margin-bottom: 20px;"></div>
+                        <div id="profileAlert" class="alert" style="display: none; margin-bottom: 12px; font-size: 12px; padding: 8px 12px;"></div>
 
                         <!-- 🔒 SECTION 1: PERMANENT & LOCKED IDENTIFIERS (READ-ONLY) -->
-                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                        <div class="compact-card" id="profile_sec_locked">
                             <h3 class="form-section-title" id="secLockedTitle">🔒 Permanent Identifiers (Cannot be changed by user)</h3>
-                            <p style="margin: 0 0 16px 0; font-size: 13px; color: #64748b;" id="secLockedDesc">
+                            <p style="margin: 0 0 10px 0; font-size: 11px; color: #64748b;" id="secLockedDesc">
                                 Full Name and Registration Code are permanent identifiers. Only the Headmaster can change them if required.
                             </p>
 
                             <div class="profile-grid">
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblFullName">Full Name</label>
-                                    <div class="locked-field-badge">
+                                    <label class="compact-label" id="lblFullName">Full Name</label>
+                                    <div class="locked-field-badge" id="profile_badge_fullname">
                                         <span id="txtFullName">-</span>
-                                        <span id="lockLabel1">🔒 Lock</span>
+                                        <span id="lockLabel1" style="font-size: 11px; color: #94a3b8;">🔒 Lock</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblRegId">Reg Code / Staff ID</label>
-                                    <div class="locked-field-badge" style="background: #ecfdf5; border-color: #a7f3d0; color: #047857;">
-                                        <code style="font-family: monospace; font-size: 14px; font-weight: 800;" id="txtUserCode">-</code>
-                                        <span id="lockLabel2">🔒 Lock</span>
+                                    <label class="compact-label" id="lblRegId">Reg Code / Staff ID</label>
+                                    <div class="locked-field-badge" id="profile_badge_regcode" style="background: #f0fdf4; border-color: #bbf7d0; color: #047857;">
+                                        <code style="font-family: monospace; font-size: 12px; font-weight: 800;" id="txtUserCode">-</code>
+                                        <span id="lockLabel2" style="font-size: 11px; color: #059669;">🔒 Lock</span>
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblRole">Role</label>
-                                    <div class="locked-field-badge">
+                                    <label class="compact-label" id="lblRole">Role</label>
+                                    <div class="locked-field-badge" id="profile_badge_role">
                                         <span id="txtRole">-</span>
-                                        <span id="lockLabel3">🔒 Lock</span>
+                                        <span id="lockLabel3" style="font-size: 11px; color: #94a3b8;">🔒 Lock</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- ✏️ SECTION 2: EDITABLE PROFILE DETAILS (PHONE, EMAIL, GENDER) -->
-                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                        <div class="compact-card" id="profile_sec_editable">
                             <h3 class="form-section-title" id="secEditableTitle">✏️ Editable Information</h3>
                             
                             <form id="formUpdateProfile">
                                 <div class="profile-grid">
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblPhone">Phone Number <span style="color: red;">*</span></label>
-                                        <input type="text" id="inpPhone" class="form-control" placeholder="e.g. +255712345678" style="font-weight: 700;" required>
+                                        <label class="compact-label" id="lblPhone">Phone Number <span style="color: red;">*</span></label>
+                                        <input type="text" id="inpPhone" class="form-control compact-input" placeholder="e.g. +255712345678" style="font-weight: 700;" required>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblEmail">Email Address</label>
-                                        <input type="email" id="inpEmail" class="form-control" placeholder="e.g. user@school.ac.tz" style="font-weight: 600;">
+                                        <label class="compact-label" id="lblEmail">Email Address</label>
+                                        <input type="email" id="inpEmail" class="form-control compact-input" placeholder="e.g. user@school.ac.tz" style="font-weight: 600;">
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblGender">Gender <span style="color: red;">*</span></label>
-                                        <select id="inpGender" class="form-control" style="font-weight: 700;" required>
+                                        <label class="compact-label" id="lblGender">Gender <span style="color: red;">*</span></label>
+                                        <select id="inpGender" class="form-control compact-input" style="font-weight: 700;" required>
                                             <option value="Male" id="optMale">Male</option>
                                             <option value="Female" id="optFemale">Female</option>
                                         </select>
                                     </div>
                                 </div>
 
-                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-                                    <button type="submit" id="btnSaveProfile" class="btn btn-primary" style="font-weight: 800; background: #047857; border-color: #047857; padding: 10px 24px;">
+                                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                                    <button type="submit" id="btnSaveProfile" class="btn btn-primary compact-btn" style="background: #047857; border-color: #047857;">
                                         💾 Save Profile Changes
                                     </button>
                                 </div>
@@ -183,38 +233,38 @@
                         </div>
 
                         <!-- 🔐 SECTION 3: CHANGE PASSWORD -->
-                        <div class="card" style="padding: 24px; margin-bottom: 24px;">
+                        <div class="compact-card" id="profile_sec_security">
                             <h3 class="form-section-title" id="secSecurityTitle">🔐 Security & Password</h3>
                             
                             <form id="formChangePassword">
                                 <div class="profile-grid">
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblCurrPass">Current Password</label>
+                                        <label class="compact-label" id="lblCurrPass">Current Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpCurrPass" class="form-control" placeholder="Enter your current password" required style="padding-right: 40px;">
-                                            <button type="button" class="btn-toggle-pwd" data-target="inpCurrPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                            <input type="password" id="inpCurrPass" class="form-control compact-input" placeholder="Enter current password" required style="padding-right: 36px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpCurrPass" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 14px;">👁️</button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblNewPass">New Password</label>
+                                        <label class="compact-label" id="lblNewPass">New Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpNewPass" class="form-control" placeholder="Minimum 8 characters" required style="padding-right: 40px;">
-                                            <button type="button" class="btn-toggle-pwd" data-target="inpNewPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                            <input type="password" id="inpNewPass" class="form-control compact-input" placeholder="Min 8 characters" required style="padding-right: 36px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpNewPass" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 14px;">👁️</button>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <label class="form-label" style="font-weight: 700; font-size: 13px;" id="lblConfirmPass">Confirm New Password</label>
+                                        <label class="compact-label" id="lblConfirmPass">Confirm New Password</label>
                                         <div style="position: relative;">
-                                            <input type="password" id="inpConfirmPass" class="form-control" placeholder="Re-enter new password" required style="padding-right: 40px;">
-                                            <button type="button" class="btn-toggle-pwd" data-target="inpConfirmPass" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 16px;">👁️</button>
+                                            <input type="password" id="inpConfirmPass" class="form-control compact-input" placeholder="Re-enter password" required style="padding-right: 36px;">
+                                            <button type="button" class="btn-toggle-pwd" data-target="inpConfirmPass" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 14px;">👁️</button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-                                    <button type="submit" id="btnSavePassword" class="btn btn-primary" style="font-weight: 800; background: #0284c7; border-color: #0284c7; padding: 10px 24px;">
+                                <div style="display: flex; justify-content: flex-end; margin-top: 8px;">
+                                    <button type="submit" id="btnSavePassword" class="btn btn-primary compact-btn" style="background: #0284c7; border-color: #0284c7;">
                                         🔑 Change Password Now
                                     </button>
                                 </div>
@@ -242,7 +292,7 @@
             };
 
             const cssFile = themeMap[role] || 'css/headmaster-theme.css';
-            if (themeLink) {
+            if (themeLink && !themeLink.href.includes(cssFile)) {
                 themeLink.href = cssFile;
             }
 
@@ -267,52 +317,42 @@
             const c = i18n.common || {};
 
             // Apply translations to dynamic text
-            document.getElementById('profileBreadcrumb').setAttribute('path', t.breadcrumb || 'SOMA LMS, My Profile');
-            document.getElementById('hdrRoleLabel').innerHTML = `${t.roleLabel || 'Role'}: <span class="badge" style="background: #0284c7; color: white; font-weight: 800;" id="hdrRole">-</span>`;
-            document.getElementById('hdrSchoolLabel').innerHTML = `${t.schoolLabel || 'School'}: <strong style="color: white;" id="hdrSchoolName">-</strong>`;
+            if (document.getElementById('profileBreadcrumb')) document.getElementById('profileBreadcrumb').setAttribute('path', t.breadcrumb || 'SOMA LMS, My Profile');
+            if (document.getElementById('hdrRoleLabel')) document.getElementById('hdrRoleLabel').innerHTML = `${t.roleLabel || 'Role'}: <span class="badge" style="background: #0284c7; color: white; font-weight: 800; font-size: 10px; padding: 2px 6px;" id="hdrRole">-</span>`;
+            if (document.getElementById('hdrSchoolLabel')) document.getElementById('hdrSchoolLabel').innerHTML = `${t.schoolLabel || 'School'}: <strong style="color: white;" id="hdrSchoolName">-</strong>`;
 
-            document.getElementById('secLockedTitle').innerHTML = `🔒 ${t.secLockedTitle || 'Permanent Identifiers'}`;
-            document.getElementById('secLockedDesc').textContent = t.secLockedDesc || 'Full Name and Registration Code are permanent...';
-            document.getElementById('lblFullName').textContent = t.lblFullName || 'Full Name';
-            document.getElementById('lblRegId').textContent = t.lblRegId || 'Reg Code / Staff ID';
-            document.getElementById('lblRole').textContent = t.lblRole || 'Role';
+            if (document.getElementById('secLockedTitle')) document.getElementById('secLockedTitle').innerHTML = `🔒 ${t.secLockedTitle || 'Permanent Identifiers'}`;
+            if (document.getElementById('secLockedDesc')) document.getElementById('secLockedDesc').textContent = t.secLockedDesc || 'Full Name and Registration Code are permanent...';
+            if (document.getElementById('lblFullName')) document.getElementById('lblFullName').textContent = t.lblFullName || 'Full Name';
+            if (document.getElementById('lblRegId')) document.getElementById('lblRegId').textContent = t.lblRegId || 'Reg Code / Staff ID';
+            if (document.getElementById('lblRole')) document.getElementById('lblRole').textContent = t.lblRole || 'Role';
             
-            document.getElementById('lockLabel1').textContent = `🔒 ${c.lock || 'Lock'}`;
-            document.getElementById('lockLabel2').textContent = `🔒 ${c.lock || 'Lock'}`;
-            document.getElementById('lockLabel3').textContent = `🔒 ${c.lock || 'Lock'}`;
+            if (document.getElementById('lockLabel1')) document.getElementById('lockLabel1').textContent = `🔒 ${c.lock || 'Lock'}`;
+            if (document.getElementById('lockLabel2')) document.getElementById('lockLabel2').textContent = `🔒 ${c.lock || 'Lock'}`;
+            if (document.getElementById('lockLabel3')) document.getElementById('lockLabel3').textContent = `🔒 ${c.lock || 'Lock'}`;
 
-            document.getElementById('secEditableTitle').innerHTML = `✏️ ${t.secEditableTitle || 'Editable Information'}`;
-            document.getElementById('lblPhone').innerHTML = `${t.lblPhone || 'Phone Number'} <span style="color: red;">*</span>`;
-            document.getElementById('inpPhone').placeholder = t.phPhone || 'e.g. +255712345678';
-            document.getElementById('lblEmail').textContent = t.lblEmail || 'Email Address';
-            document.getElementById('inpEmail').placeholder = t.phEmail || 'e.g. user@school.ac.tz';
-            document.getElementById('lblGender').innerHTML = `${t.lblGender || 'Gender'} <span style="color: red;">*</span>`;
-            document.getElementById('optMale').textContent = t.optMale || 'Male';
-            document.getElementById('optFemale').textContent = t.optFemale || 'Female';
-            document.getElementById('btnSaveProfile').textContent = `💾 ${t.btnSaveProfile || 'Save Profile Changes'}`;
+            if (document.getElementById('secEditableTitle')) document.getElementById('secEditableTitle').innerHTML = `✏️ ${t.secEditableTitle || 'Editable Information'}`;
+            if (document.getElementById('lblPhone')) document.getElementById('lblPhone').innerHTML = `${t.lblPhone || 'Phone Number'} <span style="color: red;">*</span>`;
+            if (document.getElementById('inpPhone')) document.getElementById('inpPhone').placeholder = t.phPhone || 'e.g. +255712345678';
+            if (document.getElementById('lblEmail')) document.getElementById('lblEmail').textContent = t.lblEmail || 'Email Address';
+            if (document.getElementById('inpEmail')) document.getElementById('inpEmail').placeholder = t.phEmail || 'e.g. user@school.ac.tz';
+            if (document.getElementById('lblGender')) document.getElementById('lblGender').innerHTML = `${t.lblGender || 'Gender'} <span style="color: red;">*</span>`;
+            if (document.getElementById('optMale')) document.getElementById('optMale').textContent = t.optMale || 'Male';
+            if (document.getElementById('optFemale')) document.getElementById('optFemale').textContent = t.optFemale || 'Female';
+            if (document.getElementById('btnSaveProfile')) document.getElementById('btnSaveProfile').textContent = `💾 ${t.btnSaveProfile || 'Save Profile Changes'}`;
 
-            document.getElementById('secSecurityTitle').innerHTML = `🔐 ${t.secSecurityTitle || 'Security & Password'}`;
-            document.getElementById('lblCurrPass').textContent = t.lblCurrPass || 'Current Password';
-            document.getElementById('inpCurrPass').placeholder = t.phCurrPass || 'Enter your current password';
-            document.getElementById('lblNewPass').textContent = t.lblNewPass || 'New Password';
-            document.getElementById('inpNewPass').placeholder = t.phNewPass || 'Minimum 8 characters';
-            document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass || 'Confirm New Password';
-            document.getElementById('inpConfirmPass').placeholder = t.phConfirmPass || 'Re-enter new password';
-            document.getElementById('btnSavePassword').textContent = `🔑 ${t.btnSavePassword || 'Change Password Now'}`;
+            if (document.getElementById('secSecurityTitle')) document.getElementById('secSecurityTitle').innerHTML = `🔐 ${t.secSecurityTitle || 'Security & Password'}`;
+            if (document.getElementById('lblCurrPass')) document.getElementById('lblCurrPass').textContent = t.lblCurrPass || 'Current Password';
+            if (document.getElementById('inpCurrPass')) document.getElementById('inpCurrPass').placeholder = t.phCurrPass || 'Enter current password';
+            if (document.getElementById('lblNewPass')) document.getElementById('lblNewPass').textContent = t.lblNewPass || 'New Password';
+            if (document.getElementById('inpNewPass')) document.getElementById('inpNewPass').placeholder = t.phNewPass || 'Min 8 characters';
+            if (document.getElementById('lblConfirmPass')) document.getElementById('lblConfirmPass').textContent = t.lblConfirmPass || 'Confirm New Password';
+            if (document.getElementById('inpConfirmPass')) document.getElementById('inpConfirmPass').placeholder = t.phConfirmPass || 'Re-enter password';
+            if (document.getElementById('btnSavePassword')) document.getElementById('btnSavePassword').textContent = `🔑 ${t.btnSavePassword || 'Change Password Now'}`;
 
             const storedRole = localStorage.getItem('soma_role') || sessionStorage.getItem('soma_role');
             if (storedRole) {
                 applyRoleTheme(storedRole);
-            }
-
-            const userStr = sessionStorage.getItem('soma_user');
-            if (userStr) {
-                try {
-                    const uObj = JSON.parse(userStr);
-                    if (uObj.role) {
-                        applyRoleTheme(uObj.role);
-                    }
-                } catch(e) {}
             }
 
             document.querySelectorAll('.btn-toggle-pwd').forEach(btn => {
@@ -331,91 +371,95 @@
                 });
             });
 
-            await loadUserProfile();
-
             // Submit listener for Profile Updates (Phone, Email, Gender)
-            document.getElementById('formUpdateProfile').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnSaveProfile');
-                const alertBox = document.getElementById('profileAlert');
-                btn.disabled = true;
-                btn.textContent = window.__i18n?.profile?.saving || 'Saving...';
-                alertBox.style.display = 'none';
+            const formProfile = document.getElementById('formUpdateProfile');
+            if (formProfile) {
+                formProfile.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnSaveProfile');
+                    const alertBox = document.getElementById('profileAlert');
+                    btn.disabled = true;
+                    btn.textContent = window.__i18n?.profile?.saving || 'Saving...';
+                    alertBox.style.display = 'none';
 
-                const phone = document.getElementById('inpPhone').value.trim();
-                const email = document.getElementById('inpEmail').value.trim();
-                const gender = document.getElementById('inpGender').value;
+                    const phone = document.getElementById('inpPhone').value.trim();
+                    const email = document.getElementById('inpEmail').value.trim();
+                    const gender = document.getElementById('inpGender').value;
 
-                try {
-                    const res = await fetch('/soma-lms/api/auth/profile.php?action=update_profile', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ phone, email, gender })
-                    });
-                    const result = await res.json();
+                    try {
+                        const res = await fetch('/soma-lms/api/auth/profile.php?action=update_profile', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ phone, email, gender })
+                        });
+                        const result = await res.json();
 
-                    if (res.ok && result.success) {
-                        alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaved || 'Profile updated successfully!');
-                        alertBox.style.display = 'block';
-                        await loadUserProfile();
-                    } else {
+                        if (res.ok && result.success) {
+                            alertBox.className = 'alert alert-success';
+                            alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaved || 'Profile updated successfully!');
+                            alertBox.style.display = 'block';
+                            await loadUserProfile();
+                        } else {
+                            alertBox.className = 'alert alert-danger';
+                            alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaveErr || 'Error saving profile.');
+                            alertBox.style.display = 'block';
+                        }
+                    } catch(err) {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || (window.__i18n?.profile?.profileSaveErr || 'Error saving profile.');
+                        alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
                         alertBox.style.display = 'block';
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = `💾 ${window.__i18n?.profile?.btnSaveProfile || 'Save Profile Changes'}`;
                     }
-                } catch(err) {
-                    alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
-                    alertBox.style.display = 'block';
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = `💾 ${window.__i18n?.profile?.btnSaveProfile || 'Save Profile Changes'}`;
-                }
-            });
+                });
+            }
 
             // Submit listener for Password Change
-            document.getElementById('formChangePassword').addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const btn = document.getElementById('btnSavePassword');
-                const alertBox = document.getElementById('profileAlert');
-                btn.disabled = true;
-                btn.textContent = window.__i18n?.profile?.changing || 'Changing...';
-                alertBox.style.display = 'none';
+            const formPwd = document.getElementById('formChangePassword');
+            if (formPwd) {
+                formPwd.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const btn = document.getElementById('btnSavePassword');
+                    const alertBox = document.getElementById('profileAlert');
+                    btn.disabled = true;
+                    btn.textContent = window.__i18n?.profile?.changing || 'Changing...';
+                    alertBox.style.display = 'none';
 
-                const current_password = document.getElementById('inpCurrPass').value;
-                const new_password = document.getElementById('inpNewPass').value;
-                const confirm_password = document.getElementById('inpConfirmPass').value;
+                    const current_password = document.getElementById('inpCurrPass').value;
+                    const new_password = document.getElementById('inpNewPass').value;
+                    const confirm_password = document.getElementById('inpConfirmPass').value;
 
-                try {
-                    const res = await fetch('/soma-lms/api/auth/profile.php?action=change_password', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        credentials: 'include',
-                        body: JSON.stringify({ current_password, new_password, confirm_password })
-                    });
-                    const result = await res.json();
+                    try {
+                        const res = await fetch('/soma-lms/api/auth/profile.php?action=change_password', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include',
+                            body: JSON.stringify({ current_password, new_password, confirm_password })
+                        });
+                        const result = await res.json();
 
-                    if (res.ok && result.success) {
-                        alertBox.className = 'alert alert-success';
-                        alertBox.textContent = result.message || (window.__i18n?.profile?.pwdSaved || 'Password changed successfully!');
-                        alertBox.style.display = 'block';
-                        document.getElementById('formChangePassword').reset();
-                    } else {
+                        if (res.ok && result.success) {
+                            alertBox.className = 'alert alert-success';
+                            alertBox.textContent = result.message || (window.__i18n?.profile?.pwdSaved || 'Password changed successfully!');
+                            alertBox.style.display = 'block';
+                            document.getElementById('formChangePassword').reset();
+                        } else {
+                            alertBox.className = 'alert alert-danger';
+                            alertBox.textContent = result.message || (window.__i18n?.profile?.pwdErr || 'Error changing password.');
+                            alertBox.style.display = 'block';
+                        }
+                    } catch(err) {
                         alertBox.className = 'alert alert-danger';
-                        alertBox.textContent = result.message || (window.__i18n?.profile?.pwdErr || 'Error changing password.');
+                        alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
                         alertBox.style.display = 'block';
+                    } finally {
+                        btn.disabled = false;
+                        btn.textContent = `🔑 ${window.__i18n?.profile?.btnSavePassword || 'Change Password Now'}`;
                     }
-                } catch(err) {
-                    alertBox.className = 'alert alert-danger';
-                    alertBox.textContent = window.__i18n?.common?.networkError || 'Network error.';
-                    alertBox.style.display = 'block';
-                } finally {
-                    btn.disabled = false;
-                    btn.textContent = `🔑 ${window.__i18n?.profile?.btnSavePassword || 'Change Password Now'}`;
-                }
-            });
+                });
+            }
         });
 
         async function loadUserProfile() {
@@ -431,19 +475,19 @@
                         applyRoleTheme(u.role);
                     }
 
-                    document.getElementById('userAvatar').textContent = initial;
-                    document.getElementById('hdrFullName').textContent = u.full_name || 'User';
-                    document.getElementById('hdrUserCode').textContent = u.user_code || 'N/A';
-                    document.getElementById('hdrRole').textContent = (u.role || '').toUpperCase();
-                    document.getElementById('hdrSchoolName').textContent = u.school_name || 'SOMA LMS School';
+                    if (document.getElementById('userAvatar')) document.getElementById('userAvatar').textContent = initial;
+                    if (document.getElementById('hdrFullName')) document.getElementById('hdrFullName').textContent = u.full_name || 'User';
+                    if (document.getElementById('hdrUserCode')) document.getElementById('hdrUserCode').textContent = u.user_code || 'N/A';
+                    if (document.getElementById('hdrRole')) document.getElementById('hdrRole').textContent = (u.role || '').toUpperCase();
+                    if (document.getElementById('hdrSchoolName')) document.getElementById('hdrSchoolName').textContent = u.school_name || 'SOMA LMS School';
 
-                    document.getElementById('txtFullName').textContent = u.full_name || '-';
-                    document.getElementById('txtUserCode').textContent = u.user_code || '-';
-                    document.getElementById('txtRole').textContent = (u.role || '').toUpperCase();
+                    if (document.getElementById('txtFullName')) document.getElementById('txtFullName').textContent = u.full_name || '-';
+                    if (document.getElementById('txtUserCode')) document.getElementById('txtUserCode').textContent = u.user_code || '-';
+                    if (document.getElementById('txtRole')) document.getElementById('txtRole').textContent = (u.role || '').toUpperCase();
 
-                    document.getElementById('inpPhone').value = u.phone || '';
-                    document.getElementById('inpEmail').value = u.email || '';
-                    document.getElementById('inpGender').value = u.gender || 'Male';
+                    if (document.getElementById('inpPhone')) document.getElementById('inpPhone').value = u.phone || '';
+                    if (document.getElementById('inpEmail')) document.getElementById('inpEmail').value = u.email || '';
+                    if (document.getElementById('inpGender')) document.getElementById('inpGender').value = u.gender || 'Male';
                 }
             } catch(e) {
                 console.error('Error fetching user profile:', e);
