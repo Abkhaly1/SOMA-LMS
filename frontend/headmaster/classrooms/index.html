@@ -650,8 +650,9 @@ function renderAccordion(grades) {
             let streamChipsHtml = '';
             if (g.classrooms && g.classrooms.length > 0) {
                 streamChipsHtml = g.classrooms.map(c => `
-                    <span class="stream-preview-chip">
-                        🏫 ${c.classroom_name}
+                    <span class="stream-preview-chip" style="display: inline-flex; align-items: center; gap: 4px;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="M7 8h10M7 11h5"/></svg>
+                        ${c.classroom_name}
                     </span>
                 `).join('');
             } else {
@@ -662,7 +663,9 @@ function renderAccordion(grades) {
                 <div class="grade-card-grid ${configured ? 'configured' : 'unconfigured'}" onclick="window.location.href='workspace.html?grade_id=${g.id}&year=${currentYear}'">
                     <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 8px;">
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <div class="grade-avatar" style="width: 30px; height: 30px; font-size: 15px; border-radius: 7px; flex-shrink: 0;">${configured ? '🏫' : '📁'}</div>
+                            <div class="grade-avatar" style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(2,132,199,0.3); flex-shrink: 0;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="M7 8h10M7 11h5M12 15v4M9 19h6"/></svg>
+                            </div>
                             <div>
                                 <div class="grade-title" style="font-size: 14px; font-weight: 800; color: var(--c-text-primary); margin: 0 0 1px 0;">${g.grade_name}</div>
                                 <div class="grade-subtitle" style="font-size: 11px; color: var(--c-text-muted); font-weight: 600;">${configured ? `${g.classroom_count} Stream(s)` : 'Setup Needed'}</div>
